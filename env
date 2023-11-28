@@ -1,0 +1,4 @@
+# Environment vars that should be set to run the app.
+
+# SQLALCHEMY URL
+export TIMESHEET_SA_URL="sqlite:///$(pwd)/timesheet.sqlite"

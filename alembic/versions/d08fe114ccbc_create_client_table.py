@@ -115,7 +115,7 @@ def upgrade() -> None:
 
     op.create_table(
        'billing_event',
-       sa.Column('uid', sa.String(32), nullable=False, default=''),
+       sa.Column('uid', sa.String(32), nullable=False, default='', primary_key=True),
        sa.Column('start_time', sa.DateTime, nullable=False, default='1970-01-01 00:00:00'),
        sa.Column('end_time', sa.DateTime, nullable=False, default='0000-00-00 00:00:00'),
        sa.Column('trans_num', sa.Integer, sa.Identity(start=1, cycle=True), nullable=False),
