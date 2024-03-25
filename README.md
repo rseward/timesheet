@@ -21,6 +21,10 @@ Project components:
 - ReactJS
 - docker to easily host the project in a container
 
+## Project Development Setup
+
+
+
 ## Contributions
 
 Bluestone welcomes contributors for this project.

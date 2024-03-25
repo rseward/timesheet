@@ -3,7 +3,7 @@
 import sqlalchemy
 import unittest
 import bluestone.timesheet.config as cfg
-from bluestone.timesheet.models import *
+from bluestone.timesheet.data.models import *
 
 class testModels(unittest.TestCase):
     def setUp(self):
