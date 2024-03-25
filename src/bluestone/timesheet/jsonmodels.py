@@ -1,5 +1,6 @@
 
 from pydantic import BaseModel
+from typing import List, Optional
 
 class ClientJson(BaseModel):
     client_id: int
@@ -16,6 +17,6 @@ class ClientJson(BaseModel):
     username: str
     contact_email: str
     phone_number: str
-    fax_number: str
-    gsm_number: str
+    fax_number: Optional[str] = None
+    gsm_number: Optional[str] = None
     http_url: str

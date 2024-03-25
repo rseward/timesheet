@@ -28,13 +28,42 @@ def index() -> dict[str, dict[int, ClientJson]]:
         return {"clients": cmap}
         
 @app.get("/clients/{client_id}")
-def client_by_id(client_id: int) -> ClientJson :
+def client_by_id(client_id: int) -> dict[str, ClientJson] :
         clientDao = daos.getClientDao()
         dbclient = clientDao.getById(client_id)
         
         if not(dbclient):
             raise HTTPException( status_code=404, detail=f"Client with client_id={client_id} does not exist.")
-        return clientDao.toJson(dbclient)
+        return { "client": clientDao.toJson(dbclient) }
+        
+@app.post("/clients/")
+def client_add(js: ClientJson) -> dict[ str, ClientJson]:
+        clientDao = daos.getClientDao()
+        dbrec = clientDao.getById(js.client_id)
+        
+        if dbrec:
+            HTTPException(status_code=400, detail=f"Client with client_id={js.client_id} already exists.")
+            
+        dbrec = clientDao.toModel(js)
+        try:
+            clientDao.save(dbrec)
+            js.client_id = dbrec.client_id
+            clientDao.commit()
+        except:
+            clientDao.rollback()
+        
+        return { "added": js}
+        
+@app.put("/clients/")
+def client_update(js: ClientJson) -> dict[ str, ClientJson]:
+    clientDao = daos.getClientDao()
+    dbrec = clientDao.getById(js.client_id)
+        
+    dbrec = clientDao.update(dbrec, js)
+        
+    return { "updated": clientDao.toJson(dbrec) }
+        
+    
         
             
             
