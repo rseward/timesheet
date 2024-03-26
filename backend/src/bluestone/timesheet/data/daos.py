@@ -1,7 +1,7 @@
 import sqlalchemy
 import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import *
-from bluestone.timesheet.jsonmodels import *
+from bluestone.timesheet.data.models import Base, Client
+from bluestone.timesheet.jsonmodels import ClientJson
 
 daofactory = None
 
@@ -45,7 +45,7 @@ class BaseDao(object):
         session = self.getSession()
 
         obj = dataobj
-        if merge and not (dataobj in session):
+        if merge and dataobj not in session:
             obj = session.merge(dataobj)
 
         session.add(obj)
@@ -68,7 +68,7 @@ class ClientDao(BaseDao):
         q = self.session.query(Client)
         return q.filter(Client.client_id == aid).first()
 
-    def update(db: Client, js: ClientJson) -> Client:
+    def update(self, db: Client, js: ClientJson) -> Client:
         urec = self.toModel(js, db)
 
         self.save(urec)

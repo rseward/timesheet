@@ -60,8 +60,23 @@ def client_update(js: ClientJson) -> dict[ str, ClientJson]:
     dbrec = clientDao.getById(js.client_id)
         
     dbrec = clientDao.update(dbrec, js)
+    clientDao.commit()
         
     return { "updated": clientDao.toJson(dbrec) }
+        
+@app.delete("/clients/{client_id}")
+def client_delete(client_id: int) -> dict[str, ClientJson]:
+    clientDao = daos.getClientDao()
+    dbrec = clientDao.getById(js.client_id)
+    
+    if not(dbrec):
+        HTTPException(status_code=400, detail=f"Client with client_id={js.client_id} does not exist.")
+        
+    clientDao.delete(dbrec.client_id)
+    clientDao.commit()
+    
+    
+
         
     
         
