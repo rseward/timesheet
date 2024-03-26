@@ -5,7 +5,7 @@ import unittest
 class TestModels(unittest.TestCase):
 
     def testModels(self):
-        from bluestone.timesheet.models import TimeFormatType
+        from bluestone.timesheet.data.models import TimeFormatType
 
         pass
 

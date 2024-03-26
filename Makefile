@@ -1,13 +1,13 @@
 devsetup:	steps/db steps/install tests
 	touch steps/dev-ready
-	
+
 query:	steps/db
 	sqlite3 timesheet.sqlite
-	
+
 steps/install:	pip.out
 	pip install ./
 	touch steps/install
-	
+
 install:	pip.out
 	pip install ./
 
@@ -22,5 +22,13 @@ steps/db:
 tests:	steps/install
 	tests/testModelEnums.py
 	tests/testModels.py
+
+steps/ruff:
+	pip install ruff
+	touch steps/ruff
+
+lint:	steps/ruff
+	cd src; ruff check
+	cd src; ruff format
 
 
