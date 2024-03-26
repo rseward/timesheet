@@ -13,7 +13,7 @@ class TestFastApi(unittest.TestCase):
         def testGetClientById(self):
             print(requests.get(f"{baseurl}/clients/1").json())
                         
-        @unittest.SkipTest
+        #@unittest.SkipTest
         def testPostClient(self):
             client = {
                 'client_id': 1,

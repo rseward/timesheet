@@ -42,7 +42,7 @@ def client_add(js: ClientJson) -> dict[ str, ClientJson]:
         dbrec = clientDao.getById(js.client_id)
         
         if dbrec:
-            HTTPException(status_code=400, detail=f"Client with client_id={js.client_id} already exists.")
+            raise HTTPException(status_code=400, detail=f"Client with client_id={js.client_id} already exists.")
             
         dbrec = clientDao.toModel(js)
         try:
@@ -67,13 +67,15 @@ def client_update(js: ClientJson) -> dict[ str, ClientJson]:
 @app.delete("/clients/{client_id}")
 def client_delete(client_id: int) -> dict[str, ClientJson]:
     clientDao = daos.getClientDao()
-    dbrec = clientDao.getById(js.client_id)
+    dbrec = clientDao.getById(client_id)
     
-    if not(dbrec):
-        HTTPException(status_code=400, detail=f"Client with client_id={js.client_id} does not exist.")
+    if dbrec == None:
+        raise HTTPException(status_code=400, detail=f"Client with {client_id=} does not exist.")
         
     clientDao.delete(dbrec.client_id)
     clientDao.commit()
+    
+    return { "deleted": clientDao.toJson(dbrec)}
     
     
 
