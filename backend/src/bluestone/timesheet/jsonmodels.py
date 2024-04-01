@@ -5,9 +5,9 @@ from typing import List, Optional
 class ClientJson(BaseModel):
     client_id: int
     organisation: str
-    description: str
+    description: Optioinal[str]
     address1: str
-    address2: str
+    address2: Optional[str] = None
     city: str
     state: str
     country: str
@@ -19,4 +19,4 @@ class ClientJson(BaseModel):
     phone_number: str
     fax_number: Optional[str] = None
     gsm_number: Optional[str] = None
-    http_url: str
+    http_url: Optional[str] = None
