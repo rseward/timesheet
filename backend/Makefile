@@ -20,9 +20,10 @@ steps/db:
 	scripts/alembic-upgrade.sh
 	touch steps/db
 
-tests:	steps/install
+test:	steps/install
 	tests/testModelEnums.py
 	tests/testModels.py
+	tests/testJsonModels.py
 	
 integration_tests:	tests
 	tests/testFastApi.py
