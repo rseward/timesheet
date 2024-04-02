@@ -5,6 +5,7 @@ query:	steps/db
 	sqlite3 timesheet.sqlite
 
 steps/install:	pip.out
+	mkdir -p steps
 	pip install ./
 	touch steps/install
 
@@ -22,11 +23,14 @@ steps/db:
 tests:	steps/install
 	tests/testModelEnums.py
 	tests/testModels.py
+	
+integration_tests:	tests
+	tests/testFastApi.py
 
 steps/ruff:
 	pip install ruff
 	touch steps/ruff
-
+	
 lint:	steps/ruff
 	cd src; ruff check
 	cd src; ruff format

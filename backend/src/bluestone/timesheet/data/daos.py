@@ -74,12 +74,11 @@ class ClientDao(BaseDao):
         self.save(urec)
 
         return urec
-        
+
     def delete(self, client_id: int) -> None:
         dbrec = self.getById(client_id)
-        if dbrec != None:
+        if dbrec is not None:
             self.getSession().delete(dbrec)
-        
 
     def toDict(self, db: Client) -> dict:
         d = {}

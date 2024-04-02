@@ -1,11 +1,11 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional  # , List
 
 
 class ClientJson(BaseModel):
     client_id: int
     organisation: str
-    description: Optioinal[str]
+    description: Optional[str]
     address1: str
     address2: Optional[str] = None
     city: str
