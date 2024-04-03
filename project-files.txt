@@ -2,6 +2,7 @@ README.md
 backend/Makefile
 backend/requirements.txt
 backend/tests/testModels.py
+backend/tests/testJsonModels.py
 backend/fastapi/main.py
 backend/fastapi/api/routers/client.py
 backend/src/bluestone/timesheet/data/daos.py

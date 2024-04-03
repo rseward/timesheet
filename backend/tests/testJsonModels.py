@@ -3,7 +3,7 @@
 import unittest
 import datetime
 
-from bluestone.timesheet.jsonmodels import ClientJson, ProjectJson, TaskJson, ProjectStatusEnum, TaskStatusEnum
+from bluestone.timesheet.jsonmodels import ClientJson, ProjectJson, TaskJson, ProjectStatusEnum, TaskStatusEnum, AssignmentJson, BillingEventJson
 
 class TestJsonModels(unittest.TestCase):
     
@@ -15,7 +15,6 @@ class TestJsonModels(unittest.TestCase):
             http_url="www.bluestone-consutling.com"
             )
         print(c)
-        pass
         
     def testProject1(self):
         p = ProjectJson(
@@ -24,7 +23,6 @@ class TestJsonModels(unittest.TestCase):
             http_link="github url goes here", proj_status=ProjectStatusEnum.pending, proj_leader="rseward"
         )
         print(p)
-        pass
         
     def testTask1(self):
         t = TaskJson(
@@ -32,7 +30,19 @@ class TestJsonModels(unittest.TestCase):
             status=TaskStatusEnum.pending
         )
         print(t)
-        pass
+        
+    def testAssignment(self):
+        a = AssignmentJson(
+            proj_id=0, username="rseward"
+        )
+        print(a)
+        
+    def testBillingEvent(self):
+        be = BillingEventJson(
+            uid="123456789",start_time=datetime.datetime(2024,4,1,0,0,1),end_time=datetime.datetime(2024,4,1,0,8,1),
+            trans_num=1, proj_id=1, task_id=1, log_message="Work on timesheet project."
+        )
+        print(be)
         
     
     

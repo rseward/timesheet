@@ -18,6 +18,21 @@ class TaskStatusEnum(str, Enum):
     complete = "complete"
 
 
+class AssignmentJson(BaseModel):
+    proj_id: int
+    username: constr(max_length=32)
+
+
+class BillingEventJson(BaseModel):
+    uid: constr(max_length=32)
+    start_time: datetime.datetime
+    end_time: datetime.datetime
+    trans_num: int
+    proj_id: int
+    task_id: int
+    log_message: constr(max_length=255)
+
+
 class ClientJson(BaseModel):
     client_id: int
     organisation: str
