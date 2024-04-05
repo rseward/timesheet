@@ -8,10 +8,15 @@ baseurl="http://127.0.0.1:8000/api"
 class TestFastApi(unittest.TestCase):
     
         def testGetClients(self):
-            print(requests.get(f"{baseurl}/clients/").json())
+            res = requests.get(f"{baseurl}/clients/").json()
+            print( res )
+            self.assertTrue("clients" in res.keys(),"Unable to pull list of clients")
 
         def testGetClientById(self):
-            print(requests.get(f"{baseurl}/clients/1").json())
+            res = requests.get(f"{baseurl}/clients/1").json()
+            print( res )            
+            self.assertTrue("client" in res.keys(),"Unable to find client_id=1")
+            
                         
         #@unittest.SkipTest
         def testPostClient(self):
