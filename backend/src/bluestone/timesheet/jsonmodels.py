@@ -4,6 +4,16 @@ from enum import Enum
 import datetime
 from pydantic import constr
 
+"""
+These are the project pydantic models, they are meant to enforce input validations and constraints. Also to handle marshalling the data
+to and from JSON to be sent to browser. Currently the project has one set of pydantic models, but in the future it might add other sets to 
+enforce different constraints for other contexts.
+
+The project also has a set of SQLAlchemy models focused on marshalling model data to and from the database.
+
+ The project is structured this way to allow each set of models to perform their primary purposes to the best of their capability. 
+
+"""
 
 class ProjectStatusEnum(str, Enum):
     pending = "Pending"

@@ -2,7 +2,8 @@ import enum
 from sqlalchemy import Column, Date, DateTime, Integer, String, Enum, Text
 from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
+#Base = declarative_base()
+from . import Base
 
 # Enum + alembic hints
 # https://stackoverflow.com/questions/47206201/how-to-use-enum-with-sqlalchemy-and-alembic
