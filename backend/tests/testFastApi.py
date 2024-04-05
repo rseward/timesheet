@@ -15,6 +15,7 @@ class TestFastApi(unittest.TestCase):
                         
         #@unittest.SkipTest
         def testPostClient(self):
+            print(f"testPostClient: {baseurl}/clients/")
             client = {
                 'client_id': 1,
                 'organisation' : 'Bluestone',
@@ -33,7 +34,9 @@ class TestFastApi(unittest.TestCase):
                 'http_url': 'www.bluestone-consulting.com'
             }
             
-            print(requests.post(f"{baseurl}/clients/", json=client).json())
+            res=requests.post(f"{baseurl}/clients/", json=client).json()
+            print(res)
+            self.assertTrue(  "added" in res.keys(), "failed to add client with client_id=1" )
             
                         
 

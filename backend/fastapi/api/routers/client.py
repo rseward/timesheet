@@ -50,7 +50,7 @@ def client_by_id(client_id: int) -> dict[str, ClientJson] :
         return { "client": clientDao.toJson(dbclient) }
 
 @router.post(
-    "/{client_id}",
+    "/",
     response_model=dict[str, ClientJson],
     dependencies=[Depends(validate_is_authenticated)],
 )
