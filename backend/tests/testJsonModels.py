@@ -3,7 +3,7 @@
 import unittest
 import datetime
 
-from bluestone.timesheet.jsonmodels import ClientJson, ProjectJson, TaskJson, ProjectStatusEnum, TaskStatusEnum, AssignmentJson, BillingEventJson
+from bluestone.timesheet.jsonmodels import UserJson, ClientJson, ProjectJson, TaskJson, ProjectStatusEnum, TaskStatusEnum, AssignmentJson, BillingEventJson
 
 class TestJsonModels(unittest.TestCase):
     
@@ -44,6 +44,14 @@ class TestJsonModels(unittest.TestCase):
         )
         print(be)
         
+    def testUser(self):
+        j = UserJson(
+            user_id=0,
+            email='rseward@bluestone-consulting.com',
+            name='Rob Seward',
+            password="thepassword"
+        )
+        print(j)
     
     
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 import enum
 from sqlalchemy import Column, Date, DateTime, Integer, String, Enum, Text
-from sqlalchemy.ext.declarative import declarative_base
-
+#from sqlalchemy.ext.declarative import declarative_base
 #Base = declarative_base()
 from . import Base
 
@@ -136,3 +135,12 @@ class Task(Base):
     status = Column(
         Enum("pending", "assigned", "started", "suspended", "complete"), nullable=False
     )
+
+class User(Base):
+    __tablename__ = "user"
+    
+    user_id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=False)
+    name = Column(String(128), nullable=False)
+    password = Column(String(64), nullable=False)
+    

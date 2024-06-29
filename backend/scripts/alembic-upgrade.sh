@@ -2,5 +2,5 @@
 
 # Script to run from the Makefile
 
-. env
+. ${TIMESHEET_SRC_HOME}/env
 alembic upgrade head

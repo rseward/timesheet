@@ -24,7 +24,8 @@ class testModels(unittest.TestCase):
                 BillingEvent,
                 Client,
                 Project,
-                Task
+                Task,
+                User
         ]
                 
 

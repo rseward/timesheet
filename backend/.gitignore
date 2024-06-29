@@ -132,3 +132,4 @@ install
 pip.out
 timesheet.sqlite
 steps/
+bluestone_timesheet.egg-info/

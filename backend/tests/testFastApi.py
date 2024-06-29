@@ -7,18 +7,20 @@ baseurl="http://127.0.0.1:8000/api"
 
 class TestFastApi(unittest.TestCase):
     
+        #@unittest.SkipTest
         def testGetClients(self):
             res = requests.get(f"{baseurl}/clients/").json()
             print( res )
             self.assertTrue("clients" in res.keys(),"Unable to pull list of clients")
 
+        #@unittest.SkipTest
         def testGetClientById(self):
             res = requests.get(f"{baseurl}/clients/1").json()
             print( res )            
             self.assertTrue("client" in res.keys(),"Unable to find client_id=1")
             
                         
-        #@unittest.SkipTest
+        @unittest.SkipTest
         def testPostClient(self):
             print(f"testPostClient: {baseurl}/clients/")
             client = {
@@ -42,6 +44,18 @@ class TestFastApi(unittest.TestCase):
             res=requests.post(f"{baseurl}/clients/", json=client).json()
             print(res)
             self.assertTrue(  "added" in res.keys(), "failed to add client with client_id=1" )
+        
+        #@unittest.SkipTest    
+        def testGetUsers(self):
+            res = requests.get(f"{baseurl}/users/").json()
+            print( res )
+            self.assertTrue("users" in res.keys(),"Unable to pull list of users")
+
+        def testGetUserById(self):
+            res = requests.get(f"{baseurl}/users/1").json()
+            print( res )            
+            self.assertTrue("user" in res.keys(),"Unable to find user_id=1")
+            
             
                         
 

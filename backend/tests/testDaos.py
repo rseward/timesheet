@@ -26,5 +26,16 @@ class testModels(unittest.TestCase):
         client = clientdao.getById(1)
         self.assertTrue(client!=None)
         
+    def testUserDao(self):
+        daos = getDaoFactory()
+        userdao = daos.getUserDao()
+        
+        for user in userdao.getAll():
+            print(user)
+            
+        user = userdao.getById(1)
+        self.assertTrue(user!=None)
+        
+        
 if __name__ == "__main__":
     unittest.main()

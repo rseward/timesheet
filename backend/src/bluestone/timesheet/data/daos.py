@@ -1,7 +1,7 @@
 import sqlalchemy
 import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, Client
-from bluestone.timesheet.jsonmodels import ClientJson
+from bluestone.timesheet.data.models import Base, Client, User
+from bluestone.timesheet.jsonmodels import ClientJson, UserJson
 
 daofactory = None
 
@@ -23,12 +23,19 @@ class DaoFactory(object):
         Base.metadata.create_all(self.engine)
 
         self.clientDao = None
+        self.userDao = None
 
     def getClientDao(self):
         if not (self.clientDao):
             self.clientDao = ClientDao(self.Session)
 
         return self.clientDao
+    
+    def getUserDao(self):
+        if not (self.userDao):
+            self.userDao = UserDao(self.Session)
+            
+        return self.userDao
 
 
 class BaseDao(object):
@@ -60,12 +67,60 @@ class BaseDao(object):
         self.getSession().rollback()
 
 
+class UserDao(BaseDao):
+    def getAll(self):
+        return self.getSession().query(User).all()
+    
+    def getByEmail(self, email) -> User:
+        q = self.getSession().query(User)
+        return q.filter(User.email == email.lower()).first()
+    
+    def getById(self, id) -> User:
+        q = self.getSession().query(User)
+        return q.filter(User.user_id == id).first()
+        
+    def update(self, db: User, js: UserJson) -> User:
+        urec = self.toModel(js, db)
+
+        self.save(urec)
+        return urec
+    
+    def toModel(self, j: UserJson, db: User):
+        if not (db):
+            db = User()
+            db.user_id = j.user_id
+
+        db.email = j.email
+        db.name = j.name
+        db.password = j.password
+        db.name = j.name
+        
+    def toDict(self, db: User) -> dict:
+        d = {}
+        d["user_id"] = db.user_id
+        d["email"] = db.email
+        d["name"] = db.name
+        d["password"] = db.password
+        
+        return d
+        
+        
+    def toJson(self, db: User) -> UserJson:
+        j = UserJson(**self.toDict(db))
+        #j.user_id = db.user_id
+        #j.email = db.email
+        #j.name = db.name
+        
+        return j
+        
+        
+
 class ClientDao(BaseDao):
     def getAll(self):
-        return self.session.query(Client).all()
+        return self.getSession().query(Client).all()
 
     def getById(self, aid) -> Client:
-        q = self.session.query(Client)
+        q = self.getSession().query(Client)
         return q.filter(Client.client_id == aid).first()
 
     def update(self, db: Client, js: ClientJson) -> Client:

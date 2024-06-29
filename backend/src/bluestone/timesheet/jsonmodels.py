@@ -85,3 +85,9 @@ class TaskJson(BaseModel):
     suspended: Optional[datetime.datetime] = None
     completed: Optional[datetime.datetime] = None
     status: TaskStatusEnum
+
+class UserJson(BaseModel):
+    user_id: int
+    email: constr(max_length=128)
+    name: str
+    password: constr(max_length=64)

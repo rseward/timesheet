@@ -8,7 +8,7 @@ Create Date: 2023-03-12 08:55:49.641531
 from alembic import op
 import sqlalchemy as sa
 
-from bluestone.timesheet.models import TimeFormatType, LdapSearchScopeType, ProjectStatusType, TaskStatusType
+from bluestone.timesheet.data.models import TimeFormatType, LdapSearchScopeType, ProjectStatusType, TaskStatusType
 
 # revision identifiers, used by Alembic.
 revision = 'd08fe114ccbc'
@@ -147,8 +147,14 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_table('assignments')
-    op.drop_table('client')
-    op.drop_table('note')    
+   
+   op.drop_table('task_assignments')
+   op.drop_table('task')
+   op.drop_table('note')    
+   op.drop_table('billing_event')
+   op.drop_table('project')
+   op.drop_table('config')
+   op.drop_table('assignments')
+   op.drop_table('client')
     
-    pass
+   pass
