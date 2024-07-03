@@ -1,4 +1,7 @@
 # Todo
+  * Add a UserTokenTable for JWTs
+  * Add JWT auth support
+  * Integrate FLET frontend vis-a-vis the login
   * Implement the asyncio style of the integration PDF.
   * Research Django
   * Write an uninstall script

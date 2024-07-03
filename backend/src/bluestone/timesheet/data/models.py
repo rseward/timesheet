@@ -1,5 +1,7 @@
 import enum
-from sqlalchemy import Column, Date, DateTime, Integer, String, Enum, Text
+from sqlalchemy import Column, Date, DateTime, Integer, String, Enum, Text, \
+    Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 #from sqlalchemy.ext.declarative import declarative_base
 #Base = declarative_base()
 from . import Base
@@ -69,7 +71,7 @@ TaskStatusType: enum = Enum(
 class Assignment(Base):
     __tablename__ = "assignments"
 
-    proj_id = Column(Integer, primary_key=True, nullable=False)
+    proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
     username = Column(String(32), primary_key=True, nullable=False)
 
 
@@ -80,8 +82,8 @@ class BillingEvent(Base):
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     trans_num = Column(Integer, nullable=False)
-    proj_id = Column(Integer, nullable=False)
-    task_id = Column(Integer, nullable=False)
+    proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
+    task_id: Mapped[int] = mapped_column(ForeignKey("task.task_id"), nullable=False)
     log_message = Column(String(255))
 
 
@@ -112,7 +114,7 @@ class Project(Base):
 
     proj_id = Column(Integer, primary_key=True)
     title = Column(String(200), nullable=False)
-    client_id = Column(Integer, nullable=False)
+    client_id: Mapped[int] = mapped_column(ForeignKey("client.client_id"), nullable=False)
     description = Column(String(256))
     start_date = Column(Date, nullable=False)
     deadline = Column(Date, nullable=False)
@@ -125,7 +127,7 @@ class Task(Base):
     __tablename__ = "task"
 
     task_id = Column(Integer, primary_key=True)
-    proj_id = Column(Integer, nullable=False)
+    proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
     name = Column(String(128), nullable=False)
     description = Column(Text)
     assigned = Column(DateTime, nullable=False)
@@ -143,4 +145,19 @@ class User(Base):
     email = Column(String, nullable=False)
     name = Column(String(128), nullable=False)
     password = Column(String(64), nullable=False)
+    
+"""
+Table to store JWT tokens associated with user accounts.
+"""
+class UserToken(Base):
+    __tablename__ = "user_token"
+    
+    user_token_id = Column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.user_id")) 
+    access_token = Column(String(450), primary_key=True)
+    refresh_token = Column(String(450), nullable=True)
+    active = Column(Boolean)
+    create_date = Column(DateTime, nullable=False)
+    
+    
     

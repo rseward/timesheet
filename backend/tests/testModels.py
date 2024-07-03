@@ -3,7 +3,7 @@
 import sqlalchemy
 import unittest
 import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import *
+from bluestone.timesheet.data.models import Base, Assignment, BillingEvent, Client, Project, Task, User, UserToken
 
 class testModels(unittest.TestCase):
     def setUp(self):
@@ -25,7 +25,8 @@ class testModels(unittest.TestCase):
                 Client,
                 Project,
                 Task,
-                User
+                User,
+                UserToken
         ]
                 
 

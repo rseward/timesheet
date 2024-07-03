@@ -2,3 +2,6 @@
 alembic
 fastapi[all]
 requests
+PyJWT
+python-jose
+passlib

@@ -12,7 +12,7 @@ setup(name='bluestone-timesheet',
       # python package dirs will require at a minimum an empty __init__.py file
       #   in them.
 
-      packages=['bluestone', 'bluestone.timesheet', 'bluestone.timesheet.data' ],
+      packages=['bluestone', 'bluestone.timesheet', 'bluestone.timesheet.data', 'bluestone.timesheet.auth' ],
       scripts=[],      
 
       package_dir={'bluestone':'src/bluestone'}
