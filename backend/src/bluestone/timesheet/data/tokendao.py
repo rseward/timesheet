@@ -3,7 +3,7 @@ import bluestone.timesheet.config as cfg
 from bluestone.timesheet.data.models import Base, User, UserToken
 from bluestone.timesheet.jsonmodels import UserJson, UserTokenJson
 
-from .daos import BaseDao
+from .basedao import BaseDao
 
 class UserTokenDao(BaseDao):
     def getAll(self):

@@ -43,7 +43,7 @@ def login(creds: api.schemas.authmodels.LoginRequest):
     refresh=create_refresh_token(dbrec.user_id)
     
     tokenDao = daos.getUserTokenDao()
-    tokenRec = UserToken(user_id=dbrec.user_id, access_token=access, refresh=refresh, active=True, create_date = datetime.utcnow() )
+    tokenRec = UserToken(user_id=dbrec.user_id, access_token=access, refresh_token=refresh, active=True, create_date = datetime.datetime.now(datetime.UTC) )
     tokenDao.save(tokenRec)
     tokenDao.commit()
     
@@ -68,7 +68,7 @@ def logout(dependecies=Depends(JWTBearer())):
     expiredtokens=[]
     for trecord in token_records:
         print(f"trecord={trecord}")
-        if (datetime.utcnow()  - trecord.create_date).days >1:
+        if (datetime.datetime.now(datetime.UTC)  - trecord.create_date).days >1:
             expiredtokens.append(trecord)
         else:
             # mark non-expired tokens as inactive

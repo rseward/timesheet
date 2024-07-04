@@ -24,11 +24,11 @@ async def root():
 @app.get("/login")
 async def login(username: str, password: str):
     creds=LoginRequest(username=username, password=password)
-    api.routers.auth.login(creds=creds)
+    return api.routers.auth.login(creds=creds)
     
 @app.get("/logout")
 async def logout():
-    api.routers.auth.logout()
+    return api.routers.auth.logout()
 
 
 app.include_router(api.routers.auth.router)

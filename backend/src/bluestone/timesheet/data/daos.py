@@ -3,11 +3,11 @@ import bluestone.timesheet.config as cfg
 from bluestone.timesheet.data.models import Base, Client, User
 from bluestone.timesheet.jsonmodels import ClientJson, UserJson
 
-daofactory = None
-
+from .basedao import BaseDao
 from .tokendao import UserTokenDao
 
-def getDaoFactcory():
+daofactory = None
+def getDaoFactory():
     global daofactory
 
     if not (daofactory):
@@ -25,6 +25,7 @@ class DaoFactory(object):
 
         self.clientDao = None
         self.userDao = None
+        self.userTokenDao = None
 
     def getClientDao(self):
         if not (self.clientDao):
@@ -39,40 +40,11 @@ class DaoFactory(object):
         return self.userDao
     
     def getUserTokenDao(self):
-        if not (self.tokenDao):
+        if not (self.userTokenDao):
             self.userTokenDao = UserTokenDao(self.Session)
             
         return self.userTokenDao
 
-
-
-class BaseDao(object):
-    def __init__(self, session):
-        self.Session = session
-        self.session = self.Session()
-
-    def getSession(self):
-        if not (self.session):
-            self.session = self.Session()
-        return self.session
-
-    def save(self, dataobj, merge=False):
-        session = self.getSession()
-
-        obj = dataobj
-        if merge and dataobj not in session:
-            obj = session.merge(dataobj)
-
-        session.add(obj)
-        return obj
-
-    def commit(self, flush=False):
-        if flush:
-            self.getSession().flush()
-        self.getSession().commit()
-
-    def rollback(self):
-        self.getSession().rollback()
 
 
 class UserDao(BaseDao):

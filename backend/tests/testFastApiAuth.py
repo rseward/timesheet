@@ -16,8 +16,9 @@ class TestFastApi(unittest.TestCase):
             res = requests.get(f"{baseurl}/login", params=params)
             self.assertTrue(res.status_code == 200, f"FastAPI returned unexpected error. {res}")
             rjson = res.json()
+            self.assertTrue(rjson is not None,f"Invalid json in the response! {res.content}")
             print( res )
-            self.assertTrue("access" in rjson.keys(),f"Unable to obtain expected token {rjson}")
+            self.assertTrue("access_token" in rjson.keys(),f"Unable to obtain expected token {rjson}")
 
 
                         

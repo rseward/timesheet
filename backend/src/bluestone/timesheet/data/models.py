@@ -78,7 +78,7 @@ class Assignment(Base):
 class BillingEvent(Base):
     __tablename__ = "billing_event"
 
-    uid = Column(String(32), primary_key=True)
+    uid = Column(String(32), primary_key=True, autoincrement=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     trans_num = Column(Integer, nullable=False)
@@ -90,7 +90,7 @@ class BillingEvent(Base):
 class Client(Base):
     __tablename__ = "client"
 
-    client_id = Column(Integer, primary_key=True)
+    client_id = Column(Integer, primary_key=True, autoincrement=True)
     organisation = Column(String(64))
     description = Column(String(255))
     address1 = Column(String(128))
@@ -112,7 +112,7 @@ class Client(Base):
 class Project(Base):
     __tablename__ = "project"
 
-    proj_id = Column(Integer, primary_key=True)
+    proj_id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(200), nullable=False)
     client_id: Mapped[int] = mapped_column(ForeignKey("client.client_id"), nullable=False)
     description = Column(String(256))
@@ -126,7 +126,7 @@ class Project(Base):
 class Task(Base):
     __tablename__ = "task"
 
-    task_id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, primary_key=True, autoincrement=True)
     proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
     name = Column(String(128), nullable=False)
     description = Column(Text)
@@ -141,7 +141,7 @@ class Task(Base):
 class User(Base):
     __tablename__ = "user"
     
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String, nullable=False)
     name = Column(String(128), nullable=False)
     password = Column(String(64), nullable=False)
@@ -152,12 +152,11 @@ Table to store JWT tokens associated with user accounts.
 class UserToken(Base):
     __tablename__ = "user_token"
     
-    user_token_id = Column(Integer, primary_key=True)
+    user_token_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.user_id")) 
-    access_token = Column(String(450), primary_key=True)
+    access_token = Column(String(450), index=True)
     refresh_token = Column(String(450), nullable=True)
     active = Column(Boolean)
     create_date = Column(DateTime, nullable=False)
-    
     
     
