@@ -91,3 +91,11 @@ class UserJson(BaseModel):
     email: constr(max_length=128)
     name: str
     password: constr(max_length=64)
+
+class UserTokenJson(BaseModel):
+    user_token_id: int
+    user_id: int
+    access_token: constr(max_length=450)
+    refresh_token: constr(max_length=450)
+    active: Optional[bool] = True
+    create_date: Optional[datetime.datetime] = None

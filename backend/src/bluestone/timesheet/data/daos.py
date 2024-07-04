@@ -5,8 +5,9 @@ from bluestone.timesheet.jsonmodels import ClientJson, UserJson
 
 daofactory = None
 
+from .tokendao import UserTokenDao
 
-def getDaoFactory():
+def getDaoFactcory():
     global daofactory
 
     if not (daofactory):
@@ -36,6 +37,13 @@ class DaoFactory(object):
             self.userDao = UserDao(self.Session)
             
         return self.userDao
+    
+    def getUserTokenDao(self):
+        if not (self.tokenDao):
+            self.userTokenDao = UserTokenDao(self.Session)
+            
+        return self.userTokenDao
+
 
 
 class BaseDao(object):
