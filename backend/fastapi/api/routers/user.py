@@ -5,6 +5,7 @@ import sqlalchemy
 import bluestone.timesheet.config as cfg
 from bluestone.timesheet.data.models import *
 from bluestone.timesheet.jsonmodels import *
+from bluestone.timesheet.auth.auth_bearer import JWTBearer, JWT_SECRET_KEY_ALGORITHMS
 
 from bluestone.timesheet.data.daos import getDaoFactory
 from api.depends.auth import validate_is_authenticated
@@ -20,7 +21,8 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=dict[str, dict[int, UserJson]],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )
 
 # FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
@@ -38,7 +40,8 @@ def index() -> dict[str, dict[int, UserJson]]:
 @router.get(
     "/{user_id}",
     response_model=dict[str, UserJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )
 # @app.get("/users/{user_id}")
 def user_by_id(user_id: int) -> dict[str, UserJson] :
@@ -52,7 +55,8 @@ def user_by_id(user_id: int) -> dict[str, UserJson] :
 @router.post(
     "/",
     response_model=dict[str, UserJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )
 #@app.post("/users/")
 def user_add(js: UserJson) -> dict[ str, UserJson]:
@@ -75,7 +79,8 @@ def user_add(js: UserJson) -> dict[ str, UserJson]:
 @router.put(
     "/",
     response_model=dict[str, UserJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.put("/users/")
 def client_update(js: UserJson) -> dict[ str, UserJson]:
@@ -90,7 +95,8 @@ def client_update(js: UserJson) -> dict[ str, UserJson]:
 @router.delete(
     "/",
     response_model=dict[str, UserJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.delete("/userss/{user_id}")
 def user_delete(user_id: int) -> dict[str, UserJson]:

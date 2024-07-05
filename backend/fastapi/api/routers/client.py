@@ -3,8 +3,8 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException
 import pprint
 import sqlalchemy
 import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import *
-from bluestone.timesheet.jsonmodels import *
+#from bluestone.timesheet.data.models import Client
+from bluestone.timesheet.jsonmodels import ClientJson
 
 from bluestone.timesheet.data.daos import getDaoFactory
 from api.depends.auth import validate_is_authenticated
@@ -97,7 +97,7 @@ def client_delete(client_id: int) -> dict[str, ClientJson]:
     clientDao = daos.getClientDao()
     dbrec = clientDao.getById(client_id)
     
-    if dbrec == None:
+    if dbrec is None:
         raise HTTPException(status_code=400, detail=f"Client with {client_id=} does not exist.")
         
     clientDao.delete(dbrec.client_id)

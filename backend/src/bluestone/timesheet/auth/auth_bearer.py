@@ -44,6 +44,7 @@ class JWTBearer(HTTPBearer):
             payload = None
         if payload:
             isTokenValid = True
+        print(f"verify_jwt()={isTokenValid}")
         return isTokenValid
 
 jwt_bearer = JWTBearer()
