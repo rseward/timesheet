@@ -2,5 +2,5 @@
 
 # Start FastAPI
 cd fastapi/
-uvicorn main:app --reload
+uvicorn main:app --port 8080 --reload
 

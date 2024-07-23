@@ -7,7 +7,8 @@ import bluestone.timesheet.config as cfg
 from bluestone.timesheet.jsonmodels import ClientJson
 
 from bluestone.timesheet.data.daos import getDaoFactory
-from api.depends.auth import validate_is_authenticated
+#from api.depends.auth import validate_is_authenticated
+from bluestone.timesheet.auth.auth_bearer import JWTBearer, JWT_SECRET_KEY_ALGORITHMS
 
 daos = getDaoFactory()
 
@@ -20,7 +21,8 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=dict[str, dict[int, ClientJson]],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )
 
 # FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
@@ -38,7 +40,8 @@ def index() -> dict[str, dict[int, ClientJson]]:
 @router.get(
     "/{client_id}",
     response_model=dict[str, ClientJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )
 # @app.get("/clients/{client_id}")
 def client_by_id(client_id: int) -> dict[str, ClientJson] :
@@ -49,48 +52,84 @@ def client_by_id(client_id: int) -> dict[str, ClientJson] :
             raise HTTPException( status_code=404, detail=f"Client with client_id={client_id} does not exist.")
         return { "client": clientDao.toJson(dbclient) }
 
+"""
+{
+  "client_id": 0,
+  "organisation": "BraveSoft Inc.",
+  "description": "Ann Arbor Software Consultancy",
+  "address1": "301 Liberty St.",
+  "address2": "",
+  "city": "Ann Arbor",
+  "state": "MI",
+  "country": "USA",
+  "postal_code": "48104",
+  "contact_first_name": "Tom",
+  "contact_last_name": "Wood",
+  "username": "twood",
+  "contact_email": "twood@bravesoft.com",
+  "phone_number": "877.734.2780",
+  "fax_number": "",
+  "gsm_number": "",
+  "http_url": "https://bravesoft.com"
+}
+"""
+
 @router.post(
     "/",
     response_model=dict[str, ClientJson],
-    dependencies=[Depends(validate_is_authenticated)],
+#    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )
 #@app.post("/clients/")
 def client_add(js: ClientJson) -> dict[ str, ClientJson]:
-        clientDao = daos.getClientDao()
+    clientDao = daos.getClientDao()
+    if js.client_id == 0:
+        js.client_id=None
+    
+    if js.client_id: 
         dbrec = clientDao.getById(js.client_id)
-        
         if dbrec:
             raise HTTPException(status_code=400, detail=f"Client with client_id={js.client_id} already exists.")
-            
-        dbrec = clientDao.toModel(js)
-        try:
-            clientDao.save(dbrec)
-            js.client_id = dbrec.client_id
-            clientDao.commit()
-        except:
-            clientDao.rollback()
         
+    dbrec = clientDao.toModel(js)
+    try:
+        clientDao.save(dbrec)
+        clientDao.flush()
+        clientDao.refresh(dbrec)
+        js.client_id = dbrec.client_id
+        clientDao.commit()
         return { "added": js}
+    except:
+        clientDao.rollback()
+        raise
+        #return { "failed": "More detail here?" }
+    
+    
 
 @router.put(
     "/",
     response_model=dict[str, ClientJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.put("/clients/")
 def client_update(js: ClientJson) -> dict[ str, ClientJson]:
     clientDao = daos.getClientDao()
     dbrec = clientDao.getById(js.client_id)
-        
-    dbrec = clientDao.update(dbrec, js)
-    clientDao.commit()
+    
+    try:    
+        dbrec = clientDao.update(dbrec, js)
+        clientDao.commit()
+    except:
+        clientDao.rollback()
         
     return { "updated": clientDao.toJson(dbrec) }
 
 @router.delete(
     "/",
     response_model=dict[str, ClientJson],
-    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
+#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.delete("/clients/{client_id}")
 def client_delete(client_id: int) -> dict[str, ClientJson]:

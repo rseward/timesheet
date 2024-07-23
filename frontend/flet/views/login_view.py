@@ -186,12 +186,13 @@ class LoginView(BaseView):
         
         success=False
         try:
-            success=service.auth.login(uname, passw, rememberme)
+            success=service.auth.login(self.page, uname, passw, rememberme)
         finally:
             self.page.overlay.clear()
             self.page.update()
         
         if success:
+            
             self.page.go("/")
         else:
             self.page.snack_bar = ft.SnackBar(

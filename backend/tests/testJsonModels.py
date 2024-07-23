@@ -3,7 +3,9 @@
 import unittest
 import datetime
 
-from bluestone.timesheet.jsonmodels import UserJson, ClientJson, ProjectJson, TaskJson, ProjectStatusEnum, TaskStatusEnum, AssignmentJson, BillingEventJson
+from bluestone.timesheet.jsonmodels import (
+    UserJson, ClientJson, ProjectJson, TaskJson, ProjectStatusEnum, TaskStatusEnum, AssignmentJson, BillingEventJson
+)
 
 class TestJsonModels(unittest.TestCase):
     
@@ -18,7 +20,7 @@ class TestJsonModels(unittest.TestCase):
         
     def testProject1(self):
         p = ProjectJson(
-            proj_id=0, title="OpenSource Timesheet project", client_id=0, description="Learning exercise to integrate fastapi, pydantic and vue.js", 
+            project_id=0, title="OpenSource Timesheet project", client_id=0, description="Learning exercise to integrate fastapi, pydantic and vue.js", 
             start_date=datetime.datetime(2024,4,1),
             http_link="github url goes here", proj_status=ProjectStatusEnum.pending, proj_leader="rseward"
         )
@@ -26,7 +28,7 @@ class TestJsonModels(unittest.TestCase):
         
     def testTask1(self):
         t = TaskJson(
-            task_id=0, proj_id=0, name="Integrate pydantic", description="Build pydantic models to enforce data validation rules.", assigned= datetime.datetime(2024,4,2,0,0,1),
+            task_id=0, project_id=0, name="Integrate pydantic", description="Build pydantic models to enforce data validation rules.", assigned= datetime.datetime(2024,4,2,0,0,1),
             status=TaskStatusEnum.pending
         )
         print(t)

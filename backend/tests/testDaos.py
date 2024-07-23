@@ -36,6 +36,36 @@ class testModels(unittest.TestCase):
         user = userdao.getById(1)
         self.assertTrue(user!=None)
         
+    def testProjectDao(self):
+        daos = getDaoFactory()
+        projectdao = daos.getProjectDao()
+        
+        for project in projectdao.getAll():
+            print(project)
+            
+        project = projectdao.getById(1)
+        self.assertTrue(project!=None)
+
+    def testTaskDao(self):
+        daos = getDaoFactory()
+        taskdao = daos.getTaskDao()
+        
+        for task in taskdao.getAll():
+            print(task)
+            
+        task = taskdao.getById(1)
+        self.assertTrue(task!=None)
+
+    def testBillingEventDao(self):
+        daos = getDaoFactory()
+        eventdao = daos.getBillingEventDao()
+        
+        for event in eventdao.getAll():
+            print(event)
+            
+        event = eventdao.getById("c851bab2-aacd-4bda-a528-03731b7c9945")
+        self.assertTrue(event!=None)
+
         
 if __name__ == "__main__":
     unittest.main()

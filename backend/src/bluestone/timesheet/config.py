@@ -1,5 +1,7 @@
 import os
 
+LOGGER_NAME="main"
+
 saurl = os.getenv("TIMESHEET_SA_URL")
 assert (
     saurl

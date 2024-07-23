@@ -1,28 +1,43 @@
 
+from icecream import ic
+
 import os.path
 import requests
 import pickle
 import datetime
 import time
+import json
 
 """
 Clients services.
 """
 from .base import BaseService
 
-baseurl="http://127.0.0.1:8000/api/clients"
+#baseurl="{baseurl}/api/clients"
 PFILE="user-creds.pickle"
 
 class ClientService(BaseService):
     
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, creds):
+        super().__init__(creds)
         self.clienturl = f"{self.baseurl}/api/clients"
+
+    def getClient(self, id):
+        #time.sleep(5)
+        res = self.getSession().get(f"{self.clienturl}/{id}")
+        client = None
+        if res.status_code == 200:
+            print(res.json())
+            client = res.json()["client"]
+                    
+        ic(client)
+        return client
+
     
     def getClients(self):
         #time.sleep(5)
-        res = requests.get(f"{self.clienturl}/")
+        res = self.getSession().get(f"{self.clienturl}/")
         rows = []
         if res.status_code == 200:
             print(res.json())
@@ -31,29 +46,27 @@ class ClientService(BaseService):
             for key in clients.keys():
                 rows.append( clients[key] ) 
         else:
-            return []
+            rows = None
         
         print(rows)
         
-        '''
-        rows=[
-            { 
-             "organisation": "earthmatrix",
-             "city": "Milan",
-             "state": "MI",
-             "contact_email": "klambert@earthmatrix.net",
-             "url": "https://earthmatrix.net/"
-             },
-            { 
-             "organisation": "Amberian Corp.",
-             "city": "Granger",
-             "state": "IN",
-             "contact_email": "ckirgios@amberian.com",
-             "url": "https://amberian.com/"
-             },            
-            ]
-    '''
         return rows
+    
+    def save(self, client: dict):
+        posturl=f"{self.clienturl}/"
+        
+        ic(client)
+        if client.get("client_id", None) is not None:
+            ic("put")
+            res = self.getSession().put(posturl,json=client)
+        else:
+            ic("post")
+            #myjson=json.dumps(client, indent=2)
+            #ic(myjson)
+            res = self.getSession().post(posturl,json=client)
+            
+        return res
+        
 
 
 

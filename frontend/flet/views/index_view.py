@@ -1,20 +1,5 @@
 import flet as ft
-from .base_view import BaseView
-
-class NavButton(ft.Container):
-    def __init__(self, text: str, bgcolor, on_click):
-        super().__init__(
-            content=ft.Text(text, color="black"),
-            margin=10,
-            padding=10,
-            alignment=ft.alignment.center,
-            bgcolor=bgcolor,
-            width=150,
-            height=75,
-            border_radius=10,
-            on_click=on_click
-        )
-        
+from .base_view import BaseView, NavButton
 
 class IndexView(BaseView):
     
@@ -40,18 +25,44 @@ class IndexView(BaseView):
             NavButton(
                 "Projects", 
                 bgcolor=ft.colors.AMBER, 
-                on_click=self.on_clients_click
+                on_click=self.on_projects_click
+                
             ),
             NavButton(
                 "Tasks", 
                 bgcolor=ft.colors.CYAN_200, 
-                on_click=self.on_clients_click
+                on_click=self.on_tasks_click
+            ),
+            NavButton(
+                "Hours", 
+                bgcolor=ft.colors.PURPLE_200, 
+                on_click=self.on_hours_click
             )
-            
             
             ]
         )
         
     def on_clients_click(self, ev):
+        self.page.window_width = 1400
+        self.page.window_height = 900
+        
         self.page.go("/clients")
+        
+    def on_projects_click(self, ev):
+        self.page.window_width = 1400
+        self.page.window_height = 900
+        
+        self.page.go("/projects")
+        
+    def on_tasks_click(self, ev):
+        self.page.window_width = 1400
+        self.page.window_height = 900
+        
+        self.page.go("/tasks")
+    
+    def on_hours_click(self, ev):
+        self.page.window_width = 1400
+        self.page.window_height = 900
+        
+        self.page.go("/hours")
     

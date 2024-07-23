@@ -24,7 +24,7 @@ def main(page: ft.Page):
     )
     
     start="/login"
-    if is_authenticated():
+    if is_authenticated(page):
         start="/"
     
     page.go(start)

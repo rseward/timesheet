@@ -16,4 +16,5 @@ esac
 
 pip install -r requirements.txt
 pip install $EDITABLE ./
+touch fastapi/main.py
 date

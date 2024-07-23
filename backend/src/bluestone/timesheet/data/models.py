@@ -71,18 +71,18 @@ TaskStatusType: enum = Enum(
 class Assignment(Base):
     __tablename__ = "assignments"
 
-    proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
+    project_id: Mapped[int] = mapped_column(ForeignKey("project.project_id"), nullable=False)
     username = Column(String(32), primary_key=True, nullable=False)
 
 
 class BillingEvent(Base):
     __tablename__ = "billing_event"
 
-    uid = Column(String(32), primary_key=True, autoincrement=True)
+    uid = Column(String(36), primary_key=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     trans_num = Column(Integer, nullable=False)
-    proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
+    project_id: Mapped[int] = mapped_column(ForeignKey("project.project_id"), nullable=False)
     task_id: Mapped[int] = mapped_column(ForeignKey("task.task_id"), nullable=False)
     log_message = Column(String(255))
 
@@ -112,14 +112,14 @@ class Client(Base):
 class Project(Base):
     __tablename__ = "project"
 
-    proj_id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(200), nullable=False)
     client_id: Mapped[int] = mapped_column(ForeignKey("client.client_id"), nullable=False)
     description = Column(String(256))
     start_date = Column(Date, nullable=False)
     deadline = Column(Date, nullable=False)
     http_link = Column(String(128))
-    proj_status = Column(Enum("pending", "started", "suspended"), nullable=False)
+    proj_status = Column(Enum("Pending", "Started", "Suspended"), nullable=False)
     proj_leader = Column(String(32))
 
 
@@ -127,15 +127,16 @@ class Task(Base):
     __tablename__ = "task"
 
     task_id = Column(Integer, primary_key=True, autoincrement=True)
-    proj_id: Mapped[int] = mapped_column(ForeignKey("project.proj_id"), nullable=False)
+    project_id: Mapped[int] = mapped_column(ForeignKey("project.project_id"), nullable=False)
     name = Column(String(128), nullable=False)
     description = Column(Text)
-    assigned = Column(DateTime, nullable=False)
-    started = Column(DateTime, nullable=False)
-    suspended = Column(DateTime, nullable=False)
-    completed = Column(DateTime, nullable=False)
+    assigned = Column(DateTime, nullable=True)
+    started = Column(DateTime, nullable=True)
+    suspended = Column(DateTime, nullable=True)
+    completed = Column(DateTime, nullable=True)
+    http_link = Column(String(128))
     status = Column(
-        Enum("pending", "assigned", "started", "suspended", "complete"), nullable=False
+        Enum("Pending", "Assigned", "Started", "Suspended", "Complete"), nullable=False
     )
 
 class User(Base):

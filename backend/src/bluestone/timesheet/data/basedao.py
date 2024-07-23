@@ -1,10 +1,12 @@
-
+from cachetools.func import ttl_cache
+#from bluestone.timesheet.data.daos import getDaoFactory
 
 class BaseDao(object):
     def __init__(self, session):
         self.Session = session
         self.session = self.Session()
-
+    
+    @ttl_cache(ttl=10)
     def getSession(self):
         if not (self.session):
             self.session = self.Session()
@@ -27,3 +29,14 @@ class BaseDao(object):
 
     def rollback(self):
         self.getSession().rollback()
+        
+    def refresh(self, dbrec):
+        self.getSession().refresh(dbrec)
+        
+        return dbrec
+    
+    def delete(self, dbrec):
+        self.getSession().delete(dbrec)
+
+    def flush(self):
+        self.getSession().flush()

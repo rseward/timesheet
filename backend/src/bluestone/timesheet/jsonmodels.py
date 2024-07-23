@@ -22,29 +22,31 @@ class ProjectStatusEnum(str, Enum):
 
 
 class TaskStatusEnum(str, Enum):
-    pending = "pending"
-    started = "started"
-    suspended = "suspended"
-    complete = "complete"
+    pending = "Pending"
+    started = "Started"
+    suspended = "Suspended"
+    complete = "Complete"
 
 
 class AssignmentJson(BaseModel):
-    proj_id: int
+    project_id: int = None
     username: constr(max_length=32)
 
 
 class BillingEventJson(BaseModel):
-    uid: constr(max_length=32)
+    uid: Optional[constr(max_length=36)] = None
     start_time: datetime.datetime
     end_time: datetime.datetime
-    trans_num: int
-    proj_id: int
+    trans_num: Optional[int] = None
+    project_id: int
     task_id: int
     log_message: constr(max_length=255)
+    project_name: Optional[str] = None
+    task_name: Optional[str] = None    
 
 
 class ClientJson(BaseModel):
-    client_id: int
+    client_id: Optional[int] = None
     organisation: str
     description: Optional[str]
     address1: str
@@ -64,7 +66,7 @@ class ClientJson(BaseModel):
 
 
 class ProjectJson(BaseModel):
-    proj_id: int
+    project_id: Optional[int] = None
     title: constr(max_length=200)
     client_id: int
     description: constr(max_length=256)
@@ -73,11 +75,12 @@ class ProjectJson(BaseModel):
     http_link: constr(max_length=128)
     proj_status: ProjectStatusEnum
     proj_leader: constr(max_length=32)
+    client_name: Optional[str] = None
 
 
 class TaskJson(BaseModel):
-    task_id: int
-    proj_id: int
+    task_id:  Optional[int] = None
+    project_id: int
     name: constr(max_length=128)
     description: Optional[str] = None
     assigned: Optional[datetime.datetime] = None
@@ -85,15 +88,17 @@ class TaskJson(BaseModel):
     suspended: Optional[datetime.datetime] = None
     completed: Optional[datetime.datetime] = None
     status: TaskStatusEnum
+    http_link: Optional[constr(max_length=128)] = None
+    project_name: Optional[str] = None
 
 class UserJson(BaseModel):
-    user_id: int
+    user_id: Optional[int] = None
     email: constr(max_length=128)
     name: str
     password: constr(max_length=64)
 
 class UserTokenJson(BaseModel):
-    user_token_id: int
+    user_token_id: Optional[int] = None
     user_id: int
     access_token: constr(max_length=450)
     refresh_token: constr(max_length=450)

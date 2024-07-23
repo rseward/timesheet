@@ -12,6 +12,21 @@ class UserTokenDao(BaseDao):
     def getById(self, id) -> UserToken:
         q = self.getSession().query(UserToken)
         return q.filter(UserToken.user_token_id == id).first()
+
+    def getById(self, id) -> UserToken:
+        q = self.getSession().query(UserToken)
+        return q.filter(UserToken.user_token_id == id).first()
+
+    def getByUserId(self, user_id: int):
+        q = self.getSession().query(UserToken)
+        q = q.filter(UserToken.user_id == user_id)
+        return q.all()
+    
+    def getByUserIdAndRefresh(self, user_id: int, refreshtoken: str):
+        q = self.getSession().query(UserToken)
+        q = q.filter(UserToken.user_id == user_id)
+        q = q.filter(UserToken.refresh_token == refreshtoken)
+        return q.all()
         
     def update(self, db: UserToken, js: UserTokenJson) -> User:
         urec = self.toModel(js, db)

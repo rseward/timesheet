@@ -1,8 +1,13 @@
 # pip install pyjwt
 import jwt
+import logging
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+from bluestone.timesheet.config import LOGGER_NAME
+
+logger = logging.getLogger("main")
 
 # TODO: refactor this into a environment vars or a different location
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes
@@ -14,7 +19,15 @@ JWT_REFRESH_SECRET_KEY = "Yvl7juxbwe8qSCaV6h6@#$%^@&gu5YwCi78h8StYmWWQFRN"
 def decodeJWT(jwtoken: str):
     try:
         # Decode and verify the token
-        payload = jwt.decode(jwtoken, JWT_SECRET_KEY, ALGORITHM)
+        payload = jwt.decode(jwtoken, JWT_SECRET_KEY, JWT_SECRET_KEY_ALGORITHMS)
+        return payload
+    except InvalidTokenError:
+        return None
+
+def decodeJWTRefresh(jwtrefresh: str):
+    try:
+        # Decode and verify the token
+        payload = jwt.decode(jwtrefresh, JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY_ALGORITHMS)
         return payload
     except InvalidTokenError:
         return None
@@ -44,7 +57,7 @@ class JWTBearer(HTTPBearer):
             payload = None
         if payload:
             isTokenValid = True
-        print(f"verify_jwt()={isTokenValid}")
+        logger.info(f"verify_jwt()={isTokenValid}")
         return isTokenValid
 
 jwt_bearer = JWTBearer()
