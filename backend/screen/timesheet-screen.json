@@ -1,0 +1,24 @@
+{ "session" : 
+  {
+     "name" : "timesheet",
+     "numwindows" : 10,
+     "windows" : [
+       { "name" : "fastapi" ,
+         "command" : ". ~rseward/bluestone-aliases" },
+       { "name" : "flex",
+         "command" : ". ~rseward/bluestone-aliases" },
+       { "name" : "python",
+         "command" : ". ~rseward/bluestone-aliases" },
+       { "name" : "ansible",
+         "command" : ". ~rseward/bluestone-aliases"},	 
+       { "name" : "hackerrank",
+         "command" : ". ~rseward/bluestone-aliases"},
+       { "name" : "bash2",
+         "command" : ". ~rseward/bluestone-aliases"},
+       { "name" : "bash2",
+         "command" : ". ~rseward/bluestone-aliases"},
+       { "name" : "bash3",
+         "command" : ". ~rseward/bluestone-aliases"}
+       ]
+  }
+}
