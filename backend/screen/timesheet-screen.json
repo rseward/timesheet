@@ -1,24 +1,24 @@
 { "session" : 
   {
      "name" : "timesheet",
-     "numwindows" : 10,
+     "numwindows" : 7,
      "windows" : [
        { "name" : "fastapi" ,
-         "command" : ". ~rseward/bluestone-aliases" },
+         "command" : ". ../env" },
        { "name" : "flex",
-         "command" : ". ~rseward/bluestone-aliases" },
+         "command" : ". ../env" },
        { "name" : "python",
-         "command" : ". ~rseward/bluestone-aliases" },
+         "command" : ". ../env" },
        { "name" : "ansible",
-         "command" : ". ~rseward/bluestone-aliases"},	 
+         "command" : ". ../env"},	 
        { "name" : "hackerrank",
-         "command" : ". ~rseward/bluestone-aliases"},
+         "command" : ". ../env"},
        { "name" : "bash2",
-         "command" : ". ~rseward/bluestone-aliases"},
+         "command" : ". ../env"},
        { "name" : "bash2",
-         "command" : ". ~rseward/bluestone-aliases"},
+         "command" : ". ../env"},
        { "name" : "bash3",
-         "command" : ". ~rseward/bluestone-aliases"}
+         "command" : ". ../env"}
        ]
   }
 }

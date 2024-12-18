@@ -10,10 +10,10 @@ steps/install:	pip.out
 	touch steps/install
 
 install:	pip.out
-	pip install ./
+	uv pip install ./
 
 pip.out:	requirements.txt
-	pip install -r requirements.txt
+	uv pip install -r requirements.txt
 	pip freeze > pip.out
 
 steps/db:

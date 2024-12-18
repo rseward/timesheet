@@ -1,3 +1,4 @@
+import stat
 import flet as ft
 from icecream import ic
 from .base_view import BaseView, TsCard, TsInputField, TsButton, TsNotification, TsModalDialog
@@ -217,6 +218,16 @@ class TasksView(BaseView):
             if self.projectdrop.parent is not None:
                 self.projectdrop.update()
         self.page.update()
+
+    def getTaskStatusValues(self):
+        """Load possible task status values"""
+
+        return [
+            "Pending",
+            "Started",
+            "Suspended",
+            "Complete",
+        ]
     
     
     class EditForm(object):
@@ -252,6 +263,17 @@ class TasksView(BaseView):
                                     val="2024-01-01",
                                     startdate="2023-01-01" #self.view.startdate
                     )
+                elif fn == "status":
+                    self.statusdrop = control = ft.Dropdown(
+                        label="status",
+                        hint_text="Select status",
+                        width=width,
+                        bgcolor=ft.colors.GREY_700,
+                        focused_border_color=ft.colors.WHITE,                
+                        options=[], #self.view.getTaskStatusValues(),
+                        on_change=self.on_statusdrop_change,                        
+                    )
+                    
                 else:
                     control = TsInputField(
                         width=width,
@@ -304,7 +326,12 @@ class TasksView(BaseView):
             # Apply user edits from the controls to the data fields and then save
             for fn in self.fieldnames:
                 if fn in self.fields.keys():
-                    self.data[fn] = self.fields[fn].text.value
+                    control = self.fields[fn]
+                    if fn not in ["status"]:
+                        self.data[fn] = control.text.value
+                    if fn in ["status"]: 
+                        self.data["status"] = control.value
+
                 
             res = self.view.getTaskService().save(self.data)
             
@@ -312,8 +339,33 @@ class TasksView(BaseView):
                 TsNotification(self.view.page, msg="Saved", bgcolor="green")
             else:
                 TsNotification(self.view.page, msg="Save failed", bgcolor="red")
+
+        def on_statusdrop_change(self, e):
+            ic(f"status={e.control.value}")
+            self.data["status"]=e.control.value
+
             
-        
+    def setValue(self, tf, fn, value, event=None):
+        """Set the value of a form field."""
+
+        ic(f"TaskView.setValue({fn}={value})")
+        if fn in ["status"]:
+            values = self.getTaskStatusValues()
+            statusoptions = []
+            for svalue in values:
+                statusoptions.append(ft.dropdown.Option(key=svalue, text=svalue))
+            ic(f"statusoptions={values}")
+            tf.options = statusoptions
+            tf.value = value
+            
+            if tf.parent is not None:
+                tf.update()
+            
+            return
+
+        return super().setValue(tf, fn, value, event)
+
+    
     def edit(self, e):
         """Construct the edit data form."""
         

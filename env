@@ -1,5 +1,6 @@
 # Environment vars that should be set to run the app.
 
+. ~/.bash_profile
 . /bluestone/pyve/timesheet/bin/activate
 
 # SQLALCHEMY URL
