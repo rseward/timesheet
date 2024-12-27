@@ -4,7 +4,7 @@ import unittest
 import requests
 import pickle
 
-baseurl="http://127.0.0.1:8000/api"
+baseurl="http://127.0.0.1:8080/api"
 
 class TestFastApiProject(unittest.TestCase):
         def setUp(self):
@@ -62,6 +62,27 @@ class TestFastApiProject(unittest.TestCase):
             res=requests.put(f"{baseurl}/projects/", json=project, headers=self.headers).json()
             print(res)
             self.assertTrue(  "updated" in res.keys(), "failed to add project with project_id=1" )
+
+        @unittest.SkipTest
+        def testPostProjectRide(self):
+            print(f"testPostProjectRide: {baseurl}/projects/rides/")
+            # This post fails due to the poorly formatted dates. 
+            # Improve fastapi end point to at least send a message back to the user about incorrectly formatted dates.
+            # TODO:Add a regex to the flet form to prevent entry of bad dates?
+            project = {'client_id': '5',
+              'client_name': '',
+              'deadline': '12/31/2026',
+              'description': 'The RIDE data streaming service',
+              'http_link': 'https://ride.michigan.gov',
+              'proj_leader': 'Mark Burgess',
+              'proj_status': 'Pending',
+              'project_id': None,
+              'start_date': '12/23/2024',
+              'title': 'RIDE'}
+
+            res=requests.post(f"{baseurl}/projects/rides/", json=project, headers=self.headers).json()
+            print(res)
+            self.assertTrue(  "added" in res.keys(), "failed to add project with project_id=1" )  
             
                                     
 
