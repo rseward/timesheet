@@ -137,4 +137,4 @@ dmypy.json
 install
 pip.out
 timesheet.sqlite
-frontend/user-creds.pickle
+frontend/flet/user-creds.pickle

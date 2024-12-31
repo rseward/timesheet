@@ -20,6 +20,9 @@ class DateTimeField(object):
         # TODO: provide a simplified way to pass a relative date like "-2w"
         self.startdate = startdate
         self.enddate = enddate
+        # TODO: add an on_change_event to verify the date matches the expected range
+        self.re = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+
         
         if isinstance(startdate, str):
             self.startdate=self.dateinterpreter.interpret(startdate)
