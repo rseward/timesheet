@@ -207,6 +207,19 @@ class ProjectsView(BaseView):
                         val="2024-01-01",
                         startdate="2023-01-01" #self.view.startdate
                     )
+                elif fn == "proj_status":
+                    ic("Adding proj_status drop down")
+                    self.statusdrop = control = ft.Dropdown(
+                        label="proj_status",
+                        hint_text="Select Project Status",
+                        width=400,
+                        bgcolor=ft.colors.GREY_700,
+                        focused_border_color=ft.colors.WHITE,
+                        options=[],
+                        # on_change=self.on_statusdrop_change,
+                        # on_focus=self.on_statusdrop_focus,
+                        autofocus=True
+                    )
                 else:
                     control = TsInputField(
                         width=width,
@@ -219,11 +232,64 @@ class ProjectsView(BaseView):
             self.view.dirty = True
             self.formcard = None
             self.data = None
+
+        def show(self, page: ft.Page) -> TsCard:
+            self.saveButton = TsButton("Save",on_click=self.save)
+            
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Row([
+                    self.fields["project_name"],
+                    self.fields["status"],
+                    self.saveButton
+                    ]),
+                    ft.Row([
+                    self.fields["name"]                    
+                    ]),                    
+                    ft.Row([
+                    self.fields["description"], 
+                    ]),
+                    ft.Row([                    
+                    self.fields["assigned"].content, 
+                    self.fields["started"].content, 
+                    ]),
+                    ft.Row([                    
+                    self.fields["suspended"].content, 
+                    self.fields["completed"].content, 
+                    ]),
+                    ft.Row([
+                    self.fields["http_link"], 
+                    ]),
+                ])
+            )
+            
+            formcard = TsCard(self.view, content)
+            
+            return formcard
+
             
         def on_clientdrop_change(self, e):
-            ic(f"client_id={e.control.value}")
-            self.data["client_id"]=e.control.value
+            self.data["proj_status"]=e.control.value
+
+
+        """ 
+        def on_statusdrop_change(self, e):
+            rows = self._loaddata()
+            self.tabdata = self.renderrows(rows)
+            self.reloadtable(self.tabdata)
             
+            self._loadprojects(e.control.value)
+            
+        def on_statusdrop_focus(self, e):
+            #ic()
+            if len(self.clientdrop.options)<1:
+                self.progress(True)
+                try:
+                    self._loadclients()
+                finally:
+                    self.progress(False)
+        """
+
         def update(self):
             if self.formcard:
                 self.formcard.update()
@@ -268,14 +334,16 @@ class ProjectsView(BaseView):
             # Apply user edits from the controls to the data fields and then save
             for fn in self.fieldnames:
                 if fn in self.fields.keys():
+                    control = self.fields[fn]
                     if fn in ["client_name"]:
-                        self.data["client_id"] = self.fields[fn].value
+                        self.data["client_id"] = self.clientdrop.value
                         ic(f"client_id={self.data['client_id']}")
+                    elif fn in ["proj_status"]:
+                        self.data["proj_status"] = control.value
                     else:
                         self.data[fn] = self.fields[fn].text.value
                     if fn in [ "start_date", "deadline", "title", "description", "proj_status", "proj_leader" ] and isEmpty(self.data[fn]):
                         ic(f"{fn} is a required field")
-                        control = self.fields[fn]
                         control.text.bgcolor = ft.colors.AMBER_900
                         control.update()
                         valid=False
@@ -290,6 +358,38 @@ class ProjectsView(BaseView):
             if not(valid):
                 self.update()
                 TsNotification(self.view.page, msg="Save failed", bgcolor="red")
+
+
+    
+    def setValue(self, tf, fn, value, event=None):
+        """Set the value of a form field."""
+
+        ic(f"ProjectView.setValue({fn}={value})")
+        if fn in ["proj_status"]:
+            values = self.getProjectStatusValues()
+            statusoptions = []
+            for svalue in values:
+                statusoptions.append(ft.dropdown.Option(key=svalue, text=svalue))
+            ic(f"statusoptions={values}")
+            tf.options = statusoptions
+            tf.value = value
+            
+            if tf.parent is not None:
+                tf.update()
+            
+            return
+
+        return super().setValue(tf, fn, value, event)
+
+
+    def getProjectStatusValues(self):
+        """Load possible project status values"""
+
+        return [
+            'Pending','Started','Suspended','Complete'
+        ]
+
+            
                 
     
     def edit(self, e):
