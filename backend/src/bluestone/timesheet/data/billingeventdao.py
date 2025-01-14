@@ -11,6 +11,7 @@ class BillingEventDao(BaseDao):
         q = self.getSession().query(BillingEvent, Project.title, Task.name)
         q = q.filter(BillingEvent.project_id == Project.project_id)
         q = q.filter(BillingEvent.task_id == Task.task_id)
+        q = q.filter(BillingEvent.active == True)
         if client_id is not None:
             q = q.filter(Project.client_id == client_id)
         if project_id is not None:
@@ -28,7 +29,8 @@ class BillingEventDao(BaseDao):
         return super().save(dbrec)
         
 
-    def getById(self, aid) -> BillingEvent:
+    def getById(self, aid: str) -> BillingEvent:
+        print(aid)
         q = self.getSession().query(BillingEvent, Project.title, Task.name)
         q = q.filter(BillingEvent.project_id == Project.project_id)
         q = q.filter(BillingEvent.task_id == Task.task_id)
@@ -42,10 +44,15 @@ class BillingEventDao(BaseDao):
 
         return urec
 
-    def delete(self, project_id: int) -> None:
-        dbrec = self.getById(project_id)
+    def delete(self, uid: str) -> None:
+        assert isinstance(uid, str), "uid must be a string"
+        q = self.getSession().query(BillingEvent)
+        q = q.filter(BillingEvent.uid == uid)
+        dbrec = q.first()
         if dbrec is not None:
-            self.getSession().delete(dbrec)
+            #self.getSession().delete(dbrec)
+            dbrec.active = False
+            self.save(dbrec)
 
     def toDict(self, db: BillingEvent) -> dict:
         d = {}
@@ -56,6 +63,7 @@ class BillingEventDao(BaseDao):
         d["end_time"] = db.end_time
         d["trans_num"] = db.trans_num
         d["log_message"] = db.log_message
+        d["active"] = db.active
 
         return d
 
@@ -70,6 +78,7 @@ class BillingEventDao(BaseDao):
         j.log_message = db.log_message
         j.project_name = project_name
         j.task_name = task_name
+        j.active = db.active
 
         return j
 
@@ -84,5 +93,6 @@ class BillingEventDao(BaseDao):
         db.end_time = j.end_time
         db.trans_num = j.trans_num
         db.log_message = j.log_message
+        db.active = j.active
 
         return db

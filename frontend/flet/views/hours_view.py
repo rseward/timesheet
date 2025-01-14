@@ -487,7 +487,7 @@ class HoursView(BaseView):
             ic(uid)
             event = self.getBillingEventService().getBillingEvent(uid)            
             ic(event)
-            ic("Initializin data")
+            ic("Initializing data")
             self.open(event)
         finally:
             self.progress(False)
@@ -507,11 +507,21 @@ class HoursView(BaseView):
         
         # do the delete
         if e.control.text == "Yes":
-            self.dirty = True
-            ic(f"Let's inactivate {uid}?")
-        
-        # refresh the view
-        
+            self.progress(True)
+            try:
+                self.dirty = True
+                # TODO: inactivate the event
+                ic(f"Let's inactivate {uid}?")
+                res = self.getBillingEventService().inactivateBillingEvent(uid)
+                if res.status_code == 200:
+                    TsNotification(self.page, msg="Inactivated", bgcolor="green")
+                else:
+                    TsNotification(self.page, msg="Inactivation failed", bgcolor="red")
+                # refresh the view
+                self.refresh(None)
+            finally:
+                self.progress(False)
+
         
         
     def addBillingEvent(self, e):

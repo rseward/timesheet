@@ -6,19 +6,28 @@ from bluestone.timesheet.jsonmodels import TaskJson
 from .basedao import BaseDao
 
 class TaskDao(BaseDao):
-    def getAll(self, client_id = None, project_id=None):
+    def getAll(self, client_id = None, project_id=None, include_inactive=False):
         q = self.getSession().query(Task, Project.title)
         if client_id is not None:
             q = q.filter( Project.client_id == client_id)        
         q = q.filter( Task.project_id == Project.project_id)
         if project_id is not None:
             q = q.filter(Task.project_id == project_id)
+        q = q.filter(Project.active == True)
+        if not include_inactive:
+            q = q.filter(Task.active == True)
         return q.all()
 
     def getById(self, aid) -> Task:
         q = self.getSession().query(Task, Project.title)
         q = q.filter( Task.project_id == Project.project_id)
         return q.filter(Task.task_id == aid).first()
+
+    def _getById(self, aid) -> Task:
+        q = self.getSession().query(Task)
+        q = q.filter( Task.project_id == Project.project_id)
+        return q.filter(Task.task_id == aid).first()
+
 
     def update(self, db: Task, js: TaskJson) -> Task:
         urec = self.toModel(js, db)
@@ -28,9 +37,11 @@ class TaskDao(BaseDao):
         return urec
 
     def delete(self, project_id: int) -> None:
-        dbrec = self.getById(project_id)
+        dbrec = self._getById(project_id)
         if dbrec is not None:
-            self.getSession().delete(dbrec)
+            #self.getSession().delete(dbrec)
+            dbrec.active = False
+            self.save(dbrec)
 
     def toDict(self, db: Task) -> dict:
         d = {}
@@ -44,6 +55,7 @@ class TaskDao(BaseDao):
         d["completed"] = db.completed
         d["status"] = db.status
         d["http_link"] = db.http_link
+        d["active"] = db.active
 
         return d
 
@@ -61,6 +73,7 @@ class TaskDao(BaseDao):
         j.status = db.status
         j.http_link = db.http_link
         j.project_name = project_name
+        j.active = db.active
 
         return j
 
@@ -78,5 +91,6 @@ class TaskDao(BaseDao):
         db.completed = j.completed
         db.status = j.status
         db.http_link = j.http_link
+        db.active = j.active
 
         return db

@@ -35,9 +35,9 @@ class ProjectService(BaseService):
         return project
 
     
-    def getProjects(self, client_id = None):
+    def getProjects(self, client_id = None, active=False):
         #time.sleep(5)
-        params={}
+        params={"active":active}
         if client_id is not None:
             params["client_id"]=client_id
         res = self.getSession().get(f"{self.projecturl}/", params=params)
@@ -68,6 +68,13 @@ class ProjectService(BaseService):
             #ic(myjson)
             res = self.getSession().post(posturl,json=project)
             
+        return res
+
+    def inactivateProject(self, id: str):
+        ic(f"inactivateProject({id})")
+        res = self.getSession().delete(f"{self.projecturl}/{id}")
+        ic(res)
+
         return res
         
 

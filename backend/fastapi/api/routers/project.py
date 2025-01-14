@@ -3,11 +3,9 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException
 import pprint
 import sqlalchemy
 import bluestone.timesheet.config as cfg
-#from bluestone.timesheet.data.models import project
 from bluestone.timesheet.jsonmodels import ProjectJson
 
 from bluestone.timesheet.data.daos import getDaoFactory
-#from api.depends.auth import validate_is_authenticated
 from bluestone.timesheet.auth.auth_bearer import JWTBearer, JWT_SECRET_KEY_ALGORITHMS
 
 daos = getDaoFactory()
@@ -22,17 +20,15 @@ router = APIRouter(
     "/",
     response_model=dict[str, dict[int, ProjectJson]],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
-
 # FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
-def index(client_id: int = None) -> dict[str, dict[int, ProjectJson]]:
+def index(client_id: int = None, active: bool = True) -> dict[str, dict[int, ProjectJson]]:
         cmap = {}
         projectDao = daos.getProjectDao()
         
         projects = []
         if client_id is None:
-            projects = projectDao.getAll()
+            projects = projectDao.getAll(include_inactive=not(active))
         else:
             projects = projectDao.getByClientId(client_id)
         
@@ -49,7 +45,6 @@ def index(client_id: int = None) -> dict[str, dict[int, ProjectJson]]:
     "/{project_id}",
     response_model=dict[str, ProjectJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 # @app.get("/projects/{project_id}")
 def project_by_id(project_id: int) -> dict[str, ProjectJson] :
@@ -66,7 +61,6 @@ def project_by_id(project_id: int) -> dict[str, ProjectJson] :
     "/",
     response_model=dict[str, ProjectJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 #@app.post("/projects/")
 def project_add(js: ProjectJson) -> dict[ str, ProjectJson]:
@@ -99,7 +93,6 @@ def project_add(js: ProjectJson) -> dict[ str, ProjectJson]:
     "/",
     response_model=dict[str, ProjectJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.put("/projects/")
 def project_update(js: ProjectJson) -> dict[ str, ProjectJson]:
@@ -115,10 +108,9 @@ def project_update(js: ProjectJson) -> dict[ str, ProjectJson]:
     return { "updated": projectDao.toJson(dbrec, client_name) }
 
 @router.delete(
-    "/",
+    "/{project_id}",
     response_model=dict[str, ProjectJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.delete("/projects/{project_id}")
 def project_delete(project_id: int) -> dict[str, ProjectJson]:

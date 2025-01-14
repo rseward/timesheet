@@ -42,6 +42,7 @@ class TasksView(BaseView):
                 self.colheader("Assigned"),
                 self.colheader("Started"),
                 self.colheader("Task Status"),
+                self.colheader("Active"),
                 self.colheader("Edit")
             ],
             rows=rows
@@ -137,6 +138,7 @@ class TasksView(BaseView):
                         ft.DataCell(ft.Text(row["assigned"])),
                         ft.DataCell(ft.Text(row["started"])),
                         ft.DataCell(ft.Text(row["status"])),
+                        ft.DataCell(ft.Checkbox(label="",value=row["active"],disabled=True)),
                         ft.DataCell(
                             ft.Row([
                             ft.IconButton(icon=ft.icons.EDIT_ROUNDED, data=row["task_id"], on_click=self.edit),
@@ -195,7 +197,7 @@ class TasksView(BaseView):
         rows=[]
         try:
             #time.sleep(10)
-            rows=self.getTaskService().getTasks(client_id=client_id, project_id=project_id)
+            rows=self.getTaskService().getTasks(client_id=client_id, project_id=project_id, active=False)
             self._loadClientsDropDown(self.clientdrop)            
             
         finally:
@@ -395,11 +397,20 @@ class TasksView(BaseView):
         
         # do the delete
         if e.control.text == "Yes":
-            self.dirty = True
-            ic(f"Let's inactivate {task_id}?")
-        
-        # refresh the view
-        
+            self.progress(True)
+            try:
+                self.dirty = True
+                # TODO: inactivate the event
+                ic(f"Let's inactivate {task_id}?")
+                res = self.getTaskService().inactivateTask(task_id)
+                if res.status_code == 200:
+                    TsNotification(self.page, msg="Inactivated", bgcolor="green")
+                else:
+                    TsNotification(self.page, msg="Inactivation failed", bgcolor="red")
+                # refresh the view
+                self.refresh(None)
+            finally:
+                self.progress(False)
         
         
     def addTask(self, e):

@@ -22,14 +22,13 @@ router = APIRouter(
     "/",
     response_model=dict[str, dict[int, UserJson]],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 
 # FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
-def index() -> dict[str, dict[int, UserJson]]:
+def index(active: bool = True) -> dict[str, dict[int, UserJson]]:
         cmap = {}
         userDao = daos.getUserDao()
-        for dbuser in userDao.getAll():
+        for dbuser in userDao.getAll(include_inactive=not(active)):
             j = userDao.toJson(dbuser)
             cmap[ j.user_id ] = j
             
@@ -41,7 +40,6 @@ def index() -> dict[str, dict[int, UserJson]]:
     "/{user_id}",
     response_model=dict[str, UserJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 # @app.get("/users/{user_id}")
 def user_by_id(user_id: int) -> dict[str, UserJson] :
@@ -56,7 +54,6 @@ def user_by_id(user_id: int) -> dict[str, UserJson] :
     "/",
     response_model=dict[str, UserJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 #@app.post("/users/")
 def user_add(js: UserJson) -> dict[ str, UserJson]:
@@ -80,7 +77,6 @@ def user_add(js: UserJson) -> dict[ str, UserJson]:
     "/",
     response_model=dict[str, UserJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.put("/users/")
 def client_update(js: UserJson) -> dict[ str, UserJson]:
@@ -93,10 +89,9 @@ def client_update(js: UserJson) -> dict[ str, UserJson]:
     return { "updated": userDao.toJson(dbrec) }
 
 @router.delete(
-    "/",
+    "/{uid}",
     response_model=dict[str, UserJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.delete("/userss/{user_id}")
 def user_delete(user_id: int) -> dict[str, UserJson]:

@@ -3,11 +3,9 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException
 import pprint
 import sqlalchemy
 import bluestone.timesheet.config as cfg
-#from bluestone.timesheet.data.models import Client
 from bluestone.timesheet.jsonmodels import ClientJson
 
 from bluestone.timesheet.data.daos import getDaoFactory
-#from api.depends.auth import validate_is_authenticated
 from bluestone.timesheet.auth.auth_bearer import JWTBearer, JWT_SECRET_KEY_ALGORITHMS
 
 daos = getDaoFactory()
@@ -22,14 +20,13 @@ router = APIRouter(
     "/",
     response_model=dict[str, dict[int, ClientJson]],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 
 # FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
-def index() -> dict[str, dict[int, ClientJson]]:
+def index(active: bool = True) -> dict[str, dict[int, ClientJson]]:
         cmap = {}
         clientDao = daos.getClientDao()
-        for dbclient in clientDao.getAll():
+        for dbclient in clientDao.getAll(include_inactive=not(active)):
             j = clientDao.toJson(dbclient)
             cmap[ j.client_id ] = j
             
@@ -41,7 +38,6 @@ def index() -> dict[str, dict[int, ClientJson]]:
     "/{client_id}",
     response_model=dict[str, ClientJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 # @app.get("/clients/{client_id}")
 def client_by_id(client_id: int) -> dict[str, ClientJson] :
@@ -77,8 +73,7 @@ def client_by_id(client_id: int) -> dict[str, ClientJson] :
 @router.post(
     "/",
     response_model=dict[str, ClientJson],
-#    dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
 )
 #@app.post("/clients/")
 def client_add(js: ClientJson) -> dict[ str, ClientJson]:
@@ -110,7 +105,6 @@ def client_add(js: ClientJson) -> dict[ str, ClientJson]:
     "/",
     response_model=dict[str, ClientJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.put("/clients/")
 def client_update(js: ClientJson) -> dict[ str, ClientJson]:
@@ -125,13 +119,12 @@ def client_update(js: ClientJson) -> dict[ str, ClientJson]:
         
     return { "updated": clientDao.toJson(dbrec) }
 
+#@app.delete("/clients/{client_id}")
 @router.delete(
-    "/",
+    "/{client_id}",
     response_model=dict[str, ClientJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
-#@app.delete("/clients/{client_id}")
 def client_delete(client_id: int) -> dict[str, ClientJson]:
     clientDao = daos.getClientDao()
     dbrec = clientDao.getById(client_id)

@@ -35,9 +35,9 @@ class TaskService(BaseService):
         return task
 
     
-    def getTasks(self, client_id = None, project_id = None):
+    def getTasks(self, client_id = None, project_id = None, active=False):
         #time.sleep(5)
-        params = {}
+        params = {"active":False}
         params["client_id"] = client_id
         params["project_id"] = project_id
         res = self.getSession().get(f"{self.taskurl}/", params=params)
@@ -77,6 +77,13 @@ class TaskService(BaseService):
             #ic(myjson)
             res = self.getSession().post(posturl,json=task)
             
+        return res
+
+    def inactivateTask(self, id: str):
+        ic(f"inactivateTask({id})")
+        res = self.getSession().delete(f"{self.taskurl}/{id}")
+        ic(res)
+
         return res
         
 

@@ -6,8 +6,11 @@ from bluestone.timesheet.jsonmodels import ClientJson
 from .basedao import BaseDao
 
 class ClientDao(BaseDao):
-    def getAll(self):
-        return self.getSession().query(Client).all()
+    def getAll(self, include_inactive=False):
+        q = self.getSession().query(Client)
+        if not include_inactive:
+            q = q.filter(Client.active == True)
+        return q.all()
 
     def getById(self, aid) -> Client:
         q = self.getSession().query(Client)
@@ -23,7 +26,9 @@ class ClientDao(BaseDao):
     def delete(self, client_id: int) -> None:
         dbrec = self.getById(client_id)
         if dbrec is not None:
-            self.getSession().delete(dbrec)
+            #self.getSession().delete(dbrec)
+            dbrec.active = False
+            self.save(dbrec)
 
     def toDict(self, db: Client) -> dict:
         d = {}
@@ -44,6 +49,7 @@ class ClientDao(BaseDao):
         d["fax_number"] = db.fax_number
         d["gsm_number"] = db.gsm_number
         d["http_url"] = db.http_url
+        d["active"] = db.active
 
         return d
 
@@ -66,6 +72,7 @@ class ClientDao(BaseDao):
         j.fax_number = db.fax_number
         j.gsm_number = db.gsm_number
         j.http_url = db.http_url
+        j.active = db.active
 
         return j
 
@@ -90,5 +97,6 @@ class ClientDao(BaseDao):
         db.fax_number = j.fax_number
         db.gsm_number = j.gsm_number
         db.http_url = j.http_url
+        db.active = j.active
 
         return db

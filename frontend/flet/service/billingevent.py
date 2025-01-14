@@ -78,6 +78,13 @@ class BillingEventService(BaseService):
             res = self.getSession().post(posturl,json=event)
             
         return res
+
+    def inactivateBillingEvent(self, uid):
+        ic(f"inactivateBillingEvent({uid})")
+        res = self.getSession().delete(f"{self.eventurl}/{uid}")
+        ic(res)
+
+        return res
         
 
 

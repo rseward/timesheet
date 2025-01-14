@@ -7,7 +7,6 @@ import bluestone.timesheet.config as cfg
 from bluestone.timesheet.jsonmodels import BillingEventJson
 
 from bluestone.timesheet.data.daos import getDaoFactory
-#from api.depends.auth import validate_is_authenticated
 from bluestone.timesheet.auth.auth_bearer import JWTBearer, JWT_SECRET_KEY_ALGORITHMS
 
 daos = getDaoFactory()
@@ -18,15 +17,13 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+# FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
 @router.get(
     "/",
     response_model=dict[str, dict[str, BillingEventJson]],
-    #dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
 )
-
-# FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
-def index(client_id: int = None, project_id: int = None, start_date: str = None, end_date: str = None) -> dict[str, dict[str, BillingEventJson]]:
+def index(client_id: int = None, project_id: int = None, start_date: str = None, end_date: str = None, active: bool = True) -> dict[str, dict[str, BillingEventJson]]:
         cmap = {}
         if start_date is not None:
             start_date = datetime.datetime.fromisoformat(start_date)
@@ -34,7 +31,7 @@ def index(client_id: int = None, project_id: int = None, start_date: str = None,
             end_date = datetime.datetime.fromisoformat(end_date) + datetime.timedelta(days=1)
         
         BillingEventDao = daos.getBillingEventDao()
-        for row in BillingEventDao.getAll(client_id, project_id, start_date, end_date):
+        for row in BillingEventDao.getAll(client_id, project_id, start_date, end_date, include_inactive=not(active)):
             j = BillingEventDao.toJson(row[0], row[1], row[2])
             cmap[ j.uid ] = j
             
@@ -46,7 +43,6 @@ def index(client_id: int = None, project_id: int = None, start_date: str = None,
     "/{uid}",
     response_model=dict[str, BillingEventJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 # @app.get("/events/{uid}")
 def event_by_id(uid: str) -> dict[str, BillingEventJson] :
@@ -62,7 +58,6 @@ def event_by_id(uid: str) -> dict[str, BillingEventJson] :
     "/",
     response_model=dict[str, BillingEventJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )
 #@app.post("/events/")
 def event_add(js: BillingEventJson) -> dict[ str, BillingEventJson]:
@@ -94,7 +89,6 @@ def event_add(js: BillingEventJson) -> dict[ str, BillingEventJson]:
     "/",
     response_model=dict[str, BillingEventJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.put("/events/")
 def event_update(js: BillingEventJson) -> dict[ str, BillingEventJson]:
@@ -109,23 +103,23 @@ def event_update(js: BillingEventJson) -> dict[ str, BillingEventJson]:
         
     return { "updated": eventDao.toJson(dbrec) }
 
+#@app.delete("/events/{uid}")
 @router.delete(
-    "/",
+    "/{uid}",
     response_model=dict[str, BillingEventJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
-)        
-#@app.delete("/events/{uid}")
-def event_delete(uid: int) -> dict[str, BillingEventJson]:
+)
+def event_delete(uid: str) -> dict[str, BillingEventJson]:
     eventDao = daos.getBillingEventDao()
-    (dbrec, _, _) = eventDao.getById(uid)
+    (dbrec, project_name, task_name) = eventDao.getById(uid)
     
     if dbrec is None:
         raise HTTPException(status_code=400, detail=f"event with {uid=} does not exist.")
         
+    print(f"deleting event with uid={uid}")
     eventDao.delete(dbrec.uid)
     eventDao.commit()
     
-    return { "deleted": eventDao.toJson(dbrec)}    
+    return { "deleted": eventDao.toJson(dbrec, project_name, task_name) }    
     
 

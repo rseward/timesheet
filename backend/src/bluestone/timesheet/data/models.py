@@ -85,6 +85,7 @@ class BillingEvent(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey("project.project_id"), nullable=False)
     task_id: Mapped[int] = mapped_column(ForeignKey("task.task_id"), nullable=False)
     log_message = Column(String(255))
+    active = Column(Boolean, nullable=False)
 
 
 class Client(Base):
@@ -107,6 +108,7 @@ class Client(Base):
     fax_number = Column(String(20))
     gsm_number = Column(String(20))
     http_url = Column(String(128))
+    active = Column(Boolean, nullable=False)
 
 
 class Project(Base):
@@ -121,6 +123,7 @@ class Project(Base):
     http_link = Column(String(128))
     proj_status = Column(Enum("Pending", "Started", "Suspended"), nullable=False)
     proj_leader = Column(String(32))
+    active = Column(Boolean, nullable=False)
 
 
 class Task(Base):
@@ -138,6 +141,7 @@ class Task(Base):
     status = Column(
         Enum("Pending", "Assigned", "Started", "Suspended", "Complete"), nullable=False
     )
+    active = Column(Boolean, nullable=False)
 
 class User(Base):
     __tablename__ = "user"
@@ -146,6 +150,7 @@ class User(Base):
     email = Column(String, nullable=False)
     name = Column(String(128), nullable=False)
     password = Column(String(64), nullable=False)
+    active = Column(Boolean, nullable=False)
     
 """
 Table to store JWT tokens associated with user accounts.

@@ -1,8 +1,14 @@
+run:	
+	./run.sh
+
 devsetup:	steps/db steps/install tests
 	touch steps/dev-ready
 
 query:	steps/db
 	sqlite3 $(TIMESHEET_SQLITE)
+
+migratedb:	steps/db
+	ls -l timesheet.sqlite
 
 steps/install:	pip.out
 	mkdir -p steps

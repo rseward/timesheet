@@ -6,19 +6,29 @@ from bluestone.timesheet.jsonmodels import ProjectJson
 from .basedao import BaseDao
 
 class ProjectDao(BaseDao):
-    def getAll(self):
+    def getAll(self, include_inactive=False):
         q = self.getSession().query(Project, Client.organisation)
         q = q.filter( Project.client_id == Client.client_id)
+        if not include_inactive:
+            q = q.filter(Project.active == True)
+        q = q.filter(Client.active == True)
+        
         return q.all()
 
     def getById(self, aid) -> Project:
         q = self.getSession().query(Project, Client.organisation)
         q = q.filter( Project.client_id == Client.client_id)    
         return q.filter(Project.project_id == aid).first()
-    
+
+    def _getById(self, aid) -> Project:
+        q = self.getSession().query(Project)
+        return q.filter(Project.project_id == aid).first()
+
+
     def getByClientId(self, aid) -> Project:
         q = self.getSession().query(Project, Client.organisation)
-        q = q.filter( Project.client_id == Client.client_id)                
+        q = q.filter( Project.client_id == Client.client_id)
+        q = q.filter(Project.active == True)
         return q.filter(Project.client_id == aid).all()
 
     def update(self, db: Project, js: ProjectJson) -> Project:
@@ -29,9 +39,11 @@ class ProjectDao(BaseDao):
         return urec
 
     def delete(self, project_id: int) -> None:
-        dbrec = self.getById(project_id)
+        dbrec = self._getById(project_id)
         if dbrec is not None:
-            self.getSession().delete(dbrec)
+            #self.getSession().delete(dbrec)
+            dbrec.active = False
+            self.save(dbrec)
 
     def toDict(self, db: Project) -> dict:
         d = {}
@@ -44,6 +56,7 @@ class ProjectDao(BaseDao):
         d["http_link"] = db.http_link
         d["proj_status"] = db.proj_status
         d["proj_leader"] = db.proj_leader
+        d["active"] = db.active
 
         return d
 
@@ -59,6 +72,7 @@ class ProjectDao(BaseDao):
         j.proj_status = db.proj_status
         j.proj_leader = db.proj_leader
         j.client_name = client_name
+        j.active = db.active
 
         return j
 
@@ -75,5 +89,6 @@ class ProjectDao(BaseDao):
         db.http_link = j.http_link
         db.proj_status = j.proj_status
         db.proj_leader = j.proj_leader
+        db.active = j.active
 
         return db

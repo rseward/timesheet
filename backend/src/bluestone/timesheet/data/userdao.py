@@ -7,8 +7,11 @@ from cachetools.func import ttl_cache
 from .basedao import BaseDao
 
 class UserDao(BaseDao):
-    def getAll(self):
-        return self.getSession().query(User).all()
+    def getAll(self, include_inactive=False):
+        q = self.getSession().query(User)
+        if not include_inactive:
+            q = q.filter(User.active == True)
+        return q.all()
     
     def getByEmail(self, email) -> User:
         q = self.getSession().query(User)
@@ -24,6 +27,14 @@ class UserDao(BaseDao):
 
         self.save(urec)
         return urec
+
+    def delete(self, user_id: int):
+        q = self.getSession().query(User)
+        q = q.filter(User.user_id == user_id)
+        user = q.first()
+        user.active = False
+        self.save(user)
+        
     
     def toModel(self, j: UserJson, db: User):
         if not (db):
@@ -33,7 +44,7 @@ class UserDao(BaseDao):
         db.email = j.email
         db.name = j.name
         db.password = j.password
-        db.name = j.name
+        db.active = j.active
         
     def toDict(self, db: User) -> dict:
         d = {}
@@ -41,6 +52,7 @@ class UserDao(BaseDao):
         d["email"] = db.email
         d["name"] = db.name
         d["password"] = db.password
+        d["active"] = db.active
         
         return d
         

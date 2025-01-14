@@ -51,6 +51,7 @@ class ProjectsView(BaseView):
                 self.colheader("Deadline"),
                 self.colheader("Project Status"),
                 self.colheader("Lead"),
+                self.colheader("Active"),
                 self.colheader("Edit")
             ],
             rows=rows
@@ -131,6 +132,7 @@ class ProjectsView(BaseView):
                         ft.DataCell(ft.Text(row["deadline"])),
                         ft.DataCell(ft.Text(row["proj_status"])),
                         ft.DataCell(ft.Text(row["proj_leader"])),
+                        ft.DataCell(ft.Checkbox(label="",value=row["active"],disabled=True)),
                         ft.DataCell(
                             ft.Row([
                             ft.IconButton(icon=ft.icons.EDIT_ROUNDED, data=row["project_id"], on_click=self.edit),
@@ -158,7 +160,7 @@ class ProjectsView(BaseView):
         rows=[]
         try:
             #time.sleep(10)
-            rows=self.getProjectService().getProjects()
+            rows=self.getProjectService().getProjects(active=False)
             
         finally:
             self.progress(False)            
@@ -415,16 +417,27 @@ class ProjectsView(BaseView):
         self.page.open(self.modal)
         
     def on_delete_confirm(self, e):
-        project_id = self.modal.data
+        uid = project_id = self.modal.data
         ic(f"delete {project_id}?")
         self.page.close(self.modal)
         
         # do the delete
         if e.control.text == "Yes":
-            self.dirty = True
-            ic(f"Let's inactivate {project_id}?")
+            self.progress(True)
+            try:
+                self.dirty = True
+                # TODO: inactivate the event
+                ic(f"Let's inactivate {uid}?")
+                res = self.getProjectService().inactivateProject(uid)
+                if res.status_code == 200:
+                    TsNotification(self.page, msg="Inactivated", bgcolor="green")
+                else:
+                    TsNotification(self.page, msg="Inactivation failed", bgcolor="red")
+                # refresh the view
+                self.refresh(None)
+            finally:
+                self.progress(False)
         
-        # refresh the view
         
         
         

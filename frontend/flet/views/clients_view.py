@@ -53,6 +53,7 @@ class ClientsView(BaseView):
                 self.colheader("State"),
                 self.colheader("Contact Email"),
                 self.colheader("URL"),
+                self.colheader("Active"),
                 self.colheader("Edit")
             ],
             rows=rows
@@ -125,6 +126,7 @@ class ClientsView(BaseView):
                         ft.DataCell(ft.Text(row["state"])),
                         ft.DataCell(ft.Text(row["contact_email"])),
                         ft.DataCell(ft.Text(row["http_url"])),
+                        ft.DataCell(ft.Checkbox(label="",value=row["active"],disabled=True)), 
                         ft.DataCell(
                             ft.Row([
                             ft.IconButton(icon=ft.icons.EDIT_ROUNDED, data=row["client_id"], on_click=self.edit),
@@ -146,7 +148,7 @@ class ClientsView(BaseView):
         rows=[]
         try:
             #time.sleep(10)
-            rows=self.getClientService().getClients()
+            rows=self.getClientService().getClients(active=False)
             
         finally:
             self.progress(False)            
@@ -281,16 +283,27 @@ class ClientsView(BaseView):
         self.page.open(self.modal)
         
     def on_delete_confirm(self, e):
-        client_id = self.modal.data
+        uuid =client_id = self.modal.data
         ic(f"delete {client_id}?")
         self.page.close(self.modal)
         
         # do the delete
         if e.control.text == "Yes":
-            self.dirty = True
-            ic(f"Let's inactivate {client_id}?")
+            self.progress(True)
+            try:
+                self.dirty = True
+                # TODO: inactivate the event
+                ic(f"Let's inactivate {client_id}?")
+                res = self.getClientService().inactivateClient(client_id)
+                if res.status_code == 200:
+                    TsNotification(self.page, msg="Inactivated", bgcolor="green")
+                else:
+                    TsNotification(self.page, msg="Inactivation failed", bgcolor="red")
+                # refresh the view
+                self.refresh(None)
+            finally:
+                self.progress(False)
         
-        # refresh the view
         
         
         

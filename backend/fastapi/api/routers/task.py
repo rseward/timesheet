@@ -21,15 +21,13 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=dict[str, dict[int, TaskJson]],
-#    dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
 )
-
 # FastAPI handles JSON marshalling for us. We simply use built-in python and Pydantic types
-def index(client_id: int = None, project_id: int = None) -> dict[str, dict[int, TaskJson]]:     
+def index(client_id: int = None, project_id: int = None, active: bool = True) -> dict[str, dict[int, TaskJson]]:     
     cmap = {}
     TaskDao = daos.getTaskDao()
-    for row in TaskDao.getAll(client_id=client_id, project_id=project_id):
+    for row in TaskDao.getAll(client_id=client_id, project_id=project_id, include_inactive=not(active)):
         (dbtask, project_name) = row
         j = TaskDao.toJson(dbtask, project_name)
         cmap[ j.task_id ] = j
@@ -41,8 +39,7 @@ def index(client_id: int = None, project_id: int = None) -> dict[str, dict[int, 
 @router.get(
     "/{task_id}",
     response_model=dict[str, TaskJson],
-    #dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
 )
 # @app.get("/tasks/{task_id}")
 def task_by_id(task_id: int) -> dict[str, TaskJson] :
@@ -57,8 +54,7 @@ def task_by_id(task_id: int) -> dict[str, TaskJson] :
 @router.post(
     "/",
     response_model=dict[str, TaskJson],
-#    dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
 )
 #@app.post("/tasks/")
 def task_add(js: TaskJson) -> dict[ str, TaskJson]:
@@ -92,8 +88,7 @@ def task_add(js: TaskJson) -> dict[ str, TaskJson]:
 @router.put(
     "/",
     response_model=dict[str, TaskJson],
-#    dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
+    dependencies=[Depends(JWTBearer())],    
 )        
 #@app.put("/tasks/")
 def task_update(js: TaskJson) -> dict[ str, TaskJson]:
@@ -109,22 +104,21 @@ def task_update(js: TaskJson) -> dict[ str, TaskJson]:
     return { "updated": taskDao.toJson(dbrec, project_name) }
 
 @router.delete(
-    "/",
+    "/{uid}",
     response_model=dict[str, TaskJson],
     dependencies=[Depends(JWTBearer())],    
-#    dependencies=[Depends(validate_is_authenticated)],
 )        
 #@app.delete("/tasks/{task_id}")
-def task_delete(task_id: int) -> dict[str, TaskJson]:
+def task_delete(uid: str) -> dict[str, TaskJson]:
     taskDao = daos.getTaskDao()
-    dbrec = taskDao.getById(task_id)
+    (dbrec, project_name) = taskDao.getById(uid)
     
     if dbrec is None:
-        raise HTTPException(status_code=400, detail=f"task with {task_id=} does not exist.")
+        raise HTTPException(status_code=400, detail=f"task with {uid=} does not exist.")
         
     taskDao.delete(dbrec.task_id)
     taskDao.commit()
     
-    return { "deleted": taskDao.toJson(dbrec)}    
+    return { "deleted": taskDao.toJson(dbrec, project_name)}    
     
 

@@ -35,9 +35,10 @@ class ClientService(BaseService):
         return client
 
     
-    def getClients(self):
+    def getClients(self, active=False):
         #time.sleep(5)
-        res = self.getSession().get(f"{self.clienturl}/")
+        params={"active":active}
+        res = self.getSession().get(f"{self.clienturl}/", params=params)
         rows = []
         if res.status_code == 200:
             print(res.json())
@@ -65,6 +66,13 @@ class ClientService(BaseService):
             #ic(myjson)
             res = self.getSession().post(posturl,json=client)
             
+        return res
+
+    def inactivateClient(self, id: str):
+        ic(f"inactivateClient({id})")
+        res = self.getSession().delete(f"{self.clienturl}/{id}")
+        ic(res)
+
         return res
         
 

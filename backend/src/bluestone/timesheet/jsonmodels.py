@@ -43,6 +43,7 @@ class BillingEventJson(BaseModel):
     log_message: constr(max_length=255)
     project_name: Optional[str] = None
     task_name: Optional[str] = None    
+    active: Optional[bool] = True
 
 
 class ClientJson(BaseModel):
@@ -63,6 +64,7 @@ class ClientJson(BaseModel):
     fax_number: Optional[str] = None
     gsm_number: Optional[str] = None
     http_url: Optional[str] = None
+    active: Optional[bool] = True
 
 
 class ProjectJson(BaseModel):
@@ -76,6 +78,7 @@ class ProjectJson(BaseModel):
     proj_status: ProjectStatusEnum
     proj_leader: constr(max_length=32)
     client_name: Optional[str] = None
+    active: Optional[bool] = True
 
 
 class TaskJson(BaseModel):
@@ -90,6 +93,8 @@ class TaskJson(BaseModel):
     status: TaskStatusEnum
     http_link: Optional[constr(max_length=128)] = None
     project_name: Optional[str] = None
+    active: Optional[bool] = True
+
 
 class UserJson(BaseModel):
     user_id: Optional[int] = None
