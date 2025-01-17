@@ -457,7 +457,9 @@ class ProjectsView(BaseView):
         for fn in self.forminput.fieldnames:
             if fn in self.forminput.fields:    
                 self.setValue(self.forminput.fields[fn], fn, project[fn])
-        self._loadClientsDropDown(self.forminput.clientdrop)
+        self.forminput.clientdrop.options = self._loadClientsDropDownOptions()
+        self.forminput.clientdrop.value = project["client_id"]
+        self.forminput.clientdrop.update()
         self.form.update()
         self.showForm()
         self.page.update()

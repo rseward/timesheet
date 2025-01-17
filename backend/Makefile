@@ -16,7 +16,7 @@ steps/install:	pip.out
 	touch steps/install
 
 install:	pip.out
-	uv pip install ./
+	uv pip install --reinstall .
 
 pip.out:	requirements.txt
 	uv pip install -r requirements.txt

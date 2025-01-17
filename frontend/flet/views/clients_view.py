@@ -176,6 +176,7 @@ class ClientsView(BaseView):
                 "fax_number", 
                 "gsm_number", 
                 "http_url",
+                "active"
             ]
             width=450
             height=60
@@ -183,6 +184,9 @@ class ClientsView(BaseView):
             self.fields = {}
             for fn in self.fieldnames:
                 if fn == "client_id":
+                    continue
+                if fn == "active":
+                    self.fields[fn] = ft.Checkbox(label=fn)
                     continue
                 self.fields[fn] = TsInputField(
                     width=width,
@@ -229,7 +233,8 @@ class ClientsView(BaseView):
                     ]),
                     ft.Row([
                     self.fields["gsm_number"], 
-                    self.fields["http_url"]
+                    self.fields["http_url"],
+                    self.fields["active"]
                     ])
                 ])
             )
@@ -244,7 +249,10 @@ class ClientsView(BaseView):
             # Apply user edits from the controls to the data fields and then save
             for fn in self.fieldnames:
                 if fn in self.fields.keys():
-                    self.data[fn] = self.fields[fn].text.value
+                    if fn in ["active"]:
+                        self.data[fn] = self.fields[fn].value
+                    else:
+                        self.data[fn] = self.fields[fn].text.value
                 
             res = self.view.getClientService().save(self.data)
             
@@ -322,7 +330,10 @@ class ClientsView(BaseView):
         self.forminput.data = client
         for fn in self.forminput.fieldnames:
             if fn in self.forminput.fields:    
-                self.setValue(self.forminput.fields[fn].text, client[fn])
+                if fn in ["active"]:
+                    self.forminput.fields[fn].value = client[fn]
+                else:
+                    self.setValue(self.forminput.fields[fn].text, client[fn])
         self.form.update()
         self.showForm()
         self.page.update()

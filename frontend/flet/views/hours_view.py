@@ -85,8 +85,9 @@ class HoursView(BaseView):
                 self.progress(False)
 
     def on_projectdrop_change(self, e):
-        self.loadandrenderrows()
-        self.reloadtable(self.tabdata)
+        self.refresh(e)
+        #self.loadandrenderrows()
+        #self.reloadtable(self.tabdata)
         
     def refresh(self, e):
         ic("let's go! refresh!")
@@ -124,14 +125,16 @@ class HoursView(BaseView):
                         "start_date",
                         hint="start_date",
                         val="last monday",
-                        startdate=start_date
+                        startdate=start_date,
+                        on_change=self.refresh
         )
         self.enddate = DateField(
                         self.page,
                         "end_date",
                         hint="end_date",
                         val="next friday",
-                        startdate=start_date
+                        startdate=start_date,
+                        on_change=self.refresh
         )
         self.table = self.buildtable([])
 
@@ -159,8 +162,9 @@ class HoursView(BaseView):
     
     def renderrows(self, rows):
         renderedrows=[]
-        for row in rows:
-            renderedrow=[
+        if rows is not None:
+            for row in rows:
+                renderedrow=[
                         ft.DataCell(ft.Text(row["project_name"])),
                         ft.DataCell(ft.Text(row["task_name"])),
                         ft.DataCell(ft.Text(row["trans_num"])),
@@ -174,8 +178,8 @@ class HoursView(BaseView):
                             ft.IconButton(icon=ft.icons.DELETE_ROUNDED, data=row["uid"], on_click=self.delete)
                             ] )
                         )
-            ]
-            renderedrows.append(ft.DataRow(cells=renderedrow))
+                ]
+                renderedrows.append(ft.DataRow(cells=renderedrow))
         
         return renderedrows
     
@@ -245,12 +249,13 @@ class HoursView(BaseView):
             rows=self.getBillingEventService().getBillingEvents(client_id = client_id, project_id=project_id, start_date=startdate, end_date=enddate)
             
             # calculate computed fields
-            for row in rows:
-                st = self.getdatetime(row["start_time"])
-                et = self.getdatetime(row["end_time"])
-                
-                hours = (et - st).seconds / 3600
-                row["hours"] = int(hours*10) / 10
+            if rows is not None:
+                for row in rows:
+                    st = self.getdatetime(row["start_time"])
+                    et = self.getdatetime(row["end_time"])
+                    
+                    hours = (et - st).seconds / 3600
+                    row["hours"] = int(hours*10) / 10
             
         finally:
             self.progress(False)            

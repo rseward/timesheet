@@ -58,7 +58,7 @@ class ProjectService(BaseService):
     def save(self, project: dict):
         posturl=f"{self.projecturl}/"
         
-        ic(project)
+        print(json.dumps(project, indent=2))
         if project.get("project_id", None) is not None:
             ic("put")
             res = self.getSession().put(posturl,json=project)

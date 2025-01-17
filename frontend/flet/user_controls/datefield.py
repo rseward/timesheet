@@ -20,7 +20,7 @@ class DateTimeField(object):
         # TODO: provide a simplified way to pass a relative date like "-2w"
         self.startdate = startdate
         self.enddate = enddate
-        # TODO: add an on_change_event to verify the date matches the expected range
+        # TODO: add an on_change_event to verify the date matches the expected format
         self.re = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
 
         
@@ -185,7 +185,7 @@ class TimeField(object):
         return f"{hh:02d}:{int(self.mm.value):02d}"
 
 class DateField(object):
-    def __init__(self, page: ft.Page, fieldname: str, hint: str, val: str, startdate: datetime.datetime=None, enddate: datetime.datetime =None, height: int = 60, width:int = 300):
+    def __init__(self, page: ft.Page, fieldname: str, hint: str, val: str, startdate: datetime.datetime=None, enddate: datetime.datetime =None, height: int = 60, width:int = 300, on_change=None):
         self.page = page
         self.name = fieldname
         self.hint = hint
@@ -196,6 +196,7 @@ class DateField(object):
         self.height = height
         self.width = width
         self.re = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+        self.on_change = on_change
         
         # suggested date range to narrow a user's choice to
         self.startdate = startdate
@@ -220,10 +221,13 @@ class DateField(object):
         self.text.update()
         
     def setValue(self, val: str):
+        pval = self.text.value
         if val is not None:
             self.text.value = self.interpretDate(val)
         else:
             self.text.value = val
+        if self.text.value != pval:
+            self.on_change(None)
         self.text.update()
         
     def getValue(self):

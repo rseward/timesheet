@@ -72,9 +72,10 @@ class TasksView(BaseView):
     
     def refresh(self, e):
         ic("let's go! refresh!")
-        for opt in self.clientdrop.options:
-            ic(f"{opt.key}, {opt.text}")
-        self._loadClientsDropDown(self.clientdrop)
+        self.clientdrop.options = self._loadClientsDropDownOptions()
+        #self.clientdrop.value = self.data["client_id"]
+        self.clientdrop.update()
+        self.projectdrop.update()
         self.loadandrenderrows()
         self.reloadtable(self.tabdata)                  
         self.page.update()
@@ -198,7 +199,9 @@ class TasksView(BaseView):
         try:
             #time.sleep(10)
             rows=self.getTaskService().getTasks(client_id=client_id, project_id=project_id, active=False)
-            self._loadClientsDropDown(self.clientdrop)            
+            self.clientdrop.options = self._loadClientsDropDownOptions()
+            #self.clientdrop.value = client_id
+            #self.clientdrop.update()
             
         finally:
             self.progress(False)            

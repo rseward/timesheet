@@ -1,9 +1,11 @@
+
 import flet as ft
 from icecream import ic
 
 import service.client
 import service.project
 import service.billingevent
+from typing import List
 
 def showerror(page: ft.Page, msg: str):
     showmessage(page, msg, bgcolor="red")
@@ -113,23 +115,31 @@ class BaseView(object):
             tf.value = value
             tf.update()
             
-    def _loadClientsDropDown(self, clientdrop, client_id=None):
-        ic(f"_loadclients clientdrop={clientdrop}")
-        if clientdrop is not None:
+    def _loadClientsDropDownOptions(self) -> List[ft.dropdown.Option]:
+        ic(f"_loadclientsDropDownOptions")
+        
+        try:
             rows=self.getClientService().getClients()
+        except Exception as e:
+            rows = []
             
-            clientoptions=[]
-            for row in rows:
-                ic(f'key={row["client_id"]}, text={row["organisation"]}')
-                clientoptions.append(ft.dropdown.Option(key=row["client_id"], text=row["organisation"]))
-                
+        clientoptions=[]
+        for row in rows:
+            ic(f'key={row["client_id"]}, text={row["organisation"]}')
+            clientoptions.append(ft.dropdown.Option(key=row["client_id"], text=row["organisation"]))
+
+        return clientoptions
+
+        """        
             clientdrop.options = clientoptions
+            
             if clientdrop.parent is not None:
                 ic("update clientdrop?")
                 clientdrop.update()
             else:
                 ic("clientdrop not yet added to page")
         self.page.update()
+        """
             
     def _loadTasksDropDown(self, taskdrop, project_id, task_id=None):
         ic(f"_loadclients taskdrop={taskdrop}")
