@@ -417,8 +417,10 @@ class HoursView(BaseView):
                     
                 if valid:
                     # TODO: verify start_time preceeds end_time and they occur on the same calendar day
-                    st=self.view.getdatetime(self.data["start_time"])
-                    et=self.view.getdatetime(self.data["end_time"])
+                    #st=self.view.getdatetime(self.data["start_time"])
+                    #et=self.view.getdatetime(self.data["end_time"])
+                    st=self.fields["start_time"].getValue()
+                    et=self.fields["end_time"].getValue()
                                         
                     if st>et:
                         ic(f"{et} < {st} ?")
@@ -428,7 +430,7 @@ class HoursView(BaseView):
                         control.update()                  
                         valid=False
                     if (st.year != et.year or st.month != et.month or st.day != et.day):
-                        errmsg="start_time and end_time must occur on the same calendar day"
+                        errmsg=f"start_time and end_time must occur on the same calendar day start_time={st} end_time={et}"
                         control = self.fields["end_time"]
                         control.date.text.bgcolor = ft.colors.AMBER_900
                         control.update()                    

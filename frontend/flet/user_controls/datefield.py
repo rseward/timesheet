@@ -227,16 +227,29 @@ class DateField(object):
         else:
             self.text.value = val
         if self.text.value != pval:
-            self.on_change(None)
+            if self.on_change is not None:
+                self.on_change(None)
         self.text.update()
         
     def getValue(self):
+        """Return a formatted string of the date selected."""
+
         # always return a date string?
         if isinstance(self.text.value, arrow.Arrow):
             return self.text.value.format(self.aformat)
             
         return self.text.value
-    
+
+    def getDateValue(self):
+        """Return a datetime.datetime object of the date selected."""
+
+        if isinstance(self.text.value, arrow.Arrow):
+            return self.text.value.date()
+        if isinstance(self.text.value, str):
+            return self.dateinterpreter.interpret(self.text.value)
+
+        return self.text.value
+
     def interpretDate(self, val) -> str:
         if isinstance(val, str):
             dval = self.dateinterpreter.interpret(val)
@@ -312,7 +325,9 @@ class DateField(object):
         
         
     def on_datepick_change(self, e):
+        ic(f"on_datepick_change({e.control.value})")
         self.setValue(e.control.value.strftime(self.format))
+        self.text.update()
     
         
     

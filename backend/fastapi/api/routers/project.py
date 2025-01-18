@@ -88,13 +88,12 @@ def project_add(js: ProjectJson) -> dict[ str, ProjectJson]:
         #return { "failed": "More detail here?" }
     
     
-
+#@app.put("/projects/")
 @router.put(
     "/",
     response_model=dict[str, ProjectJson],
     dependencies=[Depends(JWTBearer())],    
 )        
-#@app.put("/projects/")
 def project_update(js: ProjectJson) -> dict[ str, ProjectJson]:
     projectDao = daos.getProjectDao()
     (dbrec, client_name) = projectDao.getById(js.project_id)

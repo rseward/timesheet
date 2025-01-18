@@ -27,6 +27,8 @@ def is_authenticated(page: ft.Page):
         return True
     
     creds = loadcreds()
+    if creds is None:
+        return False
     utcnow = datetime.datetime.now(datetime.UTC)
     lastauth = creds.get("authenticated_utc", None)
     if lastauth is not None:
