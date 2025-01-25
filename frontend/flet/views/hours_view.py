@@ -324,6 +324,8 @@ class HoursView(BaseView):
                         hint=fn,
                         val="2 hours ago" # str(val)[:10]
                     )
+                    if fn == "start_time":
+                        control.date.on_change=self.startdate_changed
                 elif fn == "task_name":
                     self.taskdrop = control = ft.Dropdown(
                         label="task_name",
@@ -347,6 +349,10 @@ class HoursView(BaseView):
             self.view.dirty = True
             self.data = None
             self.formcard = None
+
+        def startdate_changed(self, e):
+            ic(f"start_date changed to {e.control.text.value}")
+            self.fields["end_time"].date.setValue(e.control.text.value)
         
         def show(self, page: ft.Page) -> TsCard:
             self.saveButton = TsButton("Save",on_click=self.save)

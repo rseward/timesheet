@@ -228,7 +228,9 @@ class DateField(object):
             self.text.value = val
         if self.text.value != pval:
             if self.on_change is not None:
-                self.on_change(None)
+                e = ft.core.event.Event(None, self.name, self.text.value)
+                e.control = self
+                self.on_change(e)
         self.text.update()
         
     def getValue(self):
@@ -303,6 +305,10 @@ class DateField(object):
         else:
             e.control.error_text = None
             e.control.bgcolor = ft.colors.TRANSPARENT
+            if self.on_change is not None:
+                e = ft.core.event.Event(None, self.name, self.text.value)
+                e.control = self
+                self.on_change(e)
             
         self.text.update()
         
