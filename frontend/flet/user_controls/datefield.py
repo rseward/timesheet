@@ -228,7 +228,7 @@ class DateField(object):
             self.text.value = val
         if self.text.value != pval:
             if self.on_change is not None:
-                e = ft.core.event.Event(None, self.name, self.text.value)
+                e = ft.event.Event(None, self.name, self.text.value)
                 e.control = self
                 self.on_change(e)
         self.text.update()
