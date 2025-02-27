@@ -1,16 +1,16 @@
 import flet as ft
 from .base_view import BaseView, NavButton
 
-class IndexView(BaseView):
+class ReportsView(BaseView):
     
     
     
     def __init__(self, page: ft.Page):
         self.page = page
-        self.mytitle="Home"
+        self.mytitle="Reports"
         self.content = ft.Column(
             [
-            ft.Text("Hi, your beat is nice!"),
+            ft.Text("Hi, your reports are nice!"),
             ft.Text("---"),
             #ft.Text("Clients", on_click=self.on_clients_click)
             #ft.Container(

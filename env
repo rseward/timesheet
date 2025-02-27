@@ -6,4 +6,4 @@
 # SQLALCHEMY URL
 export TIMESHEET_SQLITE="$(pwd)/timesheet.sqlite"
 export TIMESHEET_SRC_HOME="$(pwd)"
-export TIMESHEET_SA_URL="sqlite:///$(pwd)/timesheet.sqlite"
+export TIMESHEET_SA_URL="sqlite:///$(pwd)/backend/timesheet.sqlite"

@@ -12,6 +12,7 @@ from views.clients_view import ClientsView
 from views.projects_view import ProjectsView
 from views.tasks_view import TasksView
 from views.hours_view import HoursView
+from views.reports_view import ReportsView
 
 class Router:
     
@@ -26,8 +27,8 @@ class Router:
             "/clients": ClientsView(page),
             "/projects": ProjectsView(page),
             "/tasks": TasksView(page),
-            "/hours": HoursView(page)
-            
+            "/hours": HoursView(page),
+            "/reports": ReportsView(page)
         }
         self.routes = {
             "/login": self.views['/login'].content,

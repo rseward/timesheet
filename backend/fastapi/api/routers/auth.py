@@ -32,10 +32,16 @@ def login(creds: api.schemas.authmodels.LoginRequest):
     dbrec = userDao.getByEmail(creds.username)
     
     if dbrec is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username/Password does not match.")
+        logger.info(f"User with username={creds.username} does not exist.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST ,
+            detail="Username/Password does not match."
+        )
+    
     hashed_pass = dbrec.password
     
     if not verify_password(creds.password, hashed_pass):
+        logger.info(f"User with username={creds.username} password does not match.")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username/Password does not match."
