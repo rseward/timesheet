@@ -13,8 +13,8 @@ def main(page: ft.Page):
     page.theme_mode = "dark"
     page.vertical_alignment = "center"
     page.horizontal_alignment = "center"
-    page.window_height = 900
-    page.window_width = 700
+    page.window.height = 900
+    page.window.width = 700
     page.appbar = NavBar(page)
     myrouter = Router(page)
     page.on_route_change = myrouter.route_change

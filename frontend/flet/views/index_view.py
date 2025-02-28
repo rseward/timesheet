@@ -49,32 +49,32 @@ class IndexView(BaseView):
         )
         
     def on_clients_click(self, ev):
-        self.page.window_width = 1400
-        self.page.window_height = 900
+        self.page.window.width = 1400
+        self.page.window.height = 900
         
         self.page.go("/clients")
         
     def on_projects_click(self, ev):
-        self.page.window_width = 1400
-        self.page.window_height = 900
+        self.page.window.width = 1400
+        self.page.window.height = 900
         
         self.page.go("/projects")
         
     def on_tasks_click(self, ev):
-        self.page.window_width = 1400
-        self.page.window_height = 900
+        self.page.window.width = 1400
+        self.page.window.height = 900
         
         self.page.go("/tasks")
     
     def on_hours_click(self, ev):
-        self.page.window_width = 1400
-        self.page.window_height = 900
+        self.page.window.width = 1400
+        self.page.window.height = 900
         
         self.page.go("/hours")
 
     def on_reports_click(self, ev):
-        self.page.window_width = 1400
-        self.page.window_height = 900
+        self.page.window.width = 1400
+        self.page.window.height = 900
         
         self.page.go("/reports")
 
