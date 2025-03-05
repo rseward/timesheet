@@ -7,3 +7,7 @@ python-jose
 passlib
 cachetools
 bcrypt==3.2.2
+marimo
+pandas
+
+
