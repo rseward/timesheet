@@ -4,21 +4,21 @@
      "numwindows" : 7,
      "windows" : [
        { "name" : "fastapi" ,
-         "command" : ". ../env" },
-       { "name" : "flex",
-         "command" : ". ../env" },
+         "command" : ". ../myenv" },
+       { "name" : "flet",
+         "command" : ". ../myenv" },
        { "name" : "python",
-         "command" : ". ../env" },
+         "command" : ". ../myenv" },
        { "name" : "ansible",
-         "command" : ". ../env"},	 
+         "command" : ". ../myenv"},	 
        { "name" : "hackerrank",
-         "command" : ". ../env"},
+         "command" : ". ../myenv"},
        { "name" : "bash2",
-         "command" : ". ../env"},
+         "command" : ". ../myenv"},
        { "name" : "bash2",
-         "command" : ". ../env"},
+         "command" : ". ../myenv"},
        { "name" : "bash3",
-         "command" : ". ../env"}
+         "command" : ". ../myenv"}
        ]
   }
 }

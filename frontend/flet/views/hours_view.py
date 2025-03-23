@@ -382,6 +382,16 @@ class HoursView(BaseView):
         def on_taskdrop_change(self, e):
             ic(f"task_id={e.control.value}")
             self.data["task_id"]=e.control.value
+            # TODO: Look up from the user profile
+            self.data["timekeeper_id"] = 1
+            self.fields["trans_num"].text.value = \
+              self.view.getBillingEventService().getNextTransNum(
+                self.data["timekeeper_id"], 
+                self.data["project_id"], 
+                self.data["task_id"]
+                )
+            print(f"{self.fields['trans_num'].text.value=}")
+            self.fields['trans_num'].update()
         
         def save(self, e):
             """Save user edits on the form."""

@@ -85,6 +85,11 @@ class BillingEventService(BaseService):
         ic(res)
 
         return res
+
+    def getNextTransNum(self, timekeeper_id, project_id, task_id):
+        res = self.getSession().get(f"{self.eventurl}/nextid/{timekeeper_id}/{project_id}/{task_id}")
+        return res.json()["next_trans_num"]
+
         
 
 

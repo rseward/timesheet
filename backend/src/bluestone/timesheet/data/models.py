@@ -1,6 +1,6 @@
 import enum
 from sqlalchemy import Column, Date, DateTime, Integer, String, Enum, Text, \
-    Boolean, ForeignKey
+    Float,Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 #from sqlalchemy.ext.declarative import declarative_base
 #Base = declarative_base()
@@ -74,6 +74,16 @@ class Assignment(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey("project.project_id"), nullable=False)
     username = Column(String(32), primary_key=True, nullable=False)
 
+class Timekeeper(Base):
+    __tablename__ = "timekeeper"
+
+    timekeeper_id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(32), nullable=False)
+    first_name = Column(String(32), nullable=False)
+    last_name = Column(String(32), nullable=False)
+    email = Column(String(128), nullable=False)
+    bill_rate = Column(Float)
+    phone = Column(String(32))
 
 class BillingEvent(Base):
     __tablename__ = "billing_event"
@@ -82,6 +92,7 @@ class BillingEvent(Base):
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     trans_num = Column(Integer, nullable=False)
+    timekeeper_id: Mapped[int] = mapped_column(ForeignKey("timekeeper.timekeeper_id"), nullable=False)
     project_id: Mapped[int] = mapped_column(ForeignKey("project.project_id"), nullable=False)
     task_id: Mapped[int] = mapped_column(ForeignKey("task.task_id"), nullable=False)
     log_message = Column(String(255))

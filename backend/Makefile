@@ -5,7 +5,8 @@ devsetup:	steps/db steps/install tests
 	touch steps/dev-ready
 
 query:	steps/db
-	sqlite3 $(TIMESHEET_SQLITE)
+	#sqlite3 $(TIMESHEET_SQLITE)
+	litecli $(TIMESHEET_SQLITE)
 
 migratedb:	steps/db
 	ls -l timesheet.sqlite
@@ -31,6 +32,7 @@ test:	steps/install
 	tests/testModels.py
 	tests/testJsonModels.py
 	tests/testDaos.py
+	tests/testBillingEventDao.py
 
 integration_tests:	tests
 	tests/testFastApi.py

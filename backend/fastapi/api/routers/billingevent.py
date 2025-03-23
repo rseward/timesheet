@@ -123,3 +123,16 @@ def event_delete(uid: str) -> dict[str, BillingEventJson]:
     return { "deleted": eventDao.toJson(dbrec, project_name, task_name) }    
     
 
+@router.get(
+    "/nextid/{timekeeper_id}/{project_id}/{task_id}",
+    response_model=dict[str, int],
+    dependencies=[Depends(JWTBearer())],
+)
+def next_id(timekeeper_id: int, project_id: int, task_id: int) -> dict[str, int]:
+    eventDao = daos.getBillingEventDao()
+    return { 
+        "timekeeper_id": timekeeper_id,
+        "project_id": project_id,
+        "task_id": task_id,
+        "next_trans_num": eventDao.nextTransNum(timekeeper_id, project_id, task_id) 
+        }

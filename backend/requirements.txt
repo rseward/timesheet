@@ -11,3 +11,5 @@ marimo
 pandas
 
 
+litecli
+sqlglot

@@ -42,6 +42,14 @@ class testModels(unittest.TestCase):
             
         event = eventdao.getById("c851bab2-aacd-4bda-a528-03731b7c9945")
         self.assertTrue(event!=None)
+
+    def testNextTransNum(self):
+        daos = getDaoFactory()
+        eventdao = daos.getBillingEventDao()
+        nextid = eventdao.nextTransNum(timekeeper_id=1, project_id=6, task_id=19)
+        print(f"{nextid=}")
+        self.assertTrue(nextid>0)
+        
         
 
         

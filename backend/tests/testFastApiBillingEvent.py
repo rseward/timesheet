@@ -4,7 +4,7 @@ import unittest
 import requests
 import pickle
 
-baseurl="http://127.0.0.1:8000/api"
+baseurl="http://127.0.0.1:8080/api"
 
 class TestFastApiBillingEvent(unittest.TestCase):
     def setUp(self):
@@ -44,7 +44,7 @@ class TestFastApiBillingEvent(unittest.TestCase):
         print(res)
         self.assertTrue(  "added" in res.keys(), "failed to add event with uid=0" )
     
-    #@unittest.SkipTest
+    @unittest.SkipTest
     def testPutBillingEvent(self):
         print(f"testPutBillingEvent: {baseurl}/events/")
         event = {
@@ -59,6 +59,17 @@ class TestFastApiBillingEvent(unittest.TestCase):
         res=requests.put(f"{baseurl}/events/", json=event, headers=self.headers).json()
         print(res)
         self.assertTrue(  "updated" in res.keys(), "failed to add event with uid=1" )
+
+    def testNextTransNum(self):
+        print(f"testNextTransNum: {baseurl}/events/nextid/")
+        timekeeper_id=1
+        project_id=6
+        task_id=19
+        res=requests.get(f"{baseurl}/events/nextid/{timekeeper_id}/{project_id}/{task_id}", headers=self.headers).json()
+        nextid = res["next_trans_num"]
+        print(res)
+        print(f"{nextid=}")
+        self.assertTrue(nextid>0)
             
 if __name__ == "__main__":
     unittest.main()

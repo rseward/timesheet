@@ -42,7 +42,7 @@ class TestJsonModels(unittest.TestCase):
     def testBillingEvent(self):
         be = BillingEventJson(
             uid="123456789",start_time=datetime.datetime(2024,4,1,0,0,1),end_time=datetime.datetime(2024,4,1,0,8,1),
-            trans_num=1, proj_id=1, task_id=1, log_message="Work on timesheet project."
+            trans_num=1, project_id=1, task_id=1, log_message="Work on timesheet project."
         )
         print(be)
         

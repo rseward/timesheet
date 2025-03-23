@@ -44,6 +44,7 @@ class BillingEventJson(BaseModel):
     project_name: Optional[str] = None
     task_name: Optional[str] = None    
     active: Optional[bool] = True
+    timekeeper_id: int
 
 
 class ClientJson(BaseModel):

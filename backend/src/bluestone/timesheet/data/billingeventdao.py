@@ -1,4 +1,5 @@
 import sqlalchemy
+from sqlalchemy import func
 import bluestone.timesheet.config as cfg
 from bluestone.timesheet.data.models import Base, BillingEvent, Project, Task
 from bluestone.timesheet.jsonmodels import BillingEventJson
@@ -22,7 +23,7 @@ class BillingEventDao(BaseDao):
         if not include_inactive:
             q = q.filter(BillingEvent.active == True)
         print(q)
-        return q.all()
+        return q.order_by(BillingEvent.trans_num).all()
     
     def save(self, dbrec):
         if dbrec.uid is None:
@@ -55,6 +56,18 @@ class BillingEventDao(BaseDao):
             dbrec.active = False
             self.save(dbrec)
 
+    def nextTransNum(self, timekeeper_id: int, project_id: int, task_id: int) -> int:
+        self.getSession().expire_all()
+        q = self.getSession().query(func.max(BillingEvent.trans_num))
+        q = q.filter(
+            BillingEvent.timekeeper_id == timekeeper_id, 
+            BillingEvent.project_id == project_id, 
+            BillingEvent.task_id == task_id,
+            BillingEvent.active == True
+        )
+        result = q.scalar()
+        return result + 1 if result is not None else 1
+
     def toDict(self, db: BillingEvent) -> dict:
         d = {}
         d["uid"] = db.uid
@@ -65,6 +78,7 @@ class BillingEventDao(BaseDao):
         d["trans_num"] = db.trans_num
         d["log_message"] = db.log_message
         d["active"] = db.active
+        d["timekeeper_id"] = db.timekeeper_id
 
         return d
 
@@ -80,6 +94,7 @@ class BillingEventDao(BaseDao):
         j.project_name = project_name
         j.task_name = task_name
         j.active = db.active
+        j.timekeeper_id = db.timekeeper_id
 
         return j
 
@@ -95,5 +110,6 @@ class BillingEventDao(BaseDao):
         db.trans_num = j.trans_num
         db.log_message = j.log_message
         db.active = j.active
+        db.timekeeper_id = j.timekeeper_id
 
         return db
