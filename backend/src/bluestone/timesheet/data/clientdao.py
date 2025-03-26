@@ -1,6 +1,4 @@
-import sqlalchemy
-import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, Client
+from bluestone.timesheet.data.models import Client
 from bluestone.timesheet.jsonmodels import ClientJson
 
 from .basedao import BaseDao
@@ -9,7 +7,7 @@ class ClientDao(BaseDao):
     def getAll(self, include_inactive=False):
         q = self.getSession().query(Client)
         if not include_inactive:
-            q = q.filter(Client.active == True)
+            q = q.filter(Client.active)
         return q.all()
 
     def getById(self, aid) -> Client:

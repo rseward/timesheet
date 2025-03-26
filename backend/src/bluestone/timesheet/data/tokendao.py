@@ -1,7 +1,5 @@
-import sqlalchemy
-import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, User, UserToken
-from bluestone.timesheet.jsonmodels import UserJson, UserTokenJson
+from bluestone.timesheet.data.models import User, UserToken
+from bluestone.timesheet.jsonmodels import UserTokenJson
 
 from .basedao import BaseDao
 
@@ -9,10 +7,6 @@ class UserTokenDao(BaseDao):
     def getAll(self):
         return self.getSession().query(UserToken).all()
         
-    def getById(self, id) -> UserToken:
-        q = self.getSession().query(UserToken)
-        return q.filter(UserToken.user_token_id == id).first()
-
     def getById(self, id) -> UserToken:
         q = self.getSession().query(UserToken)
         return q.filter(UserToken.user_token_id == id).first()

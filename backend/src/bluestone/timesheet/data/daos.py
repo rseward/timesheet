@@ -1,9 +1,9 @@
 import sqlalchemy
 import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, Client, User
-from bluestone.timesheet.jsonmodels import ClientJson, UserJson
+from bluestone.timesheet.data.models import Base #, Client, User
+#from bluestone.timesheet.jsonmodels import ClientJson, UserJson
+#from .basedao import BaseDao
 
-from .basedao import BaseDao
 from .userdao import UserDao
 from .tokendao import UserTokenDao
 from .clientdao import ClientDao

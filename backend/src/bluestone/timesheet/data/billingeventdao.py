@@ -1,7 +1,5 @@
-import sqlalchemy
 from sqlalchemy import func
-import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, BillingEvent, Project, Task
+from bluestone.timesheet.data.models import BillingEvent, Project, Task
 from bluestone.timesheet.jsonmodels import BillingEventJson
 import uuid
 
@@ -21,7 +19,7 @@ class BillingEventDao(BaseDao):
         if end_date is not None:
             q = q.filter(BillingEvent.start_time <= end_date)
         if not include_inactive:
-            q = q.filter(BillingEvent.active == True)
+            q = q.filter(BillingEvent.active)
         print(q)
         return q.order_by(BillingEvent.trans_num).all()
     
@@ -63,7 +61,7 @@ class BillingEventDao(BaseDao):
             BillingEvent.timekeeper_id == timekeeper_id, 
             BillingEvent.project_id == project_id, 
             BillingEvent.task_id == task_id,
-            BillingEvent.active == True
+            BillingEvent.active
         )
         result = q.scalar()
         return result + 1 if result is not None else 1

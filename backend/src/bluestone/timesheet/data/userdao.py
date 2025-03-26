@@ -1,6 +1,4 @@
-import sqlalchemy
-import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, User
+from bluestone.timesheet.data.models import User
 from bluestone.timesheet.jsonmodels import UserJson
 from cachetools.func import ttl_cache
 
@@ -10,7 +8,7 @@ class UserDao(BaseDao):
     def getAll(self, include_inactive=False):
         q = self.getSession().query(User)
         if not include_inactive:
-            q = q.filter(User.active == True)
+            q = q.filter(User.active)
         return q.all()
     
     def getByEmail(self, email) -> User:

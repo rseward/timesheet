@@ -1,6 +1,4 @@
-import sqlalchemy
-import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, Project, Client
+from bluestone.timesheet.data.models import Project, Client
 from bluestone.timesheet.jsonmodels import ProjectJson
 
 from .basedao import BaseDao
@@ -10,8 +8,8 @@ class ProjectDao(BaseDao):
         q = self.getSession().query(Project, Client.organisation)
         q = q.filter( Project.client_id == Client.client_id)
         if not include_inactive:
-            q = q.filter(Project.active == True)
-        q = q.filter(Client.active == True)
+            q = q.filter(Project.active)
+        q = q.filter(Client.active)
         
         return q.all()
 
@@ -28,7 +26,7 @@ class ProjectDao(BaseDao):
     def getByClientId(self, aid) -> Project:
         q = self.getSession().query(Project, Client.organisation)
         q = q.filter( Project.client_id == Client.client_id)
-        q = q.filter(Project.active == True)
+        q = q.filter(Project.active)
         return q.filter(Project.client_id == aid).all()
 
     def update(self, db: Project, js: ProjectJson) -> Project:

@@ -5,7 +5,6 @@ from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from bluestone.timesheet.config import LOGGER_NAME
 
 logger = logging.getLogger("main")
 

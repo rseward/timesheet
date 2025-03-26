@@ -1,6 +1,4 @@
-import sqlalchemy
-import bluestone.timesheet.config as cfg
-from bluestone.timesheet.data.models import Base, Task, Project
+from bluestone.timesheet.data.models import Task, Project
 from bluestone.timesheet.jsonmodels import TaskJson
 
 from .basedao import BaseDao
@@ -13,9 +11,9 @@ class TaskDao(BaseDao):
         q = q.filter( Task.project_id == Project.project_id)
         if project_id is not None:
             q = q.filter(Task.project_id == project_id)
-        q = q.filter(Project.active == True)
+        q = q.filter(Project.active)
         if not include_inactive:
-            q = q.filter(Task.active == True)
+            q = q.filter(Task.active)
         return q.all()
 
     def getById(self, aid) -> Task:
