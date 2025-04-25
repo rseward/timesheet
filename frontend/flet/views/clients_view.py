@@ -83,6 +83,8 @@ class ClientsView(BaseView):
  
     def loadandrenderrows(self):
         rows = self._loaddata()
+        if rows is None:
+            return
         ic(f"Loaded {len(rows)} rows")
         
         showerror=False
