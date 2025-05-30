@@ -267,8 +267,9 @@ class HoursView(BaseView):
             rows=self.getClientService().getClients()
             
             clientoptions=[]
-            for row in rows:
-                clientoptions.append(ft.dropdown.Option(key=row["client_id"], text=row["organisation"]))
+            if rows is not None:
+                for row in rows:
+                    clientoptions.append(ft.dropdown.Option(key=row["client_id"], text=row["organisation"]))
                 
             self.clientdrop.options = clientoptions
             if self.clientdrop.parent is not None:
