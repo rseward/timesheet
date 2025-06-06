@@ -45,5 +45,5 @@ if [ ! -f $JSONFILE ] ; then
     exit 1
 fi;
 
-pyscreenlauncher $JSONFILE
+pyscreenlauncher -d $JSONFILE
 

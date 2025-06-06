@@ -306,7 +306,7 @@ class DateField(object):
             e.control.error_text = None
             e.control.bgcolor = ft.colors.TRANSPARENT
             if self.on_change is not None:
-                e = ft.core.event.Event(None, self.name, self.text.value)
+                e = ft.event.Event(None, self.name, self.text.value)
                 e.control = self
                 self.on_change(e)
             
