@@ -13,6 +13,7 @@ import api.routers.project
 import api.routers.task
 import api.routers.billingevent
 import api.routers.reports
+import api.routers.preferences
 ""
 from api.schemas.authmodels import LoginRequest
 
@@ -60,4 +61,5 @@ app.include_router(api.routers.project.router)
 app.include_router(api.routers.task.router)
 app.include_router(api.routers.billingevent.router)
 app.include_router(api.routers.reports.router)
+app.include_router(api.routers.preferences.router)
 

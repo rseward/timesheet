@@ -87,6 +87,18 @@ tests/testFastApiBillingEvent.py
 tests/testFastApiClient.py
 tests/testFastApiProject.py
 tests/testFastApiTask.py
+
+# Test user preferences functionality
+python test_preferences.py
+
+# Test hours calculation logic
+python test_hours_calculation.py
+
+# Test view initialization order fix
+python test_hours_view_init.py
+
+# Test user preferences integration in hours view
+python test_hours_preferences.py
 ```
 
 ## Architecture Overview
@@ -104,7 +116,7 @@ The backend follows a layered architecture with clear separation between API, da
 **Key Components:**
 - **Authentication** (`auth/`): JWT-based authentication with bearer tokens
 - **Database Migrations** (`alembic/`): Schema versioning and migrations
-- **API Routers**: Modular endpoint organization by entity (client, user, project, task, billingevent, reports)
+- **API Routers**: Modular endpoint organization by entity (client, user, project, task, billingevent, reports, preferences)
 
 ### Data Model Entities
 Core business entities with their relationships:
@@ -113,6 +125,7 @@ Core business entities with their relationships:
 - **Project**: Work initiatives tied to clients with status tracking
 - **Task**: Granular work items within projects
 - **BillingEvent**: Time tracking entries linking timekeepers, projects, and tasks
+- **UserPreference**: Key-value pairs for storing user-specific preferences (e.g., default work hours)
 
 ### Frontend Architecture
 - **Flet Framework**: Python-based GUI using Flutter widgets

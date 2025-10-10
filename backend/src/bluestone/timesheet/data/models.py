@@ -176,4 +176,15 @@ class UserToken(Base):
     active = Column(Boolean)
     create_date = Column(DateTime, nullable=False)
     
+"""
+Table to store user preferences as key/value pairs.
+"""
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+    
+    user_preference_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.user_id"), nullable=False)
+    preference_key = Column(String(64), nullable=False)
+    preference_value = Column(String(255), nullable=True)
+    
     

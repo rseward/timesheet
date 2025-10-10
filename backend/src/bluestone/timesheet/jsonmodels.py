@@ -110,3 +110,9 @@ class UserTokenJson(BaseModel):
     refresh_token: constr(max_length=450)
     active: Optional[bool] = True
     create_date: Optional[datetime.datetime] = None
+
+class UserPreferenceJson(BaseModel):
+    user_preference_id: Optional[int] = None
+    user_id: int
+    preference_key: constr(max_length=64)
+    preference_value: Optional[constr(max_length=255)] = None

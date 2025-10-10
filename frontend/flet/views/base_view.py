@@ -5,6 +5,7 @@ from icecream import ic
 import service.client
 import service.project
 import service.billingevent
+import service.preferences
 from typing import List
 
 def showerror(page: ft.Page, msg: str):
@@ -35,6 +36,7 @@ class BaseView(object):
         self.projectService = None
         self.taskService = None
         self.authService = None
+        self.preferencesService = None
         ic("Base view end of __init__")
         ic(on_form_hide)
         
@@ -97,6 +99,14 @@ class BaseView(object):
                 self.page.session.get("creds")
             )
         return self.taskService
+    
+    def getPreferencesService(self):
+        if not(self.preferencesService):
+            creds = self.page.session.get("creds")
+            if not creds:
+                raise Exception("No authentication credentials available for preferences service")
+            self.preferencesService = service.preferences.PreferencesService(creds)
+        return self.preferencesService
     
     def findOptionText(self, dropdown, key):
         ic(f"findOptionText(key={key})")

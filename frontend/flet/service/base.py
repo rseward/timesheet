@@ -29,6 +29,9 @@ class BaseService(object):
             self.session = requests.Session()
             self.session.headers.update({"Authorization": f"Bearer {jwt}"})
         return self.session
+
+    def getAnonymousSession(self):
+        return requests.Session()
     
     def logoutSession(self):
         # TODO all the open services with request.sessions need to be closed and reopened.

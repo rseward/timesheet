@@ -11,17 +11,26 @@ class ProfileView(BaseView):
         self.content= ft.Column(
             [
             ft.Text("Hi, your profile is nice!"),
+            ft.Divider(),
+            ft.Text("Account Management", size=18, weight=ft.FontWeight.BOLD),
             NavButton(
-                "logout", 
-                bgcolor=ft.colors.RED_200, 
-                on_click=self.on_logout_click
+                "⏰ Work Hours Preferences", 
+                bgcolor=ft.colors.BLUE_200, 
+                on_click=self.on_preferences_click
             ),
+            ft.Divider(),
+            ft.Text("Session Management", size=18, weight=ft.FontWeight.BOLD),
             NavButton(
                 "refresh token", 
                 bgcolor=ft.colors.GREEN_200, 
                 on_click=self.on_refresh_click
+            ),
+            NavButton(
+                "logout", 
+                bgcolor=ft.colors.RED_200, 
+                on_click=self.on_logout_click
             ),            
-            ]
+            ], spacing=10
         )
         
     def on_logout_click(self, e):
@@ -40,6 +49,10 @@ class ProfileView(BaseView):
         else:
             showmessage(self.page, "Refreshed token!")
         self.page.update()
+    
+    def on_preferences_click(self, e):
+        ic("navigating to preferences!")
+        self.page.go("/preferences")
         
         
     

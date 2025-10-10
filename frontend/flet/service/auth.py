@@ -80,7 +80,7 @@ class AuthService(BaseService):
         params = {
             "refreshtoken": oldcreds.get("refresh_token")
         }
-        res = self.getSession().get(f"{self.baseurl}/refresh", params=params)
+        res = self.getAnonymousSession().get(f"{self.baseurl}/refresh", params=params)
         
         if res.status_code == 200:
             # save the tokens for use on subsequent requests

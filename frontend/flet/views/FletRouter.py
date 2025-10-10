@@ -13,6 +13,7 @@ from views.projects_view import ProjectsView
 from views.tasks_view import TasksView
 from views.hours_view import HoursView
 from views.reports_view import ReportsView
+from views.preferences_view import PreferencesView
 
 class Router:
     
@@ -28,7 +29,8 @@ class Router:
             "/projects": ProjectsView(page),
             "/tasks": TasksView(page),
             "/hours": HoursView(page),
-            "/reports": ReportsView(page)
+            "/reports": ReportsView(page),
+            "/preferences": PreferencesView(page)
         }
         self.routes = {
             "/login": self.views['/login'].content,
@@ -38,7 +40,8 @@ class Router:
             "/clients": self.views['/clients'].content,
             "/projects": self.views['/projects'].content,
             "/tasks": self.views['/tasks'].content,
-            "/hours": self.views['/hours'].content,            
+            "/hours": self.views['/hours'].content,
+            "/preferences": self.views['/preferences'].content            
         }
         start="/login"
         if is_authenticated(page):

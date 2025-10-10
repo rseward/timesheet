@@ -17,7 +17,9 @@ class HoursView(BaseView):
         self.page = page
         self.mytitle="Hours"
         self.tabdata=[]
-        self.content=self.build()
+        # Initialize these BEFORE calling build()
+        self.total_hours = 0.0
+        self.total_hours_display = None
         self.forminput = None
         self.dirty = False
         self.clientdrop = None
@@ -25,6 +27,8 @@ class HoursView(BaseView):
         self.startdate = None
         self.enddate = None
         self.dateinterpreter = dateutils.DateInterpreter()
+        # Now build the content after all attributes are initialized
+        self.content=self.build()
         
     def getdatetime(self, dval):
         if isinstance(dval, str):
@@ -67,6 +71,8 @@ class HoursView(BaseView):
     def reloadtable(self, rows):
         self.table.rows = rows
         self.table.update()
+        # Update total hours display
+        self.update_total_hours_display()
         
     def on_clientdrop_change(self, e):
         rows = self._loaddata()
@@ -137,6 +143,30 @@ class HoursView(BaseView):
                         on_change=self.refresh
         )
         self.table = self.buildtable([])
+        
+        # Create total hours display
+        self.total_hours_display = ft.Container(
+            content=ft.Row([
+                ft.Icon(
+                    ft.icons.ACCESS_TIME,
+                    color=ft.colors.BLUE_300,
+                    size=24
+                ),
+                ft.Text(
+                    f"Total Hours: {self.total_hours:.1f}",
+                    size=20,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.colors.WHITE
+                )
+            ], 
+            alignment=ft.MainAxisAlignment.END,
+            spacing=8
+            ),
+            padding=ft.padding.all(15),
+            bgcolor=ft.colors.BLUE_800,
+            border_radius=8,
+            margin=ft.margin.only(top=10)
+        )
 
         body = ft.Column(
             [
@@ -151,8 +181,9 @@ class HoursView(BaseView):
             ft.Stack([
             self.table,
             self.form
-            ]
-            )
+            ]),
+            # Add total hours display below the table
+            self.total_hours_display
             ]
         )
         
@@ -248,14 +279,22 @@ class HoursView(BaseView):
             ic(f"Try getBillingEvents(start_date={startdate}, end_date={enddate})")
             rows=self.getBillingEventService().getBillingEvents(client_id = client_id, project_id=project_id, start_date=startdate, end_date=enddate)
             
-            # calculate computed fields
+            # calculate computed fields and total hours
+            self.total_hours = 0.0
             if rows is not None:
                 for row in rows:
                     st = self.getdatetime(row["start_time"])
                     et = self.getdatetime(row["end_time"])
                     
-                    hours = (et - st).seconds / 3600
-                    row["hours"] = int(hours*10) / 10
+                    # Calculate total time difference in hours (including days)
+                    time_diff = et - st
+                    hours = time_diff.total_seconds() / 3600
+                    row["hours"] = round(hours, 1)  # Round to 1 decimal place
+                    # Add to total
+                    self.total_hours += row["hours"]
+                
+                # Round total hours to 1 decimal place
+                self.total_hours = round(self.total_hours, 1)
             
         finally:
             self.progress(False)            
@@ -289,6 +328,46 @@ class HoursView(BaseView):
             if self.projectdrop.parent is not None:
                 self.projectdrop.update()
                 
+    def update_total_hours_display(self):
+        """Update the total hours display with current total"""
+        # Safety check - ensure all required attributes exist
+        if (hasattr(self, 'total_hours_display') and 
+            hasattr(self, 'total_hours') and 
+            self.total_hours_display and 
+            self.total_hours_display.content and 
+            len(self.total_hours_display.content.controls) > 1):
+            
+            # Update the text content (second control in the row, after the icon)
+            self.total_hours_display.content.controls[1].value = f"Total Hours: {self.total_hours:.1f}"
+            # Update the display
+            if self.total_hours_display.parent is not None:
+                self.total_hours_display.update()
+    
+    def get_user_preferences_with_defaults(self):
+        """Get user preferences with fallback to defaults"""
+        try:
+            # Get current user ID (using same logic as PreferencesView)
+            creds = self.page.session.get("creds")
+            user_id = 1  # Default fallback
+            if creds and "user_id" in creds:
+                user_id = creds["user_id"]
+            
+            # Try to get preferences from API
+            prefs_service = self.getPreferencesService()
+            preferences = prefs_service.getUserPreferencesWithDefaults(user_id)
+            
+            return {
+                "start_time": preferences.get("start_time", "09:00"),
+                "end_time": preferences.get("end_time", "17:00")
+            }
+        except Exception as e:
+            ic(f"Error getting user preferences: {e}")
+            # Return default values if preferences can't be loaded
+            return {
+                "start_time": "09:00",
+                "end_time": "17:00"
+            }
+    
     def getTasks(self, event: dict):
         project_id = self.projectdrop.value
         # Load tasks
@@ -458,6 +537,10 @@ class HoursView(BaseView):
                 
                 if res.status_code == 200:
                     TsNotification(self.view.page, msg="Saved", bgcolor="green")
+                    # Set dirty flag to trigger refresh and close the form
+                    self.view.dirty = True
+                    self.view.hideForm(None)  # Close the form
+                    return  # Exit early on successful save
                 else:
                     valid=False
                 
@@ -564,8 +647,33 @@ class HoursView(BaseView):
         event["project_id"]=project_id
         ic(f"{project_id}")
         event["project_name"]=self.findOptionText(self.projectdrop, project_id)
-        event["start_time"]=self.dateinterpreter.interpret("2 hours ago") #str(datetime.datetime.now())
-        event["end_time"]=self.dateinterpreter.interpret("30 minutes ago") #str(datetime.datetime.now())
+        
+        # Get user preferences for default times
+        user_prefs = self.get_user_preferences_with_defaults()
+        start_time = user_prefs["start_time"]
+        end_time = user_prefs["end_time"]
+        
+        # Create datetime objects for today with the preferred times
+        today = datetime.datetime.now().date()
+        try:
+            # Parse time strings (format: "HH:MM")
+            start_hour, start_min = map(int, start_time.split(":"))
+            end_hour, end_min = map(int, end_time.split(":"))
+            
+            # Validate hour and minute ranges
+            if not (0 <= start_hour <= 23 and 0 <= start_min <= 59):
+                raise ValueError(f"Invalid start time: {start_time}")
+            if not (0 <= end_hour <= 23 and 0 <= end_min <= 59):
+                raise ValueError(f"Invalid end time: {end_time}")
+            
+            event["start_time"] = datetime.datetime.combine(today, datetime.time(start_hour, start_min))
+            event["end_time"] = datetime.datetime.combine(today, datetime.time(end_hour, end_min))
+        except (ValueError, AttributeError) as e:
+            ic(f"Error parsing user preference times, using defaults: {e}")
+            # Fallback to old behavior if parsing fails
+            event["start_time"]=self.dateinterpreter.interpret("2 hours ago")
+            event["end_time"]=self.dateinterpreter.interpret("30 minutes ago")
+        
         self.open(event)
         
         
@@ -593,6 +701,8 @@ class HoursView(BaseView):
         if self.dirty:
             # Refresh the table with the nuclear option
             self.refresh(None)
+            # Reset dirty flag
+            self.dirty = False
     
         
     
