@@ -1,7 +1,7 @@
 // Client entity types
 
 export interface Client {
-  client_id: number
+  id: number
   organisation: string
   description?: string
   address1?: string
@@ -10,10 +10,8 @@ export interface Client {
   state?: string
   country?: string
   postal_code?: string
-  contact_first_name?: string
-  contact_last_name?: string
-  username?: string
-  contact_email?: string
+  contactName?: string
+  contactEmail?: string
   phone_number?: string
   fax_number?: string
   gsm_number?: string
@@ -23,9 +21,9 @@ export interface Client {
   updated_at?: string
 }
 
-export interface ClientCreateData extends Omit<Client, 'client_id' | 'created_at' | 'updated_at'> {}
+export interface ClientCreateData extends Omit<Client, 'id' | 'created_at' | 'updated_at'> {}
 
-export interface ClientUpdateData extends Partial<Omit<Client, 'client_id' | 'created_at' | 'updated_at'>> {}
+export interface ClientUpdateData extends Partial<Omit<Client, 'id' | 'created_at' | 'updated_at'>> {}
 
 export interface ClientFilters {
   active?: boolean | null

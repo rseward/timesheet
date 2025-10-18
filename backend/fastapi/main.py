@@ -6,6 +6,10 @@ from enum import Enum
 
 from fastapi import FastAPI, HTTPException, Request
 
+# Host the web frontend static files
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 import api.routers.client
 import api.routers.user
 import api.routers.auth
@@ -62,4 +66,16 @@ app.include_router(api.routers.task.router)
 app.include_router(api.routers.billingevent.router)
 app.include_router(api.routers.reports.router)
 app.include_router(api.routers.preferences.router)
+
+# Serve Vue.js static files
+if os.path.exists("../frontend/web/dist"):
+    app.mount("/assets", StaticFiles(directory="../frontend/web/dist/assets"), name="assets")
+    
+    @app.get("/", response_class=FileResponse)
+    @app.get("/{path:path}")
+    async def serve_spa(path: str = ""):
+        # Prevent API routes from being caught by SPA routing
+        if path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+        return FileResponse("../../frontend/web/dist/index.html")
 
