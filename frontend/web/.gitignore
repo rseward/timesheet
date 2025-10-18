@@ -1,0 +1,144 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build directories
+dist/
+dist-ssr/
+build/
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and Editor files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Testing and Coverage
+coverage/
+*.lcov
+.nyc_output/
+.coverage/
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+/cypress/downloads/
+
+# Vitest
+.vitest/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vue specific
+*.local
+
+# Cache directories
+.npm
+.eslintcache
+.stylelintcache
+.cache
+.parcel-cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+
+# Optional files
+.yarn-integrity
+.node_repl_history
+*.tgz
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Local History for Visual Studio Code
+.history/
+
+# Linux trash folder
+.Trash-*
+
+# Mac caches
+.com.apple.timemachine.donotpresent
+
+# Sass cache
+.sass-cache/
+
+# PostCSS
+.postcssrc.js.map
+
+# Tailwind CSS cache
+.tailwindcss-cache/
+
+# Project specific ignores
+# Ignore any generated documentation
+/docs/generated/
+
+# Ignore any local configuration overrides
+config.local.js
+config.local.ts
+
+# Ignore any local development files
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore any certificates or keys
+*.pem
+*.key
+*.crt
+
+# Ignore backup files
+*.bak
+*.backup
+
+# Bundle analysis files
+bundle-analyzer-report.html
+webpack-bundle-analyzer.json
