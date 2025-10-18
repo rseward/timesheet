@@ -1,0 +1,467 @@
+#+TITLE: Vue.js Timesheet Frontend Development Tasks
+#+AUTHOR: Development Team
+#+DATE: 2025-10-18
+#+STARTUP: overview
+#+TODO: TODO IN-PROGRESS BLOCKED | DONE CANCELLED
+#+PRIORITIES: A B C
+#+TAGS: frontend(f) backend(b) testing(t) docs(d) bug(g) feature(e)
+
+* Project Overview
+This org file tracks all tasks required to build the Vue.js frontend for the timesheet application, matching the functionality of the existing Flet-based frontend.
+
+* TODO [#A] Project Setup and Infrastructure                        :frontend:
+** TODO Initialize Vue.js Project [/] [%]
+   - [ ] Create Vue 3 project with TypeScript
+   - [ ] Install core dependencies (Vue Router, Pinia, Axios, Day.js)
+   - [ ] Install Tailwind CSS and plugins
+   - [ ] Configure Vite build system
+   - [ ] Set up path aliases (@/ for src/)
+   
+** TODO Development Environment Configuration [/] [%]
+   - [ ] Configure ESLint with Vue and TypeScript rules
+   - [ ] Set up Prettier for code formatting
+   - [ ] Configure Tailwind CSS with design system
+   - [ ] Set up environment variables (.env files)
+   - [ ] Create development/production build scripts
+   
+** TODO Testing Framework Setup [/] [%]
+   - [ ] Configure Vitest for unit testing
+   - [ ] Set up Vue Test Utils
+   - [ ] Configure test coverage reporting
+   - [ ] Set up Cypress for E2E testing (optional)
+   - [ ] Create test utilities and helpers
+
+** TODO Type Definitions [/] [%]
+   - [ ] Create base API response types
+   - [ ] Define Client entity types
+   - [ ] Define Project entity types  
+   - [ ] Define Task entity types
+   - [ ] Define BillingEvent entity types
+   - [ ] Define User/Auth types
+   - [ ] Create form validation types
+
+* TODO [#A] Core Infrastructure Components                           :frontend:
+** TODO Base Service Layer [/] [%]
+*** TODO API Service Setup [/] [%]
+    - [ ] Create base API service class with Axios
+    - [ ] Implement request/response interceptors
+    - [ ] Add authentication token handling
+    - [ ] Implement error handling and retry logic
+    - [ ] Add request/response logging
+    
+*** TODO Entity-Specific Services [/] [%]
+    - [ ] Create auth service (login, logout, refresh)
+    - [ ] Create clients API service
+    - [ ] Create projects API service
+    - [ ] Create tasks API service
+    - [ ] Create billing events API service
+    - [ ] Create preferences API service
+
+** TODO State Management (Pinia Stores) [/] [%]
+*** TODO Auth Store [/] [%]
+    - [ ] Implement authentication state management
+    - [ ] Add JWT token storage and validation
+    - [ ] Create login/logout actions
+    - [ ] Add route guard helpers
+    - [ ] Write unit tests for auth store
+    
+*** TODO Clients Store [/] [%]
+    - [ ] Create clients state management
+    - [ ] Implement CRUD operations
+    - [ ] Add filtering and search functionality
+    - [ ] Create loading states
+    - [ ] Write unit tests for clients store
+    
+*** TODO Projects Store [/] [%]
+    - [ ] Create projects state management
+    - [ ] Implement CRUD operations with client relationships
+    - [ ] Add status management
+    - [ ] Create filtering by client
+    - [ ] Write unit tests for projects store
+    
+*** TODO Tasks Store [/] [%]
+    - [ ] Create tasks state management
+    - [ ] Implement CRUD operations
+    - [ ] Add project/client filtering
+    - [ ] Create status workflow management
+    - [ ] Write unit tests for tasks store
+    
+*** TODO Billing Events Store [/] [%]
+    - [ ] Create time entries state management
+    - [ ] Implement date range filtering
+    - [ ] Add total hours calculation
+    - [ ] Create real-time updates
+    - [ ] Write unit tests for billing events store
+    
+*** TODO Preferences Store [/] [%]
+    - [ ] Create user preferences management
+    - [ ] Implement default work hours storage
+    - [ ] Add UI preferences
+    - [ ] Write unit tests for preferences store
+
+** TODO Composables (Reusable Logic) [/] [%]
+   - [ ] Create useApi composable for API calls
+   - [ ] Create useNotification composable
+   - [ ] Create useModal composable
+   - [ ] Create useAuth composable
+   - [ ] Create usePagination composable
+   - [ ] Create useForm composable with validation
+
+* TODO [#A] UI Component Library                                     :frontend:
+** TODO Layout Components [/] [%]
+*** TODO MainLayout [/] [%]
+    - [ ] Create main application layout structure
+    - [ ] Implement responsive navigation header
+    - [ ] Add sidebar support (future expansion)
+    - [ ] Include notification area
+    - [ ] Write component tests
+    
+*** TODO AuthLayout [/] [%]
+    - [ ] Create centered layout for login/auth pages
+    - [ ] Add background image support
+    - [ ] Implement responsive design
+    - [ ] Write component tests
+
+** TODO Form Components [/] [%]
+*** TODO FormInput [/] [%]
+    - [ ] Create reusable text input component
+    - [ ] Add label, placeholder, and validation support
+    - [ ] Implement error state styling
+    - [ ] Add disabled state handling
+    - [ ] Support different input types
+    - [ ] Write comprehensive component tests
+    
+*** TODO FormDropdown [/] [%]
+    - [ ] Create select dropdown component
+    - [ ] Add search/filter functionality
+    - [ ] Implement loading states
+    - [ ] Add multi-select support
+    - [ ] Write component tests
+    
+*** TODO FormDatePicker [/] [%]
+    - [ ] Create date picker component
+    - [ ] Add natural language input support
+    - [ ] Implement calendar popup
+    - [ ] Add validation and error handling
+    - [ ] Write component tests
+    
+*** TODO FormTimePicker [/] [%]
+    - [ ] Create time picker component
+    - [ ] Add 12/24 hour format support
+    - [ ] Implement validation
+    - [ ] Add keyboard navigation
+    - [ ] Write component tests
+    
+*** TODO FormButton [/] [%]
+    - [ ] Create reusable button component
+    - [ ] Add different variants (primary, secondary, danger)
+    - [ ] Implement loading states
+    - [ ] Add icon support
+    - [ ] Write component tests
+
+** TODO Data Display Components [/] [%]
+*** TODO DataTable [/] [%]
+    - [ ] Create sortable, filterable table component
+    - [ ] Add pagination support
+    - [ ] Implement row selection
+    - [ ] Add loading and empty states
+    - [ ] Create responsive behavior
+    - [ ] Add action buttons (edit, delete)
+    - [ ] Write comprehensive component tests
+    
+*** TODO LoadingSpinner [/] [%]
+    - [ ] Create loading indicator component
+    - [ ] Add different sizes and styles
+    - [ ] Write component tests
+    
+*** TODO Modal [/] [%]
+    - [ ] Create modal dialog component
+    - [ ] Add confirmation dialog variant
+    - [ ] Implement backdrop click handling
+    - [ ] Add keyboard navigation (ESC key)
+    - [ ] Write component tests
+    
+*** TODO Notification [/] [%]
+    - [ ] Create toast notification component
+    - [ ] Add different types (success, error, warning)
+    - [ ] Implement auto-dismiss functionality
+    - [ ] Add action buttons
+    - [ ] Write component tests
+
+** TODO Navigation Components [/] [%]
+*** TODO AppHeader [/] [%]
+    - [ ] Create application header component
+    - [ ] Add navigation icons and links
+    - [ ] Implement user menu dropdown
+    - [ ] Add responsive behavior
+    - [ ] Write component tests
+
+* TODO [#A] Page Components (Views)                                  :frontend:
+** TODO [#A] Authentication Pages [/] [%]
+*** TODO LoginView [/] [%]
+    - [ ] Create login form layout
+    - [ ] Add username/password fields
+    - [ ] Implement "Remember Me" functionality
+    - [ ] Add form validation
+    - [ ] Connect to auth store
+    - [ ] Add loading states and error handling
+    - [ ] Match Flet design with background image
+    - [ ] Write component tests
+    - [ ] Write integration tests for login flow
+    
+** TODO [#A] Dashboard/Home Page [/] [%]
+*** TODO DashboardView [/] [%]
+    - [ ] Create main dashboard layout
+    - [ ] Add navigation cards for main sections
+    - [ ] Implement color-coded sections (matching Flet)
+      - [ ] Clients (Green)
+      - [ ] Projects (Amber)
+      - [ ] Tasks (Cyan)
+      - [ ] Hours (Purple)
+      - [ ] Reports (Yellow)
+    - [ ] Add responsive grid layout
+    - [ ] Add hover effects and animations
+    - [ ] Write component tests
+    
+** TODO [#A] Client Management [/] [%]
+*** TODO ClientsView [/] [%]
+    - [ ] Create clients list page with DataTable
+    - [ ] Implement client data columns:
+      - [ ] Organisation, City, State
+      - [ ] Contact Email, URL, Active status
+      - [ ] Edit/Delete actions
+    - [ ] Add search and filter functionality
+    - [ ] Create add/edit client modal form
+    - [ ] Implement form with all client fields:
+      - [ ] Organisation, Description
+      - [ ] Address fields (Address1, Address2, City, State, Country, Postal Code)
+      - [ ] Contact information (First/Last name, Username, Email)
+      - [ ] Phone numbers (Phone, Fax, GSM)
+      - [ ] HTTP URL, Active checkbox
+    - [ ] Add form validation
+    - [ ] Connect to clients store
+    - [ ] Add confirmation dialog for delete
+    - [ ] Write component tests
+    - [ ] Write integration tests
+    
+** TODO [#A] Project Management [/] [%]
+*** TODO ProjectsView [/] [%]
+    - [ ] Create projects list page with DataTable
+    - [ ] Implement project data columns:
+      - [ ] Client Name, Project Name
+      - [ ] Start Date, Deadline
+      - [ ] Project Status, Lead, Active status
+      - [ ] Edit/Delete actions
+    - [ ] Add client filter dropdown
+    - [ ] Create add/edit project modal form
+    - [ ] Implement form with project fields:
+      - [ ] Client dropdown (active clients only)
+      - [ ] Title, Description
+      - [ ] Start Date, Deadline (date pickers)
+      - [ ] HTTP Link, Project Leader
+      - [ ] Project Status dropdown (Pending, Started, Suspended, Complete)
+    - [ ] Add form validation
+    - [ ] Connect to projects store
+    - [ ] Add confirmation dialog for delete
+    - [ ] Write component tests
+    - [ ] Write integration tests
+    
+** TODO [#A] Task Management [/] [%]
+*** TODO TasksView [/] [%]
+    - [ ] Create tasks list page with DataTable
+    - [ ] Implement task data columns:
+      - [ ] Project Name, Task Name
+      - [ ] Assigned, Started dates
+      - [ ] Task Status, Active status
+      - [ ] Edit/Delete actions
+    - [ ] Add client/project filter dropdowns (dependent)
+    - [ ] Create add/edit task modal form
+    - [ ] Implement form with task fields:
+      - [ ] Project Name (disabled, auto-filled)
+      - [ ] Task Name, Description
+      - [ ] Date fields (Assigned, Started, Suspended, Completed)
+      - [ ] HTTP Link
+      - [ ] Status dropdown (Pending, Started, Suspended, Complete)
+    - [ ] Add form validation
+    - [ ] Connect to tasks store
+    - [ ] Add confirmation dialog for delete
+    - [ ] Write component tests
+    - [ ] Write integration tests
+    
+** TODO [#A] Time Tracking (Hours/Billing Events) [/] [%]
+*** TODO HoursView - Most Complex View [/] [%]
+    - [ ] Create time tracking interface
+    - [ ] Implement filter controls:
+      - [ ] Client dropdown
+      - [ ] Project dropdown (dependent on client)
+      - [ ] Start date picker
+      - [ ] End date picker
+    - [ ] Create billing events DataTable:
+      - [ ] Project, Task, Transaction Number
+      - [ ] Hours (calculated), Start Time, End Time
+      - [ ] Description, Edit/Delete actions
+    - [ ] Add total hours calculation and display
+    - [ ] Create add/edit time entry modal form:
+      - [ ] Project Name (auto-filled from filter)
+      - [ ] Task dropdown (filtered by project)
+      - [ ] Transaction Number (auto-generated)
+      - [ ] Log Message/Description
+      - [ ] Start Time, End Time pickers
+    - [ ] Implement complex validation:
+      - [ ] Start time must be before end time
+      - [ ] Both times must be on same calendar day
+      - [ ] Required field validation
+    - [ ] Connect to billing events store
+    - [ ] Integrate with user preferences for default times
+    - [ ] Add confirmation dialog for delete
+    - [ ] Write comprehensive component tests
+    - [ ] Write integration tests for time entry workflow
+    
+** TODO [#B] Reports [/] [%]
+*** TODO ReportsView [/] [%]
+    - [ ] Create reports list page
+    - [ ] Display available reports:
+      - [ ] Client Period Report
+      - [ ] TimeKeeper Period Report
+      - [ ] Time Period Report
+    - [ ] Add placeholder for future report generation
+    - [ ] Write component tests
+    
+** TODO [#B] User Preferences [/] [%]
+*** TODO PreferencesView [/] [%]
+    - [ ] Create user preferences interface
+    - [ ] Add work hours preference fields:
+      - [ ] Default Start Time picker
+      - [ ] Default End Time picker
+    - [ ] Implement action buttons:
+      - [ ] Save Preferences
+      - [ ] Reset to Defaults
+      - [ ] Load Current
+    - [ ] Add form validation
+    - [ ] Connect to preferences store
+    - [ ] Add success/error notifications
+    - [ ] Write component tests
+    - [ ] Write integration tests
+    
+** TODO [#C] User Profile [/] [%]
+*** TODO ProfileView [/] [%]
+    - [ ] Create user profile page
+    - [ ] Add user information display
+    - [ ] Add settings and preferences access
+    - [ ] Write component tests
+
+* TODO [#A] Router Configuration                                     :frontend:
+** TODO Vue Router Setup [/] [%]
+   - [ ] Configure Vue Router with TypeScript
+   - [ ] Create route definitions for all pages
+   - [ ] Implement authentication guards
+   - [ ] Add route-based code splitting
+   - [ ] Create breadcrumb navigation
+   - [ ] Add 404 error page
+
+* TODO [#A] FastAPI Integration                                      :backend:
+** TODO Backend Configuration [/] [%]
+   - [ ] Update FastAPI main.py to serve Vue.js static files
+   - [ ] Configure static file mounting
+   - [ ] Implement SPA fallback routing
+   - [ ] Test API prefix routing (/api/*)
+   - [ ] Update CORS settings if needed
+
+* TODO [#B] Styling and Design System                               :frontend:
+** TODO Tailwind Configuration [/] [%]
+   - [ ] Configure design system colors matching Flet theme
+   - [ ] Set up custom spacing and typography
+   - [ ] Configure dark mode support
+   - [ ] Add component utility classes
+   - [ ] Create consistent form styling
+   - [ ] Implement table styling patterns
+
+** TODO Responsive Design [/] [%]
+   - [ ] Ensure mobile responsiveness for all components
+   - [ ] Test tablet breakpoints
+   - [ ] Optimize touch interactions
+   - [ ] Test across different screen sizes
+
+* TODO [#B] Testing Coverage                                         :testing:
+** TODO Unit Tests [/] [%]
+   - [ ] Achieve >80% code coverage for components
+   - [ ] Test all store actions and getters
+   - [ ] Test all API services
+   - [ ] Test form validation logic
+   - [ ] Test utility functions
+
+** TODO Integration Tests [/] [%]
+   - [ ] Test complete user workflows
+   - [ ] Test API integration end-to-end
+   - [ ] Test authentication flows
+   - [ ] Test data persistence
+
+** TODO End-to-End Tests (Optional) [/] [%]
+   - [ ] Set up Cypress for E2E testing
+   - [ ] Test critical user journeys
+   - [ ] Test cross-browser compatibility
+
+* TODO [#B] Performance and Optimization                            :frontend:
+** TODO Build Optimization [/] [%]
+   - [ ] Configure code splitting strategies
+   - [ ] Optimize bundle sizes
+   - [ ] Add service worker for caching
+   - [ ] Implement lazy loading for routes
+
+** TODO Runtime Performance [/] [%]
+   - [ ] Optimize component re-renders
+   - [ ] Implement virtual scrolling for large tables
+   - [ ] Add pagination for data tables
+   - [ ] Optimize API request batching
+
+* TODO [#C] Documentation and Deployment                            :docs:
+** TODO Documentation [/] [%]
+   - [ ] Update README with setup instructions
+   - [ ] Document component API
+   - [ ] Create deployment guide
+   - [ ] Document environment variables
+
+** TODO Deployment Preparation [/] [%]
+   - [ ] Create production build scripts
+   - [ ] Test production deployment
+   - [ ] Set up environment-specific configurations
+   - [ ] Create CI/CD pipeline (if needed)
+
+* TODO [#C] Migration and Transition                                :frontend:
+** TODO Feature Parity Verification [/] [%]
+   - [ ] Compare all Flet features with Vue implementation
+   - [ ] Test data compatibility
+   - [ ] Verify API compatibility
+   - [ ] Test user workflows match existing behavior
+
+** TODO User Training Materials [/] [%]
+   - [ ] Create user guide for new interface
+   - [ ] Document any workflow changes
+   - [ ] Create migration guide for users
+
+* Progress Tracking
+** Statistics
+- Total main tasks: 12
+- High priority [#A] tasks: 7  
+- Medium priority [#B] tasks: 4
+- Low priority [#C] tasks: 1
+
+** Key Milestones
+1. [ ] Project setup and infrastructure complete
+2. [ ] Core components and services implemented  
+3. [ ] Authentication and basic navigation working
+4. [ ] All main views implemented and tested
+5. [ ] Performance optimization complete
+6. [ ] Production deployment ready
+
+** Notes
+- Focus on high-priority tasks first to establish core functionality
+- Test each major component as it's completed
+- Maintain feature parity with existing Flet application
+- Consider user experience improvements while maintaining familiar workflows
+
+* DONE Example Completed Task                                        :frontend:
+  CLOSED: [2025-10-18 Sat 00:13]
+  - [X] Create project structure
+  - [X] Document development approach
+  - [X] Plan implementation strategy
