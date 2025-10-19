@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import logging
 from enum import Enum
@@ -56,6 +57,44 @@ async def refresh(refreshtoken: str):
 @app.get("/userinfo")
 async def userinfo():
     return api.routers.auth.userinfo()
+
+@app.get("/api/health")
+async def health():
+    return {"status": "healthy"}
+
+@app.get("/api/login")
+async def api_login(username: str, password: str):
+    creds=LoginRequest(username=username, password=password)
+    return api.routers.auth.login(creds=creds)
+
+@app.get("/api/logout")
+async def api_logout(request: Request):
+    return api.routers.auth.logout(request)
+
+@app.get("/api/refresh")
+async def api_refresh(refreshtoken: str):
+    return api.routers.auth.refresh(refreshtoken)
+
+@app.get("/api/userinfo")
+async def api_userinfo(request: Request):
+    # Extract the Authorization header and pass it to the auth router
+    from fastapi import Depends
+    from bluestone.timesheet.auth.auth_bearer import JWTBearer
+    
+    # Extract token from Authorization header
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        raise HTTPException(status_code=403, detail="Missing or invalid authorization header")
+    
+    token = auth_header.split(' ')[1]
+    
+    # Validate token using JWTBearer logic
+    from bluestone.timesheet.auth.auth_bearer import decodeJWT
+    payload = decodeJWT(token)
+    if not payload:
+        raise HTTPException(status_code=403, detail="Invalid token or expired token")
+    
+    return api.routers.auth.userinfo(dependencies=token)
 
 
 app.include_router(api.routers.auth.router)

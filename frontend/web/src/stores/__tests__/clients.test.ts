@@ -149,6 +149,7 @@ describe('Clients Store', () => {
       const store = useClientsStore()
       const mockError = {
         success: false,
+        data: [],
         error: 'Network error'
       }
       
@@ -207,6 +208,7 @@ describe('Clients Store', () => {
       const store = useClientsStore()
       const mockError = {
         success: false,
+        data: {} as any,
         error: 'Validation failed'
       }
       
@@ -249,6 +251,7 @@ describe('Clients Store', () => {
       const store = useClientsStore()
       const mockError = {
         success: false,
+        data: {} as any,
         error: 'Client not found'
       }
       
@@ -285,6 +288,7 @@ describe('Clients Store', () => {
       const store = useClientsStore()
       const mockError = {
         success: false,
+        data: null,
         error: 'Cannot delete client with active projects'
       }
       

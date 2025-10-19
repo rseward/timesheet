@@ -12,17 +12,17 @@ export const usePreferencesStore = defineStore('preferences', () => {
   const preferencesMap = computed(() => {
     const map: Record<string, string> = {}
     preferences.value.forEach(pref => {
-      map[pref.key] = pref.value
+      map[pref.preference_key] = pref.preference_value
     })
     return map
   })
 
   const defaultStartTime = computed(() => 
-    preferencesMap.value.default_start_time || '09:00'
+    preferencesMap.value.start_time || '09:00'
   )
 
   const defaultEndTime = computed(() => 
-    preferencesMap.value.default_end_time || '17:00'
+    preferencesMap.value.end_time || '17:00'
   )
 
   const workingHours = computed(() => ({
@@ -38,10 +38,16 @@ export const usePreferencesStore = defineStore('preferences', () => {
     error.value = null
 
     try {
-      preferences.value = await preferencesApi.getAll()
+      const response = await preferencesApi.getAll()
+      if (response.success && response.data) {
+        preferences.value = response.data
+      } else {
+        error.value = response.error || 'Failed to fetch preferences'
+        preferences.value = []
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch preferences'
-      throw err
+      preferences.value = []
     } finally {
       loading.value = false
     }
@@ -49,9 +55,9 @@ export const usePreferencesStore = defineStore('preferences', () => {
 
   const getPreference = async (key: string): Promise<string | null> => {
     // Try to get from local state first
-    const localPref = preferences.value.find(p => p.key === key)
+    const localPref = preferences.value.find(p => p.preference_key === key)
     if (localPref) {
-      return localPref.value
+      return localPref.preference_value
     }
 
     // If not found locally, fetch from API
@@ -63,14 +69,13 @@ export const usePreferencesStore = defineStore('preferences', () => {
       
       // Update local state if found
       if (value !== null) {
-        const existingIndex = preferences.value.findIndex(p => p.key === key)
+        const existingIndex = preferences.value.findIndex(p => p.preference_key === key)
         if (existingIndex === -1) {
           // Add new preference to local state
           preferences.value.push({
-            id: Date.now(), // Temporary ID
-            key,
-            value,
-            userId: 0 // Will be updated when we fetch all preferences
+            preference_key: key,
+            preference_value: value,
+            user_id: 0 // Will be updated when we fetch all preferences
           })
         }
       }
@@ -89,14 +94,19 @@ export const usePreferencesStore = defineStore('preferences', () => {
     error.value = null
 
     try {
-      const preference = await preferencesApi.set(key, value)
+      const response = await preferencesApi.set(key, value)
       
-      // Update local state
-      const existingIndex = preferences.value.findIndex(p => p.key === key)
-      if (existingIndex !== -1) {
-        preferences.value[existingIndex] = preference
+      if (response.success && response.data) {
+        // Update local state
+        const existingIndex = preferences.value.findIndex(p => p.preference_key === key)
+        if (existingIndex !== -1) {
+          preferences.value[existingIndex] = response.data
+        } else {
+          preferences.value.push(response.data)
+        }
       } else {
-        preferences.value.push(preference)
+        error.value = response.error || 'Failed to set preference'
+        throw new Error(response.error || 'Failed to set preference')
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to set preference'
@@ -145,21 +155,21 @@ export const usePreferencesStore = defineStore('preferences', () => {
 
   // Convenience methods for common preferences
   const getDefaultStartTime = async (): Promise<string> => {
-    const value = await getPreference('default_start_time')
+    const value = await getPreference('start_time')
     return value || '09:00'
   }
 
   const setDefaultStartTime = async (time: string): Promise<void> => {
-    await setPreference('default_start_time', time)
+    await setPreference('start_time', time)
   }
 
   const getDefaultEndTime = async (): Promise<string> => {
-    const value = await getPreference('default_end_time')
+    const value = await getPreference('end_time')
     return value || '17:00'
   }
 
   const setDefaultEndTime = async (time: string): Promise<void> => {
-    await setPreference('default_end_time', time)
+    await setPreference('end_time', time)
   }
 
   const getWorkingHours = async (): Promise<{ startTime: string; endTime: string }> => {
@@ -176,10 +186,15 @@ export const usePreferencesStore = defineStore('preferences', () => {
     error.value = null
 
     try {
-      await Promise.all([
-        setDefaultStartTime(startTime),
-        setDefaultEndTime(endTime)
-      ])
+      const response = await preferencesApi.setWorkingHours(startTime, endTime)
+      
+      if (response.success) {
+        // Refresh local state after successful bulk update
+        await fetchPreferences()
+      } else {
+        error.value = response.error || 'Failed to set working hours'
+        throw new Error(response.error || 'Failed to set working hours')
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to set working hours'
       throw err
@@ -198,11 +213,11 @@ export const usePreferencesStore = defineStore('preferences', () => {
 
   // Utility methods
   const getPreferenceByKey = (key: string): UserPreference | undefined => {
-    return preferences.value.find(p => p.key === key)
+    return preferences.value.find(p => p.preference_key === key)
   }
 
   const hasPreference = (key: string): boolean => {
-    return preferences.value.some(p => p.key === key)
+    return preferences.value.some(p => p.preference_key === key)
   }
 
   return {

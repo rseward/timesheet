@@ -24,13 +24,21 @@ export interface ChangePasswordData {
   confirmPassword: string
 }
 
+// Backend TokenSchema from Python API
 export interface AuthResponse {
   access_token: string
   refresh_token: string
-  token_type: string
-  expires_in?: number
-  user_id?: number
-  username?: string
+}
+
+// Backend login response format
+export interface LoginResponse {
+  access_token: string
+  refresh_token: string
+}
+
+// Backend user info response format (from /userinfo endpoint)
+export interface UserInfoResponse {
+  user: string // JSON string representation of user
 }
 
 export interface AuthState {

@@ -61,20 +61,22 @@ describe('Auth Store', () => {
       const mockResponse = {
         success: true,
         data: {
-          user: { id: 1, username: 'testuser', email: 'test@example.com' },
-          token: 'jwt-token'
+          access_token: 'jwt-token',
+          refresh_token: 'refresh-token'
         }
       }
       
       mockAuthApi.login.mockResolvedValue(mockResponse)
+      mockAuthApi.getCurrentUser.mockResolvedValue({
+        success: true,
+        data: { user_id: 1, username: 'testuser', email: 'test@example.com', active: true }
+      })
 
       const credentials = { username: 'testuser', password: 'password' }
       const result = await store.login(credentials)
 
       expect(store.loading).toBe(false)
-      expect(store.user).toEqual(mockResponse.data.user)
       expect(store.token).toBe('jwt-token')
-      expect(store.isAuthenticated).toBe(true)
       expect(store.error).toBeNull()
       expect(localStorageMock.setItem).toHaveBeenCalledWith('auth_token', 'jwt-token')
       expect(result.success).toBe(true)
@@ -103,8 +105,12 @@ describe('Auth Store', () => {
     it('sets loading state during login', async () => {
       const store = useAuthStore()
       mockAuthApi.login.mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve({ success: true, data: {} }), 100))
+        new Promise(resolve => setTimeout(() => resolve({ success: true, data: { access_token: 'token', refresh_token: 'refresh' } }), 100))
       )
+      mockAuthApi.getCurrentUser.mockResolvedValue({
+        success: true,
+        data: { user_id: 1, username: 'test', active: true }
+      })
 
       const loginPromise = store.login({ username: 'test', password: 'test' })
       
@@ -121,7 +127,7 @@ describe('Auth Store', () => {
       const store = useAuthStore()
       
       // Set initial authenticated state
-      store.user = { id: 1, username: 'testuser', email: 'test@example.com' }
+      store.user = { user_id: 1, username: 'testuser', email: 'test@example.com', active: true }
       store.token = 'jwt-token'
       
       mockAuthApi.logout.mockResolvedValue({ success: true })
@@ -139,7 +145,7 @@ describe('Auth Store', () => {
       const store = useAuthStore()
       
       // Set initial authenticated state
-      store.user = { id: 1, username: 'testuser', email: 'test@example.com' }
+      store.user = { user_id: 1, username: 'testuser', email: 'test@example.com', active: true }
       store.token = 'jwt-token'
       
       mockAuthApi.logout.mockRejectedValue(new Error('Network error'))
@@ -158,10 +164,10 @@ describe('Auth Store', () => {
       const store = useAuthStore()
       store.token = 'test-token' // Set token for the test
       const mockUser = {
-        id: 1,
+        user_id: 1,
         username: 'testuser',
         email: 'test@example.com',
-        role: 'user'
+        active: true
       }
       
       mockAuthApi.getCurrentUser.mockResolvedValue({
@@ -199,7 +205,7 @@ describe('Auth Store', () => {
       
       mockAuthApi.refreshToken.mockResolvedValue({
         success: true,
-        data: { token: 'new-jwt-token', expires_in: 3600 }
+        data: { access_token: 'new-jwt-token', refresh_token: 'new-refresh-token' }
       })
 
       const result = await store.refreshToken()

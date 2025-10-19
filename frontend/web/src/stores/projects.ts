@@ -31,7 +31,7 @@ export const useProjectsStore = defineStore('projects', () => {
     let result = projects.value
 
     if (filters.value.clientId) {
-      result = result.filter(project => project.clientId === filters.value.clientId)
+      result = result.filter(project => project.client_id === filters.value.clientId)
     }
 
     if (filters.value.active !== null && filters.value.active !== undefined) {
@@ -39,7 +39,7 @@ export const useProjectsStore = defineStore('projects', () => {
     }
 
     if (filters.value.status) {
-      result = result.filter(project => project.projectStatus === filters.value.status)
+      result = result.filter(project => project.proj_status === filters.value.status)
     }
 
     if (filters.value.search) {
@@ -57,10 +57,10 @@ export const useProjectsStore = defineStore('projects', () => {
   const projectsByClient = computed(() => {
     const grouped: Record<number, Project[]> = {}
     projects.value.forEach(project => {
-      if (!grouped[project.clientId]) {
-        grouped[project.clientId] = []
+      if (!grouped[project.client_id]) {
+        grouped[project.client_id] = []
       }
-      grouped[project.clientId].push(project)
+      grouped[project.client_id].push(project)
     })
     return grouped
   })
@@ -91,7 +91,7 @@ export const useProjectsStore = defineStore('projects', () => {
       const project = await projectsApi.getById(id)
       
       // Update project in store if it exists
-      const index = projects.value.findIndex(p => p.id === id)
+      const index = projects.value.findIndex(p => p.project_id === id)
       if (index !== -1) {
         projects.value[index] = project
       } else {
@@ -129,7 +129,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
     try {
       const updatedProject = await projectsApi.update(id, projectData)
-      const index = projects.value.findIndex(p => p.id === id)
+      const index = projects.value.findIndex(p => p.project_id === id)
       if (index !== -1) {
         projects.value[index] = updatedProject
       }
@@ -143,7 +143,7 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   const updateProjectStatus = async (id: number, status: ProjectStatus): Promise<Project | null> => {
-    return updateProject(id, { projectStatus: status })
+    return updateProject(id, { proj_status: status })
   }
 
   const deleteProject = async (id: number): Promise<void> => {
@@ -152,7 +152,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
     try {
       await projectsApi.delete(id)
-      projects.value = projects.value.filter(p => p.id !== id)
+      projects.value = projects.value.filter(p => p.project_id !== id)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to delete project'
       throw err
@@ -195,19 +195,19 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // Utility methods
   const getProjectById = (id: number): Project | undefined => {
-    return projects.value.find(p => p.id === id)
+    return projects.value.find(p => p.project_id === id)
   }
 
   const getProjectsByClient = (clientId: number): Project[] => {
-    return projects.value.filter(p => p.clientId === clientId)
+    return projects.value.filter(p => p.client_id === clientId)
   }
 
   const getActiveProjectsByClient = (clientId: number): Project[] => {
-    return projects.value.filter(p => p.clientId === clientId && p.active)
+    return projects.value.filter(p => p.client_id === clientId && p.active)
   }
 
   const getProjectsByIds = (ids: number[]): Project[] => {
-    return projects.value.filter(p => ids.includes(p.id))
+    return projects.value.filter(p => ids.includes(p.project_id))
   }
 
   return {

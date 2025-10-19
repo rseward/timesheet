@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/services/auth'
-import type { User, LoginCredentials, AuthResponse, ChangePasswordData } from '@/types/auth'
+import type { User, LoginCredentials, ChangePasswordData } from '@/types/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -24,9 +24,15 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.login(credentials)
       
       if (response.success && response.data) {
-        token.value = response.data.token
-        user.value = response.data.user
-        localStorage.setItem('auth_token', response.data.token)
+        token.value = response.data.access_token
+        localStorage.setItem('auth_token', response.data.access_token)
+        
+        // Get user info after successful login
+        const userResponse = await authApi.getCurrentUser()
+        if (userResponse.success && userResponse.data) {
+          user.value = userResponse.data
+        }
+        
         return { success: true }
       } else {
         error.value = response.error || 'Login failed'
@@ -83,10 +89,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return { success: false, error: 'No token' }
 
     try {
-      const response = await authApi.refreshToken()
+      const response = await authApi.refreshToken(token.value || '')
       if (response.success && response.data) {
-        token.value = response.data.token
-        localStorage.setItem('auth_token', response.data.token)
+        token.value = response.data.access_token
+        localStorage.setItem('auth_token', response.data.access_token)
         return { success: true }
       } else {
         const errorMsg = response.error || 'Token refresh failed'

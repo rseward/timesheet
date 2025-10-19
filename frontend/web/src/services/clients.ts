@@ -1,9 +1,9 @@
 import { apiService } from './api'
-import type { Client, ClientCreateData, ClientUpdateData } from '@/types/client'
+import type { Client, ClientCreateData } from '@/types/client'
 
 export const clientsApi = {
-  async getAll(filters: { active?: boolean; search?: string } = {}): Promise<{ success: boolean; data: Client[] }> {
-    const params = { ...filters }
+  async getAll(filters?: { active?: boolean; search?: string }): Promise<{ success: boolean; data: Client[] }> {
+    const params = { ...(filters || {}) }
     const data = await apiService.get<Client[]>('/clients', { params })
     return {
       success: true,
@@ -52,12 +52,13 @@ export const clientsApi = {
   },
 
   async getActiveClients(): Promise<Client[]> {
-    return this.getAll(true)
+    const result = await this.getAll({ active: true })
+    return result.data
   },
 
   async searchClients(query: string): Promise<Client[]> {
     const params = { search: query }
     const response = await apiService.get<Client[]>('/clients/search', { params })
-    return response.data
+    return response
   }
 }

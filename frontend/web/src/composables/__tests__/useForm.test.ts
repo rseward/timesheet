@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
 import { useForm } from '../useForm'
 
+interface TestFormData {
+  name?: string
+  email?: string
+  age?: number
+}
+
 describe('useForm', () => {
-  const mockValidationRules = {
+  const mockValidationRules: Record<keyof TestFormData, ((value: any) => boolean | string)[]> = {
     name: [(value: string) => value.length > 0 || 'Name is required'],
     email: [
       (value: string) => value.length > 0 || 'Email is required',
@@ -21,19 +26,19 @@ describe('useForm', () => {
   describe('initialization', () => {
     it('initializes with provided initial values', () => {
       const initialValues = { name: 'John', email: 'john@example.com', age: 25 }
-      const { values } = useForm(initialValues, mockValidationRules)
+      const { values } = useForm<TestFormData>(initialValues, mockValidationRules)
 
       expect(values).toEqual(initialValues)
     })
 
     it('initializes with empty object if no initial values provided', () => {
-      const { values } = useForm({}, mockValidationRules)
+      const { values } = useForm<TestFormData>({}, mockValidationRules)
 
       expect(values).toEqual({})
     })
 
     it('initializes errors and touched as empty', () => {
-      const { errors, touched } = useForm({}, mockValidationRules)
+      const { errors, touched } = useForm<TestFormData>({}, mockValidationRules)
 
       expect(errors.value).toEqual({})
       expect(touched.value).toEqual({})
@@ -42,7 +47,7 @@ describe('useForm', () => {
 
   describe('validation', () => {
     it('validates single field correctly', () => {
-      const { values, errors, validateField } = useForm(
+      const { errors, validateField } = useForm<TestFormData>(
         { name: '', email: 'valid@email.com' },
         mockValidationRules
       )
@@ -54,7 +59,7 @@ describe('useForm', () => {
     })
 
     it('validates multiple rules for single field', () => {
-      const { values, errors, validateField } = useForm(
+      const { errors, validateField } = useForm<TestFormData>(
         { email: 'invalid-email' },
         mockValidationRules
       )
@@ -65,7 +70,7 @@ describe('useForm', () => {
     })
 
     it('clears error when field becomes valid', () => {
-      const { values, errors, validateField, setFieldValue } = useForm(
+      const { errors, validateField, setFieldValue } = useForm<TestFormData>(
         { name: '' },
         mockValidationRules
       )
@@ -81,7 +86,7 @@ describe('useForm', () => {
     })
 
     it('validates all fields', () => {
-      const { errors, validate } = useForm(
+      const { errors, validate } = useForm<TestFormData>(
         { name: '', email: 'invalid', age: 15 },
         mockValidationRules
       )
@@ -95,7 +100,7 @@ describe('useForm', () => {
     })
 
     it('returns true when all fields are valid', () => {
-      const { validate } = useForm(
+      const { validate } = useForm<TestFormData>(
         { name: 'John', email: 'john@example.com', age: 25 },
         mockValidationRules
       )
@@ -108,7 +113,7 @@ describe('useForm', () => {
 
   describe('field management', () => {
     it('sets field value', () => {
-      const { values, setFieldValue } = useForm({}, mockValidationRules)
+      const { values, setFieldValue } = useForm<TestFormData>({}, mockValidationRules)
 
       setFieldValue('name', 'John Doe')
 
@@ -116,7 +121,7 @@ describe('useForm', () => {
     })
 
     it('sets field as touched', () => {
-      const { touched, setFieldTouched } = useForm({}, mockValidationRules)
+      const { touched, setFieldTouched } = useForm<TestFormData>({}, mockValidationRules)
 
       setFieldTouched('email', true)
 
@@ -124,7 +129,7 @@ describe('useForm', () => {
     })
 
     it('sets field error', () => {
-      const { errors, setFieldError } = useForm({}, mockValidationRules)
+      const { errors, setFieldError } = useForm<TestFormData>({}, mockValidationRules)
 
       setFieldError('name', 'Custom error message')
 
@@ -132,7 +137,7 @@ describe('useForm', () => {
     })
 
     it('clears field error', () => {
-      const { errors, setFieldError, clearFieldError } = useForm({}, mockValidationRules)
+      const { errors, setFieldError, clearFieldError } = useForm<TestFormData>({}, mockValidationRules)
 
       setFieldError('name', 'Error message')
       expect(errors.value.name).toBe('Error message')
@@ -144,7 +149,7 @@ describe('useForm', () => {
 
   describe('form state', () => {
     it('computes isValid correctly', () => {
-      const { isValid, errors } = useForm({}, mockValidationRules)
+      const { isValid, errors } = useForm<TestFormData>({}, mockValidationRules)
 
       // Initially valid (no errors)
       expect(isValid.value).toBe(true)
@@ -160,7 +165,7 @@ describe('useForm', () => {
 
     it('computes isDirty correctly', () => {
       const initialValues = { name: 'John', email: 'john@example.com' }
-      const { isDirty, setFieldValue } = useForm(initialValues, mockValidationRules)
+      const { isDirty, setFieldValue } = useForm<TestFormData>(initialValues, mockValidationRules)
 
       // Initially not dirty
       expect(isDirty.value).toBe(false)
@@ -175,7 +180,7 @@ describe('useForm', () => {
     })
 
     it('computes hasErrors correctly', () => {
-      const { hasErrors, errors } = useForm({}, mockValidationRules)
+      const { hasErrors, errors } = useForm<TestFormData>({}, mockValidationRules)
 
       // Initially no errors
       expect(hasErrors.value).toBe(false)
@@ -193,7 +198,7 @@ describe('useForm', () => {
   describe('form operations', () => {
     it('resets form to initial values', () => {
       const initialValues = { name: 'John', email: 'john@example.com' }
-      const { values, errors, touched, reset, setFieldValue, setFieldError, setFieldTouched } = useForm(
+      const { values, errors, touched, reset, setFieldValue, setFieldError, setFieldTouched } = useForm<TestFormData>(
         initialValues,
         mockValidationRules
       )
@@ -214,7 +219,7 @@ describe('useForm', () => {
     it('resets form to new values', () => {
       const initialValues = { name: 'John', email: 'john@example.com' }
       const newValues = { name: 'Jane', email: 'jane@example.com' }
-      const { values, reset } = useForm(initialValues, mockValidationRules)
+      const { values, reset } = useForm<TestFormData>(initialValues, mockValidationRules)
 
       reset(newValues)
 
@@ -222,7 +227,7 @@ describe('useForm', () => {
     })
 
     it('clears all errors', () => {
-      const { errors, clearErrors, setFieldError } = useForm({}, mockValidationRules)
+      const { errors, clearErrors, setFieldError } = useForm<TestFormData>({}, mockValidationRules)
 
       // Add some errors
       setFieldError('name', 'Error 1')
@@ -237,7 +242,7 @@ describe('useForm', () => {
   describe('submission', () => {
     it('handles successful submission', async () => {
       const mockSubmitFn = vi.fn().mockResolvedValue({ success: true })
-      const { handleSubmit } = useForm(
+      const { handleSubmit } = useForm<TestFormData>(
         { name: 'John', email: 'john@example.com', age: 25 },
         mockValidationRules
       )
@@ -254,7 +259,7 @@ describe('useForm', () => {
 
     it('prevents submission if form is invalid', async () => {
       const mockSubmitFn = vi.fn()
-      const { handleSubmit } = useForm(
+      const { handleSubmit } = useForm<TestFormData>(
         { name: '', email: 'invalid' },
         mockValidationRules
       )
@@ -267,7 +272,7 @@ describe('useForm', () => {
 
     it('handles submission errors', async () => {
       const mockSubmitFn = vi.fn().mockRejectedValue(new Error('Server error'))
-      const { handleSubmit } = useForm(
+      const { handleSubmit } = useForm<TestFormData>(
         { name: 'John', email: 'john@example.com', age: 25 },
         mockValidationRules
       )
@@ -277,7 +282,7 @@ describe('useForm', () => {
 
     it('marks all fields as touched on submission attempt', async () => {
       const mockSubmitFn = vi.fn()
-      const { handleSubmit, touched } = useForm(
+      const { handleSubmit, touched } = useForm<TestFormData>(
         { name: '', email: 'invalid' },
         mockValidationRules
       )
@@ -291,7 +296,7 @@ describe('useForm', () => {
 
   describe('field helpers', () => {
     it('getFieldProps returns correct props', () => {
-      const { getFieldProps, setFieldValue, setFieldTouched, errors } = useForm(
+      const { getFieldProps, setFieldTouched, errors } = useForm<TestFormData>(
         { name: 'John' },
         mockValidationRules
       )
@@ -315,7 +320,7 @@ describe('useForm', () => {
     })
 
     it('isFieldValid returns correct validation state', () => {
-      const { isFieldValid, errors } = useForm({}, mockValidationRules)
+      const { isFieldValid, errors } = useForm<TestFormData>({}, mockValidationRules)
 
       // No error - field is valid
       expect(isFieldValid('name')).toBe(true)

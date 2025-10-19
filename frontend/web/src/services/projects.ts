@@ -8,22 +8,22 @@ export const projectsApi = {
     if (active !== undefined) params.active = active
     
     const response = await apiService.get<Project[]>('/projects', { params })
-    return response.data
+    return response
   },
 
   async getById(id: number): Promise<Project> {
     const response = await apiService.get<Project>(`/projects/${id}`)
-    return response.data
+    return response
   },
 
   async create(data: ProjectCreateData): Promise<Project> {
     const response = await apiService.post<Project>('/projects', data)
-    return response.data
+    return response
   },
 
   async update(id: number, data: ProjectUpdateData): Promise<Project> {
     const response = await apiService.put<Project>(`/projects/${id}`, data)
-    return response.data
+    return response
   },
 
   async delete(id: number): Promise<void> {
@@ -39,7 +39,7 @@ export const projectsApi = {
   },
 
   async updateStatus(id: number, status: ProjectStatus): Promise<Project> {
-    return this.update(id, { projectStatus: status })
+    return this.update(id, { proj_status: status })
   },
 
   async searchProjects(query: string, clientId?: number): Promise<Project[]> {
@@ -47,6 +47,6 @@ export const projectsApi = {
     if (clientId !== undefined) params.client_id = clientId
     
     const response = await apiService.get<Project[]>('/projects/search', { params })
-    return response.data
+    return response
   }
 }

@@ -18,7 +18,7 @@ JWT_REFRESH_SECRET_KEY = "Yvl7juxbwe8qSCaV6h6@#$%^@&gu5YwCi78h8StYmWWQFRN"
 def decodeJWT(jwtoken: str):
     try:
         # Decode and verify the token
-        payload = jwt.decode(jwtoken, JWT_SECRET_KEY, JWT_SECRET_KEY_ALGORITHMS)
+        payload = jwt.decode(jwtoken, JWT_SECRET_KEY, algorithms=[JWT_SECRET_KEY_ALGORITHMS])
         return payload
     except InvalidTokenError:
         return None
@@ -26,7 +26,7 @@ def decodeJWT(jwtoken: str):
 def decodeJWTRefresh(jwtrefresh: str):
     try:
         # Decode and verify the token
-        payload = jwt.decode(jwtrefresh, JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY_ALGORITHMS)
+        payload = jwt.decode(jwtrefresh, JWT_REFRESH_SECRET_KEY, algorithms=[JWT_SECRET_KEY_ALGORITHMS])
         return payload
     except InvalidTokenError:
         return None

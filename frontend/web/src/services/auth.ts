@@ -1,13 +1,19 @@
 import { apiService } from './api'
-import type { User, LoginCredentials, AuthResponse, ChangePasswordData } from '@/types/auth'
+import type { User, LoginCredentials, LoginResponse, UserInfoResponse, ChangePasswordData } from '@/types/auth'
 
 export const authApi = {
-  async login(credentials: LoginCredentials): Promise<{ success: boolean; data?: { user: User; token: string }; error?: string }> {
+  async login(credentials: LoginCredentials): Promise<{ success: boolean; data?: LoginResponse; error?: string }> {
     try {
-      const response = await apiService.post<{ user: User; token: string }>('/auth/login', credentials)
+      // Backend expects GET /login with query parameters
+      const params = new URLSearchParams({
+        username: credentials.username,
+        password: credentials.password
+      })
       
-      if (response.token) {
-        apiService.setAuthToken(response.token)
+      const response = await apiService.get<LoginResponse>(`/login?${params.toString()}`)
+      
+      if (response.access_token) {
+        apiService.setAuthToken(response.access_token)
       }
       
       return {
@@ -24,7 +30,8 @@ export const authApi = {
 
   async logout(): Promise<{ success: boolean }> {
     try {
-      await apiService.post('/auth/logout')
+      // Backend expects GET /logout with Authorization header
+      await apiService.get('/logout')
       return { success: true }
     } finally {
       // Always clear token even if logout request fails
@@ -32,38 +39,61 @@ export const authApi = {
     }
   },
 
-  async refreshToken(): Promise<{ success: boolean; data?: { token: string; expires_in: number }; error?: string }> {
-    const response = await apiService.post<{ token: string; expires_in: number }>('/auth/refresh')
-    
-    if (response.token) {
-      apiService.setAuthToken(response.token)
-    }
-    
-    return {
-      success: true,
-      data: response
+  async refreshToken(refreshToken: string): Promise<{ success: boolean; data?: LoginResponse; error?: string }> {
+    try {
+      // Backend expects GET /refresh with refreshtoken query parameter
+      const params = new URLSearchParams({
+        refreshtoken: refreshToken
+      })
+      
+      const response = await apiService.get<LoginResponse>(`/refresh?${params.toString()}`)
+      
+      if (response.access_token) {
+        apiService.setAuthToken(response.access_token)
+      }
+      
+      return {
+        success: true,
+        data: response
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Token refresh failed'
+      }
     }
   },
 
   async getCurrentUser(): Promise<{ success: boolean; data?: User; error?: string }> {
-    const response = await apiService.get<User>('/auth/me')
-    return {
-      success: true,
-      data: response
+    try {
+      // Backend provides GET /userinfo with Authorization header
+      const response = await apiService.get<UserInfoResponse>('/userinfo')
+      
+      // Backend returns { user: {...} }, user data is already an object
+      const user: User = response.user
+      
+      return {
+        success: true,
+        data: user
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to get user info'
+      }
     }
   },
 
   async verifyToken(): Promise<boolean> {
-    try {
-      await this.getCurrentUser()
-      return true
-    } catch {
-      return false
-    }
+    const result = await this.getCurrentUser()
+    return result.success
   },
 
-  async changePassword(passwordData: ChangePasswordData): Promise<{ success: boolean; error?: string }> {
-    await apiService.post('/auth/change-password', passwordData)
-    return { success: true }
+  async changePassword(_passwordData: ChangePasswordData): Promise<{ success: boolean; error?: string }> {
+    // Change password endpoint not implemented in backend
+    return {
+      success: false,
+      error: 'Change password functionality not available'
+    }
   }
 }

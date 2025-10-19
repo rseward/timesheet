@@ -35,7 +35,7 @@ describe('ApiService', () => {
       delete: vi.fn()
     }
     
-    mockedAxios.create.mockReturnValue(mockAxiosInstance)
+    ;(mockedAxios.create as any).mockReturnValue(mockAxiosInstance)
     
     // Mock auth store
     const mockAuthStore = {

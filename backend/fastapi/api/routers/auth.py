@@ -8,7 +8,7 @@ import api.depends.daofactory
 from bluestone.timesheet.data.daos import DaoFactory, getDaoFactory
 from bluestone.timesheet.data.models import UserToken
 from bluestone.timesheet.auth.utils import verify_password, create_access_token, create_refresh_token
-from bluestone.timesheet.auth.auth_bearer import decodeJWTRefresh, decodeJWT, JWTBearer, JWT_SECRET_KEY_ALGORITHMS, REFRESH_TOKEN_EXPIRE_MINUTES
+from bluestone.timesheet.auth.auth_bearer import decodeJWTRefresh, decodeJWT, JWTBearer, JWT_SECRET_KEY_ALGORITHMS, JWT_SECRET_KEY, REFRESH_TOKEN_EXPIRE_MINUTES
 
 logger = logging.getLogger("main")
 
@@ -109,14 +109,19 @@ router.get(
     "/userinfo",
     response_model=dict[str,str]
 )
-def userinfo(dependecies=Depends(JWTBearer())):
+def userinfo(dependencies=Depends(JWTBearer())):
     """End point to verify credentials are still valid."""
     
     daos: DaoFactory = getDaoFactory()
-    token=dependecies
-    payload = jwt.decode(token, algorithms=JWT_SECRET_KEY_ALGORITHMS)
-    user_id = payload('sub')
-    userDao = DaoFactory.getUserDao()
+    token=dependencies
+    payload = decodeJWT(token)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+    user_id = payload['sub']
+    userDao = daos.getUserDao()
     user = userDao.getById(user_id)
     
     return { "user": userDao.toJson(user) }

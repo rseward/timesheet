@@ -90,7 +90,7 @@ export function useModal(defaultOptions?: Partial<ModalOptions>) {
   }
 
   const hideAll = (): void => {
-    modals.value.forEach((modal, id) => {
+    modals.value.forEach((_modal, id) => {
       hide(id)
     })
   }
@@ -118,29 +118,29 @@ export function useModal(defaultOptions?: Partial<ModalOptions>) {
   // Convenience methods for common modal patterns
   const confirm = (
     title: string,
-    message: string,
-    onConfirm?: () => void,
-    onCancel?: () => void,
-    options?: Partial<ModalOptions>
+    _message: string,
+    _onConfirm?: () => void,
+    _onCancel?: () => void,
+    _options?: Partial<ModalOptions>
   ): string => {
     return show({
       title,
       size: 'sm',
       persistent: true,
-      ...options
+      ..._options
     })
   }
 
   const alert = (
     title: string,
-    message: string,
-    onClose?: () => void,
-    options?: Partial<ModalOptions>
+    _message: string,
+    _onClose?: () => void,
+    _options?: Partial<ModalOptions>
   ): string => {
     return show({
       title,
       size: 'sm',
-      ...options
+      ..._options
     })
   }
 

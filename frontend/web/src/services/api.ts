@@ -1,5 +1,4 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import type { ApiResponse } from '@/types/api'
 
 class ApiService {
   private client: AxiosInstance
@@ -98,27 +97,11 @@ class ApiService {
     return response.data
   }
 
-  async delete<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T>(url: string, _data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.delete<T>(url, config)
     return response.data
   }
 
-  private handleError(error: any): Error {
-    if (error.response) {
-      // Server responded with error status
-      const message = error.response.data?.detail || 
-                     error.response.data?.message || 
-                     `HTTP ${error.response.status}: ${error.response.statusText}`
-      
-      return new Error(message)
-    } else if (error.request) {
-      // Request was made but no response received
-      return new Error('Network error: Unable to connect to server')
-    } else {
-      // Something else happened
-      return new Error(error.message || 'An unexpected error occurred')
-    }
-  }
 
   // Utility method for setting auth token
   setAuthToken(token: string): void {

@@ -1,5 +1,10 @@
 import { apiService } from './api'
-import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData, DateRange } from '@/types/billingEvent'
+import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } from '@/types/billingEvent'
+
+interface DateRange {
+  start: string
+  end: string
+}
 
 export const billingEventsApi = {
   async getAll(filters?: {
@@ -19,22 +24,22 @@ export const billingEventsApi = {
     if (filters?.timekeeperId !== undefined) params.timekeeper_id = filters.timekeeperId
     
     const response = await apiService.get<BillingEvent[]>('/billingevents', { params })
-    return response.data
+    return response
   },
 
   async getById(id: number): Promise<BillingEvent> {
     const response = await apiService.get<BillingEvent>(`/billingevents/${id}`)
-    return response.data
+    return response
   },
 
   async create(data: BillingEventCreateData): Promise<BillingEvent> {
     const response = await apiService.post<BillingEvent>('/billingevents', data)
-    return response.data
+    return response
   },
 
   async update(id: number, data: BillingEventUpdateData): Promise<BillingEvent> {
     const response = await apiService.put<BillingEvent>(`/billingevents/${id}`, data)
-    return response.data
+    return response
   },
 
   async delete(id: number): Promise<void> {
@@ -57,16 +62,16 @@ export const billingEventsApi = {
   async getByProject(projectId: number, dateRange?: DateRange): Promise<BillingEvent[]> {
     return this.getAll({
       projectId,
-      startDate: dateRange?.startDate,
-      endDate: dateRange?.endDate
+      startDate: dateRange?.start,
+      endDate: dateRange?.end
     })
   },
 
   async getByClient(clientId: number, dateRange?: DateRange): Promise<BillingEvent[]> {
     return this.getAll({
       clientId,
-      startDate: dateRange?.startDate,
-      endDate: dateRange?.endDate
+      startDate: dateRange?.start,
+      endDate: dateRange?.end
     })
   },
 
@@ -87,7 +92,7 @@ export const billingEventsApi = {
     if (filters?.timekeeperId !== undefined) params.timekeeper_id = filters.timekeeperId
     
     const response = await apiService.get<{ total_hours: number }>('/billingevents/total-hours', { params })
-    return response.data.total_hours
+    return response.total_hours
   },
 
   async getTimeSheet(timekeeperId: number, startDate: string, endDate: string): Promise<BillingEvent[]> {

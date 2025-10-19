@@ -83,7 +83,7 @@ export const useClientsStore = defineStore('clients', () => {
       const client = await clientsApi.getById(id)
       
       // Update client in store if it exists
-      const index = clients.value.findIndex(c => c.id === id)
+      const index = clients.value.findIndex(c => c.client_id === id)
       if (index !== -1) {
         clients.value[index] = client
       } else {

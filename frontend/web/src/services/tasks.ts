@@ -8,22 +8,22 @@ export const tasksApi = {
     if (active !== undefined) params.active = active
     
     const response = await apiService.get<Task[]>('/tasks', { params })
-    return response.data
+    return response
   },
 
   async getById(id: number): Promise<Task> {
     const response = await apiService.get<Task>(`/tasks/${id}`)
-    return response.data
+    return response
   },
 
   async create(data: TaskCreateData): Promise<Task> {
     const response = await apiService.post<Task>('/tasks', data)
-    return response.data
+    return response
   },
 
   async update(id: number, data: TaskUpdateData): Promise<Task> {
     const response = await apiService.put<Task>(`/tasks/${id}`, data)
-    return response.data
+    return response
   },
 
   async delete(id: number): Promise<void> {
@@ -47,7 +47,7 @@ export const tasksApi = {
     if (projectId !== undefined) params.project_id = projectId
     
     const response = await apiService.get<Task[]>('/tasks/by-client', { params })
-    return response.data
+    return response
   },
 
   async searchTasks(query: string, projectId?: number): Promise<Task[]> {
@@ -55,6 +55,6 @@ export const tasksApi = {
     if (projectId !== undefined) params.project_id = projectId
     
     const response = await apiService.get<Task[]>('/tasks/search', { params })
-    return response.data
+    return response
   }
 }

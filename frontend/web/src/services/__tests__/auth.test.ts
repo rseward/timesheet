@@ -20,10 +20,10 @@ describe('authApi', () => {
   })
 
   describe('login', () => {
-    it('calls POST /auth/login with credentials', async () => {
+    it('calls GET /login with query parameters', async () => {
       const mockApiResponse = {
-        user: { id: 1, username: 'testuser', email: 'test@example.com' },
-        token: 'test-jwt-token'
+        access_token: 'test-access-token',
+        refresh_token: 'test-refresh-token'
       }
       
       const expectedResponse = {
@@ -31,19 +31,20 @@ describe('authApi', () => {
         data: mockApiResponse
       }
       
-      mockApiService.post.mockResolvedValue(mockApiResponse)
+      mockApiService.get.mockResolvedValue(mockApiResponse)
 
       const credentials = { username: 'testuser', password: 'password123' }
       const result = await authApi.login(credentials)
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/auth/login', credentials)
+      expect(mockApiService.get).toHaveBeenCalledWith('/login?username=testuser&password=password123')
+      expect(mockApiService.setAuthToken).toHaveBeenCalledWith('test-access-token')
       expect(result).toEqual(expectedResponse)
     })
 
     it('handles login failure', async () => {
       const mockError = new Error('Invalid credentials')
       
-      mockApiService.post.mockRejectedValue(mockError)
+      mockApiService.get.mockRejectedValue(mockError)
 
       const credentials = { username: 'baduser', password: 'wrongpass' }
       const result = await authApi.login(credentials)
@@ -56,23 +57,89 @@ describe('authApi', () => {
   })
 
   describe('logout', () => {
-    it('calls POST /auth/logout', async () => {
-      mockApiService.post.mockResolvedValue(null)
+    it('calls GET /logout', async () => {
+      mockApiService.get.mockResolvedValue({ message: 'Logout Successful' })
 
       const result = await authApi.logout()
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/auth/logout')
+      expect(mockApiService.get).toHaveBeenCalledWith('/logout')
+      expect(mockApiService.logout).toHaveBeenCalled()
       expect(result).toEqual({ success: true })
+    })
+
+    it('clears token even if logout fails', async () => {
+      const mockError = new Error('Network error')
+      mockApiService.get.mockRejectedValue(mockError)
+
+      try {
+        await authApi.logout()
+        expect.fail('Should have thrown error')
+      } catch (error) {
+        expect(error).toBeDefined()
+        expect(mockApiService.logout).toHaveBeenCalled()
+      }
     })
   })
 
   describe('getCurrentUser', () => {
-    it('calls GET /auth/me', async () => {
-      const mockApiResponse = {
-        id: 1,
+    it('calls GET /userinfo and parses JSON user data', async () => {
+      const userData = {
+        user_id: 1,
         username: 'testuser',
         email: 'test@example.com',
-        role: 'user'
+        active: true
+      }
+      
+      const mockApiResponse = {
+        user: JSON.stringify(userData)
+      }
+      
+      const expectedResponse = {
+        success: true,
+        data: userData
+      }
+      
+      mockApiService.get.mockResolvedValue(mockApiResponse)
+
+      const result = await authApi.getCurrentUser()
+
+      expect(mockApiService.get).toHaveBeenCalledWith('/userinfo')
+      expect(result).toEqual(expectedResponse)
+    })
+
+    it('handles invalid JSON in user data', async () => {
+      const mockApiResponse = {
+        user: 'invalid-json{'
+      }
+      
+      mockApiService.get.mockResolvedValue(mockApiResponse)
+
+      const result = await authApi.getCurrentUser()
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Invalid user data format from server'
+      })
+    })
+
+    it('handles API errors', async () => {
+      const mockError = new Error('Unauthorized')
+      mockApiService.get.mockRejectedValue(mockError)
+
+      const result = await authApi.getCurrentUser()
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Unauthorized'
+      })
+    })
+  })
+
+  describe('refreshToken', () => {
+    it('calls GET /refresh with refreshtoken parameter', async () => {
+      const mockApiResponse = {
+        access_token: 'new-access-token',
+        refresh_token: 'new-refresh-token'
       }
       
       const expectedResponse = {
@@ -82,38 +149,59 @@ describe('authApi', () => {
       
       mockApiService.get.mockResolvedValue(mockApiResponse)
 
-      const result = await authApi.getCurrentUser()
+      const result = await authApi.refreshToken('old-refresh-token')
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/auth/me')
+      expect(mockApiService.get).toHaveBeenCalledWith('/refresh?refreshtoken=old-refresh-token')
+      expect(mockApiService.setAuthToken).toHaveBeenCalledWith('new-access-token')
       expect(result).toEqual(expectedResponse)
+    })
+
+    it('handles refresh token errors', async () => {
+      const mockError = new Error('Expired or invalid refresh token.')
+      mockApiService.get.mockRejectedValue(mockError)
+
+      const result = await authApi.refreshToken('invalid-token')
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Expired or invalid refresh token.'
+      })
     })
   })
 
-  describe('refreshToken', () => {
-    it('calls POST /auth/refresh', async () => {
+  describe('verifyToken', () => {
+    it('returns true when getCurrentUser succeeds', async () => {
+      const userData = {
+        user_id: 1,
+        username: 'testuser',
+        email: 'test@example.com',
+        active: true
+      }
+      
       const mockApiResponse = {
-        token: 'new-jwt-token',
-        expires_in: 3600
+        user: JSON.stringify(userData)
       }
       
-      const expectedResponse = {
-        success: true,
-        data: mockApiResponse
-      }
-      
-      mockApiService.post.mockResolvedValue(mockApiResponse)
+      mockApiService.get.mockResolvedValue(mockApiResponse)
 
-      const result = await authApi.refreshToken()
+      const result = await authApi.verifyToken()
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/auth/refresh')
-      expect(result).toEqual(expectedResponse)
+      expect(result).toBe(true)
+      expect(mockApiService.get).toHaveBeenCalledWith('/userinfo')
+    })
+
+    it('returns false when getCurrentUser fails', async () => {
+      const mockError = new Error('Unauthorized')
+      mockApiService.get.mockRejectedValue(mockError)
+
+      const result = await authApi.verifyToken()
+
+      expect(result).toBe(false)
     })
   })
 
   describe('changePassword', () => {
-    it('calls POST /auth/change-password with password data', async () => {
-      mockApiService.post.mockResolvedValue(null)
-
+    it('returns error for unimplemented feature', async () => {
       const passwordData = {
         currentPassword: 'oldpass',
         newPassword: 'newpass123',
@@ -122,8 +210,13 @@ describe('authApi', () => {
       
       const result = await authApi.changePassword(passwordData)
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/auth/change-password', passwordData)
-      expect(result).toEqual({ success: true })
+      expect(result).toEqual({
+        success: false,
+        error: 'Change password functionality not available'
+      })
+      
+      // Should not make any API calls
+      expect(mockApiService.post).not.toHaveBeenCalled()
     })
   })
 })

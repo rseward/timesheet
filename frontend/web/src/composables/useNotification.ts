@@ -1,4 +1,4 @@
-import { ref, reactive, readonly } from 'vue'
+import { ref, readonly } from 'vue'
 
 export type NotificationType = 'success' | 'error' | 'warning' | 'info'
 
@@ -128,11 +128,12 @@ export function useNotification() {
   // API operation helpers
   const showApiError = (error: Error | string, operation = 'operation'): string => {
     const message = error instanceof Error ? error.message : error
-    return this.error(
-      `Failed to ${operation}`,
+    return show({
+      type: 'error',
+      title: `Failed to ${operation}`,
       message,
-      { duration: 10000 } // API errors stay longer
-    )
+      duration: 10000 // API errors stay longer
+    })
   }
 
   const showApiSuccess = (operation = 'operation'): string => {

@@ -15,13 +15,13 @@ export function useAuth() {
 
   // Authentication actions
   const login = async (credentials: LoginCredentials, redirectPath = '/'): Promise<boolean> => {
-    const success = await authStore.login(credentials)
+    const result = await authStore.login(credentials)
     
-    if (success) {
+    if (result.success) {
       await router.push(redirectPath)
     }
     
-    return success
+    return result.success
   }
 
   const logout = async (redirectPath = '/login'): Promise<void> => {
@@ -30,7 +30,8 @@ export function useAuth() {
   }
 
   const refreshToken = async (): Promise<boolean> => {
-    return authStore.refreshToken()
+    const result = await authStore.refreshToken()
+    return result.success
   }
 
   // Route guard helpers
@@ -51,7 +52,7 @@ export function useAuth() {
   }
 
   // Permission checks (can be extended based on user roles)
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = (_permission: string): boolean => {
     // For now, all authenticated users have all permissions
     // This can be extended to check user.permissions or user.roles
     return isAuthenticated.value
@@ -109,7 +110,7 @@ export function useAuth() {
 
 // Route guard function for Vue Router
 export function createAuthGuard() {
-  return async (to: any, from: any, next: any) => {
+  return async (to: any, _from: any, next: any) => {
     const { isAuthenticated, initialize } = useAuth()
     
     // Try to restore authentication state

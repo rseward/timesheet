@@ -18,7 +18,9 @@
     "format:check": "prettier --check src/",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:integration": "vitest --config vitest.integration.config.js",
+    "test:integration:ui": "vitest --config vitest.integration.config.js --ui"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",

@@ -1,4 +1,4 @@
-import { ref, reactive, computed, watch, nextTick, readonly } from 'vue'
+import { ref, reactive, computed, readonly } from 'vue'
 import type { ValidationRule } from '@/types/validation'
 
 type ValidationFunction = (value: any) => boolean | string
@@ -27,7 +27,7 @@ export function useForm<T extends Record<string, any>>(
   // Validation functions
   const validateField = (fieldName: keyof T): void => {
     const rules = validationRules[fieldName] || []
-    const value = values[fieldName]
+    const value = (values as any)[fieldName]
     
     for (const rule of rules) {
       const result = rule(value)
@@ -54,7 +54,7 @@ export function useForm<T extends Record<string, any>>(
 
   // Form actions
   const setFieldValue = (fieldName: keyof T, value: any): void => {
-    values[fieldName] = value
+    ;(values as any)[fieldName] = value
   }
 
   const setFieldTouched = (fieldName: keyof T, isTouched = true): void => {
@@ -100,7 +100,7 @@ export function useForm<T extends Record<string, any>>(
 
   // Field helpers
   const getFieldProps = (fieldName: keyof T) => ({
-    value: values[fieldName],
+    value: (values as any)[fieldName],
     error: errors.value[fieldName as string],
     touched: touched.value[fieldName as string],
     onChange: (value: any) => setFieldValue(fieldName, value),

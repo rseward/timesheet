@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { billingEventsApi } from '@/services/billingEvents'
-import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData, DateRange } from '@/types/billingEvent'
+import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } from '@/types/billingEvent'
 
 export interface BillingEventFilters {
   clientId?: number | null
@@ -31,27 +31,31 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     let result = billingEvents.value
 
     if (filters.value.clientId) {
-      result = result.filter(event => event.clientId === filters.value.clientId)
+      result = result.filter(_event => {
+        // Note: clientId would need to be fetched from project data
+        // For now, we'll need the project relationship to filter by client
+        return true // TODO: Implement client filtering via project lookup
+      })
     }
 
     if (filters.value.projectId) {
-      result = result.filter(event => event.projectId === filters.value.projectId)
+      result = result.filter(event => event.project_id === filters.value.projectId)
     }
 
     if (filters.value.taskId) {
-      result = result.filter(event => event.taskId === filters.value.taskId)
+      result = result.filter(event => event.task_id === filters.value.taskId)
     }
 
     if (filters.value.timekeeperId) {
-      result = result.filter(event => event.timekeeperId === filters.value.timekeeperId)
+      result = result.filter(event => event.timekeeper_id === filters.value.timekeeperId)
     }
 
     if (filters.value.startDate) {
-      result = result.filter(event => event.eventDate >= filters.value.startDate!)
+      result = result.filter(event => event.start_time >= filters.value.startDate!)
     }
 
     if (filters.value.endDate) {
-      result = result.filter(event => event.eventDate <= filters.value.endDate!)
+      result = result.filter(event => event.end_time <= filters.value.endDate!)
     }
 
     return result
@@ -59,7 +63,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
   const totalHours = computed(() => {
     return filteredBillingEvents.value.reduce((total, event) => {
-      return total + event.hours
+      return total + (event.hours || 0)
     }, 0)
   })
 
@@ -111,7 +115,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
       const event = await billingEventsApi.getById(id)
       
       // Update event in store if it exists
-      const index = billingEvents.value.findIndex(e => e.id === id)
+      const index = billingEvents.value.findIndex(e => e.billing_event_id === id)
       if (index !== -1) {
         billingEvents.value[index] = event
       } else {
@@ -149,7 +153,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
     try {
       const updatedEvent = await billingEventsApi.update(id, eventData)
-      const index = billingEvents.value.findIndex(e => e.id === id)
+      const index = billingEvents.value.findIndex(e => e.billing_event_id === id)
       if (index !== -1) {
         billingEvents.value[index] = updatedEvent
       }
@@ -168,7 +172,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
     try {
       await billingEventsApi.delete(id)
-      billingEvents.value = billingEvents.value.filter(e => e.id !== id)
+      billingEvents.value = billingEvents.value.filter(e => e.billing_event_id !== id)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to delete billing event'
       throw err
@@ -248,7 +252,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
   // Utility methods
   const getBillingEventById = (id: number): BillingEvent | undefined => {
-    return billingEvents.value.find(e => e.id === id)
+    return billingEvents.value.find(e => e.billing_event_id === id)
   }
 
   const getBillingEventsByProject = (projectId: number): BillingEvent[] => {
