@@ -12,6 +12,11 @@ export interface BillingEventFilters {
   endDate?: string
 }
 
+interface DateRange {
+  startDate?: string
+  endDate?: string
+}
+
 export const useBillingEventsStore = defineStore('billingEvents', () => {
   // State
   const billingEvents = ref<BillingEvent[]>([])
@@ -70,10 +75,11 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
   const eventsByDate = computed(() => {
     const grouped: Record<string, BillingEvent[]> = {}
     filteredBillingEvents.value.forEach(event => {
-      if (!grouped[event.eventDate]) {
-        grouped[event.eventDate] = []
+      const eventDate = event.start_time.split('T')[0] // Extract date from start_time
+      if (!grouped[eventDate]) {
+        grouped[eventDate] = []
       }
-      grouped[event.eventDate].push(event)
+      grouped[eventDate].push(event)
     })
     return grouped
   })
@@ -81,10 +87,10 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
   const eventsByProject = computed(() => {
     const grouped: Record<number, BillingEvent[]> = {}
     billingEvents.value.forEach(event => {
-      if (!grouped[event.projectId]) {
-        grouped[event.projectId] = []
+      if (!grouped[event.project_id]) {
+        grouped[event.project_id] = []
       }
-      grouped[event.projectId].push(event)
+      grouped[event.project_id].push(event)
     })
     return grouped
   })
@@ -115,7 +121,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
       const event = await billingEventsApi.getById(id)
       
       // Update event in store if it exists
-      const index = billingEvents.value.findIndex(e => e.billing_event_id === id)
+      const index = billingEvents.value.findIndex(e => e.uid === id.toString())
       if (index !== -1) {
         billingEvents.value[index] = event
       } else {
@@ -153,7 +159,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
     try {
       const updatedEvent = await billingEventsApi.update(id, eventData)
-      const index = billingEvents.value.findIndex(e => e.billing_event_id === id)
+      const index = billingEvents.value.findIndex(e => e.uid === id.toString())
       if (index !== -1) {
         billingEvents.value[index] = updatedEvent
       }
@@ -172,7 +178,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
     try {
       await billingEventsApi.delete(id)
-      billingEvents.value = billingEvents.value.filter(e => e.billing_event_id !== id)
+      billingEvents.value = billingEvents.value.filter(e => e.uid !== id.toString())
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to delete billing event'
       throw err
@@ -252,23 +258,30 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
   // Utility methods
   const getBillingEventById = (id: number): BillingEvent | undefined => {
-    return billingEvents.value.find(e => e.billing_event_id === id)
+    return billingEvents.value.find(e => e.uid === id.toString())
   }
 
   const getBillingEventsByProject = (projectId: number): BillingEvent[] => {
-    return billingEvents.value.filter(e => e.projectId === projectId)
+    return billingEvents.value.filter(e => e.project_id === projectId)
   }
 
   const getBillingEventsByClient = (clientId: number): BillingEvent[] => {
-    return billingEvents.value.filter(e => e.clientId === clientId)
+    // Note: clientId filtering requires project lookup
+    return billingEvents.value.filter(e => {
+      // This would need to be implemented with project data
+      return true // TODO: Implement client filtering via project lookup
+    })
   }
 
   const getBillingEventsByTask = (taskId: number): BillingEvent[] => {
-    return billingEvents.value.filter(e => e.taskId === taskId)
+    return billingEvents.value.filter(e => e.task_id === taskId)
   }
 
   const getBillingEventsByDateRange = (startDate: string, endDate: string): BillingEvent[] => {
-    return billingEvents.value.filter(e => e.eventDate >= startDate && e.eventDate <= endDate)
+    return billingEvents.value.filter(e => {
+      const eventDate = e.start_time.split('T')[0]
+      return eventDate >= startDate && eventDate <= endDate
+    })
   }
 
   return {

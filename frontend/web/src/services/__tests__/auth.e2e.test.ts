@@ -66,8 +66,8 @@ describe('Auth E2E Tests', () => {
     it('should handle userinfo without token', async () => {
       const response = await fetch(`${BASE_URL}/userinfo`)
       
-      // Backend returns 500 for missing token (could be improved)
-      expect(response.status).toBe(500)
+      // Backend returns 401 for missing token (unauthorized)
+      expect(response.status).toBe(401)
     })
 
     it('should handle logout without token', async () => {

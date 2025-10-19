@@ -69,8 +69,20 @@ export const authApi = {
       // Backend provides GET /userinfo with Authorization header
       const response = await apiService.get<UserInfoResponse>('/userinfo')
       
-      // Backend returns { user: {...} }, user data is already an object
-      const user: User = response.user
+      // Backend returns { user: "JSON string" }, parse the JSON user data
+      let user: User
+      try {
+        if (typeof response.user === 'string') {
+          user = JSON.parse(response.user)
+        } else {
+          user = response.user
+        }
+      } catch (parseError) {
+        return {
+          success: false,
+          error: 'Invalid user data format from server'
+        }
+      }
       
       return {
         success: true,
