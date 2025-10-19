@@ -3,12 +3,70 @@ import type { Task, TaskCreateData, TaskUpdateData, TaskStatus } from '@/types/t
 
 export const tasksApi = {
   async getAll(projectId?: number, active?: boolean): Promise<Task[]> {
+    console.log('[TasksAPI] getAll called with projectId:', projectId, 'active:', active)
     const params: Record<string, any> = {}
     if (projectId !== undefined) params.project_id = projectId
     if (active !== undefined) params.active = active
     
-    const response = await apiService.get<Task[]>('/tasks', { params })
-    return response
+    console.log('[TasksAPI] Making API request to /tasks/ with params:', params)
+    
+    try {
+      const response = await apiService.get<any>('/tasks/', { params })
+      console.log('[TasksAPI] Received response:', response)
+      console.log('[TasksAPI] Response type:', typeof response, 'Array:', Array.isArray(response))
+      
+      let tasksData: Task[]
+      
+      if (Array.isArray(response)) {
+        // Direct array response
+        tasksData = response
+        console.log('[TasksAPI] Direct array format detected')
+      } else if (response && typeof response === 'object' && response.tasks) {
+        // Wrapped in tasks property - could be array or object
+        if (Array.isArray(response.tasks)) {
+          tasksData = response.tasks
+          console.log('[TasksAPI] Tasks array format detected')
+        } else if (typeof response.tasks === 'object') {
+          // Backend returns tasks as object with task_id as keys, convert to array
+          tasksData = Object.values(response.tasks)
+          console.log('[TasksAPI] Tasks object format detected - converted to array')
+        } else {
+          tasksData = []
+          console.warn('[TasksAPI] Unexpected tasks property format:', response.tasks)
+        }
+      } else if (response && typeof response === 'object' && Array.isArray(response.data)) {
+        // Wrapped in data property
+        tasksData = response.data
+        console.log('[TasksAPI] Data wrapper format detected')
+      } else {
+        console.warn('[TasksAPI] Unexpected response format:', response)
+        tasksData = []
+      }
+      
+      console.log('[TasksAPI] Final tasks data:', tasksData?.length || 0, 'tasks')
+      if (tasksData?.length) {
+        tasksData.forEach((task, index) => {
+          console.log(`[TasksAPI] Task ${index}:`, {
+            task_id: task.task_id,
+            name: task.name,
+            project_id: task.project_id
+          })
+        })
+      }
+      
+      return tasksData
+    } catch (error) {
+      console.error('[TasksAPI] Exception in getAll:', error)
+      
+      // Log specific error details  
+      if (error.response?.status === 403) {
+        console.error('[TasksAPI] 🚫 403 Forbidden - Authentication failed for /api/tasks/')
+      } else if (error.response?.status === 401) {
+        console.error('[TasksAPI] 🚫 401 Unauthorized - Invalid or expired token')
+      }
+      
+      throw error
+    }
   },
 
   async getById(id: number): Promise<Task> {

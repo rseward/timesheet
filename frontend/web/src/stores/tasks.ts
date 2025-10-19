@@ -92,16 +92,25 @@ export const useTasksStore = defineStore('tasks', () => {
 
   // Actions
   const fetchTasks = async (projectId?: number, activeOnly = false): Promise<void> => {
+    console.log('[TasksStore] fetchTasks called with projectId:', projectId, 'activeOnly:', activeOnly)
     loading.value = true
     error.value = null
 
     try {
-      tasks.value = await tasksApi.getAll(projectId, activeOnly ? true : undefined)
+      console.log('[TasksStore] Calling tasksApi.getAll...')
+      const result = await tasksApi.getAll(projectId, activeOnly ? true : undefined)
+      console.log('[TasksStore] API returned:', result)
+      console.log('[TasksStore] Result type:', typeof result, 'Array:', Array.isArray(result))
+      
+      tasks.value = result
+      console.log('[TasksStore] Updated store tasks:', tasks.value?.length || 0, 'tasks')
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch tasks'
+      console.error('[TasksStore] Error in fetchTasks:', err)
       throw err
     } finally {
       loading.value = false
+      console.log('[TasksStore] fetchTasks completed. Loading:', loading.value, 'Error:', error.value)
     }
   }
 

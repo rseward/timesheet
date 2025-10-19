@@ -304,6 +304,12 @@ const isFormValid = computed(() => {
 })
 
 const initializeForm = () => {
+  console.log('[TimeEntryModal] initializeForm called')
+  console.log('[TimeEntryModal] Props.clients:', props.clients?.length || 0, 'clients available')
+  if (props.clients?.length) {
+    console.log('[TimeEntryModal] Client names:', props.clients.map(c => c.organisation))
+  }
+  
   if (props.timeEntry) {
     // Edit mode - populate form with existing data
     const entry = props.timeEntry
@@ -426,6 +432,14 @@ const handleSubmit = async () => {
 watch(() => [props.isOpen, props.timeEntry], () => {
   if (props.isOpen) {
     initializeForm()
+  }
+}, { immediate: true })
+
+// Watch for clients prop changes
+watch(() => props.clients, (newClients) => {
+  console.log('[TimeEntryModal] Clients prop changed:', newClients?.length || 0, 'clients')
+  if (newClients?.length) {
+    console.log('[TimeEntryModal] New client names:', newClients.map(c => c.organisation))
   }
 }, { immediate: true })
 

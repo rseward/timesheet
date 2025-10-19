@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Clients API Fix</title>
+</head>
+<body>
+    <h1>Test Clients API Fix</h1>
+    <button onclick="testClientsAPI()">Test Fixed Clients API</button>
+    <div id="output" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        async function testClientsAPI() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Testing clients API fix...';
+            
+            try {
+                console.log('Testing clients API endpoint...');
+                const response = await fetch('http://127.0.0.1:8080/api/clients/', {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    output.innerHTML = `<h3>❌ API Error</h3><p>Status: ${response.status}</p><pre>${errorText}</pre>`;
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Raw backend response:', data);
+                
+                // Simulate the frontend API service transformation
+                let clientsData = [];
+                
+                if (data && typeof data === 'object' && data.clients) {
+                    if (Array.isArray(data.clients)) {
+                        clientsData = data.clients;
+                        console.log('Direct array format');
+                    } else if (typeof data.clients === 'object') {
+                        // Convert object to array
+                        clientsData = Object.values(data.clients);
+                        console.log('Object format - converted to array');
+                    }
+                    
+                    // Map fields from backend to frontend format
+                    clientsData = clientsData.map(backendClient => ({
+                        id: backendClient.client_id || backendClient.id,
+                        organisation: backendClient.organisation,
+                        contactName: backendClient.contact_first_name && backendClient.contact_last_name 
+                            ? `${backendClient.contact_first_name} ${backendClient.contact_last_name}`
+                            : backendClient.contactName || '',
+                        contactEmail: backendClient.contact_email || backendClient.contactEmail,
+                        active: backendClient.active !== undefined ? backendClient.active : true,
+                        city: backendClient.city,
+                        state: backendClient.state
+                    }));
+                    
+                    console.log('Transformed clients data:', clientsData);
+                    
+                    output.innerHTML = `
+                        <h3>✅ SUCCESS</h3>
+                        <p><strong>Raw backend format:</strong></p>
+                        <pre style="background: #f5f5f5; padding: 10px; overflow: auto; max-height: 200px;">${JSON.stringify(data, null, 2)}</pre>
+                        
+                        <p><strong>Transformed frontend format:</strong></p>
+                        <pre style="background: #e8f5e8; padding: 10px; overflow: auto; max-height: 200px;">${JSON.stringify(clientsData, null, 2)}</pre>
+                        
+                        <p><strong>Client dropdown options:</strong></p>
+                        <ul>
+                        ${clientsData.map(client => 
+                            `<li><strong>${client.organisation}</strong> (ID: ${client.id}, Active: ${client.active})</li>`
+                        ).join('')}
+                        </ul>
+                    `;
+                } else {
+                    output.innerHTML = `<h3>❌ UNEXPECTED FORMAT</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+                
+            } catch (error) {
+                console.error('Error testing clients API:', error);
+                output.innerHTML = `<h3>❌ ERROR</h3><p>${error.message}</p><p>Make sure the backend is running on port 8080</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

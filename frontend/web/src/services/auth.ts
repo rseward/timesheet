@@ -1,5 +1,6 @@
 import { apiService } from './api'
 import type { User, LoginCredentials, LoginResponse, UserInfoResponse, ChangePasswordData } from '@/types/auth'
+import { triggerTokenRefreshStart } from '@/composables/useGlobalTokenRefresh'
 
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<{ success: boolean; data?: LoginResponse; error?: string }> {
@@ -12,8 +13,41 @@ export const authApi = {
       
       const response = await apiService.get<LoginResponse>(`/login?${params.toString()}`)
       
+      console.log('🔑 [AuthAPI] Login response:', {
+        access_token: !!response.access_token,
+        refresh_token: !!response.refresh_token,
+        response
+      })
+      
+      // Store both tokens if present
       if (response.access_token) {
         apiService.setAuthToken(response.access_token)
+        console.log('🔑 [AuthAPI] ✅ Access token stored')
+      }
+      
+      if (response.refresh_token) {
+        apiService.setRefreshToken(response.refresh_token)
+        console.log('🔑 [AuthAPI] ✅ Refresh token stored')
+      } else {
+        console.warn('🔑 [AuthAPI] ⚠️ No refresh_token in login response!')
+        console.log('🔑 [AuthAPI] Backend response keys:', Object.keys(response))
+      }
+      
+      // Trigger token refresh system if both tokens are now available
+      const hasAccessToken = localStorage.getItem('auth_token')
+      const hasRefreshToken = localStorage.getItem('refresh_token')
+      
+      if (hasAccessToken && hasRefreshToken) {
+        console.log('🔑 [AuthAPI] ✅ Both tokens stored - triggering token refresh system')
+        setTimeout(async () => {
+          const started = await triggerTokenRefreshStart()
+          console.log('🔑 [AuthAPI] Token refresh system start result:', started)
+        }, 100) // Small delay to ensure all login processing is complete
+      } else {
+        console.warn('🔑 [AuthAPI] Cannot start token refresh - missing tokens:', {
+          hasAccessToken: !!hasAccessToken,
+          hasRefreshToken: !!hasRefreshToken
+        })
       }
       
       return {
@@ -48,8 +82,21 @@ export const authApi = {
       
       const response = await apiService.get<LoginResponse>(`/refresh?${params.toString()}`)
       
+      console.log('🔄 [AuthAPI] Refresh response:', {
+        access_token: !!response.access_token,
+        refresh_token: !!response.refresh_token,
+        response
+      })
+      
+      // Store both tokens if present
       if (response.access_token) {
         apiService.setAuthToken(response.access_token)
+        console.log('🔄 [AuthAPI] ✅ New access token stored')
+      }
+      
+      if (response.refresh_token) {
+        apiService.setRefreshToken(response.refresh_token)
+        console.log('🔄 [AuthAPI] ✅ New refresh token stored')
       }
       
       return {

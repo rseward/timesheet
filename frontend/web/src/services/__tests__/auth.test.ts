@@ -8,6 +8,7 @@ vi.mock('../api', () => ({
     post: vi.fn(),
     get: vi.fn(),
     setAuthToken: vi.fn(),
+    setRefreshToken: vi.fn(),
     logout: vi.fn()
   }
 }))

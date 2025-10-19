@@ -100,16 +100,25 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
   // Actions
   const fetchBillingEvents = async (filterOptions?: BillingEventFilters): Promise<void> => {
+    console.log('[BillingEventsStore] fetchBillingEvents called with filters:', filterOptions)
     loading.value = true
     error.value = null
 
     try {
-      billingEvents.value = await billingEventsApi.getAll(filterOptions)
+      console.log('[BillingEventsStore] Calling billingEventsApi.getAll...')
+      const result = await billingEventsApi.getAll(filterOptions)
+      console.log('[BillingEventsStore] API returned:', result)
+      console.log('[BillingEventsStore] Result type:', typeof result, 'Array:', Array.isArray(result))
+      
+      billingEvents.value = result
+      console.log('[BillingEventsStore] Updated store billingEvents:', billingEvents.value?.length || 0, 'events')
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch billing events'
+      console.error('[BillingEventsStore] Error in fetchBillingEvents:', err)
       throw err
     } finally {
       loading.value = false
+      console.log('[BillingEventsStore] fetchBillingEvents completed. Loading:', loading.value, 'Error:', error.value)
     }
   }
 

@@ -70,16 +70,25 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // Actions
   const fetchProjects = async (clientId?: number, activeOnly = false): Promise<void> => {
+    console.log('[ProjectsStore] fetchProjects called with clientId:', clientId, 'activeOnly:', activeOnly)
     loading.value = true
     error.value = null
 
     try {
-      projects.value = await projectsApi.getAll(clientId, activeOnly ? true : undefined)
+      console.log('[ProjectsStore] Calling projectsApi.getAll...')
+      const result = await projectsApi.getAll(clientId, activeOnly ? true : undefined)
+      console.log('[ProjectsStore] API returned:', result)
+      console.log('[ProjectsStore] Result type:', typeof result, 'Array:', Array.isArray(result))
+      
+      projects.value = result
+      console.log('[ProjectsStore] Updated store projects:', projects.value?.length || 0, 'projects')
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch projects'
+      console.error('[ProjectsStore] Error in fetchProjects:', err)
       throw err
     } finally {
       loading.value = false
+      console.log('[ProjectsStore] fetchProjects completed. Loading:', loading.value, 'Error:', error.value)
     }
   }
 
@@ -211,11 +220,11 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   return {
-    // State
-    projects: computed(() => projects.value),
-    loading: computed(() => loading.value),
-    error: computed(() => error.value),
-    filters: computed(() => filters.value),
+    // State (direct refs for test mutability)
+    projects,
+    loading,
+    error,
+    filters,
 
     // Getters
     activeProjects,

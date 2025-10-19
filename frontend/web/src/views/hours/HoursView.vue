@@ -42,7 +42,7 @@
                   <!-- Client Filter -->
                   <div>
                     <label for="clientFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Client
+                      Client ({{ clients?.length || 0 }} available)
                     </label>
                     <select
                       id="clientFilter"
@@ -55,12 +55,19 @@
                         {{ client.organisation }}
                       </option>
                     </select>
+                    <!-- Debug info -->
+                    <div v-if="clients?.length === 0" class="mt-1 text-xs text-red-500">
+                      No clients loaded
+                    </div>
+                    <div v-else-if="error" class="mt-1 text-xs text-red-500">
+                      Error: {{ error }}
+                    </div>
                   </div>
 
                   <!-- Project Filter -->
                   <div>
                     <label for="projectFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Project
+                      Project ({{ filteredProjects?.length || 0 }} available)
                     </label>
                     <select
                       id="projectFilter"
@@ -74,16 +81,21 @@
                         {{ project.title }}
                       </option>
                     </select>
+                    <!-- Debug info -->
+                    <div v-if="filters.clientId && filteredProjects?.length === 0" class="mt-1 text-xs text-yellow-600">
+                      No projects found for selected client
+                    </div>
                   </div>
 
                   <!-- Task Filter -->
                   <div>
                     <label for="taskFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Task
+                      Task ({{ filteredTasks?.length || 0 }} available)
                     </label>
                     <select
                       id="taskFilter"
                       v-model="filters.taskId"
+                      @change="onTaskChange"
                       :disabled="!filteredTasks.length"
                       class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm disabled:opacity-50"
                     >
@@ -92,6 +104,10 @@
                         {{ task.name }}
                       </option>
                     </select>
+                    <!-- Debug info -->
+                    <div v-if="filters.projectId && filteredTasks?.length === 0" class="mt-1 text-xs text-yellow-600">
+                      No tasks found for selected project
+                    </div>
                   </div>
 
                   <!-- Date Range -->
@@ -146,15 +162,36 @@
                     </button>
                   </div>
 
-                  <button
-                    @click="showAddTimeEntry = true"
-                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add Time Entry
-                  </button>
+                    <button
+                      @click="testProjectsAPI"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    >
+                      🔍 Test Projects API
+                    </button>
+                    
+                    <button
+                      @click="setupTestTokens"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    >
+                      🧪 Setup Test Tokens
+                    </button>
+                    
+                    <button
+                      @click="debugLocalStorage"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      🤖 Debug localStorage
+                    </button>
+                    
+                    <button
+                      @click="showAddTimeEntry = true"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add Time Entry
+                    </button>
                 </div>
               </div>
             </div>
@@ -390,24 +427,135 @@ const filters = reactive({
 })
 
 // Computed
-const clients = computed(() => clientsStore.clients)
-const projects = computed(() => projectsStore.projects)
-const tasks = computed(() => tasksStore.tasks)
-const billingEvents = computed(() => billingEventsStore.billingEvents)
+const clients = computed(() => {
+  console.log('[HoursView] Computing clients:', clientsStore.clients?.length || 0, 'clients available')
+  if (clientsStore.clients?.length) {
+    console.log('[HoursView] Client names:', clientsStore.clients.map(c => c.organisation))
+  }
+  return clientsStore.clients
+})
+const projects = computed(() => {
+  console.log('[HoursView] Computing projects from store:', projectsStore.projects)
+  console.log('[HoursView] Store projects type:', typeof projectsStore.projects, 'Array:', Array.isArray(projectsStore.projects))
+  
+  // Ensure we always return an array
+  const projectsData = projectsStore.projects
+  if (Array.isArray(projectsData)) {
+    return projectsData
+  }
+  
+  console.warn('[HoursView] Store projects is not an array, returning empty array:', projectsData)
+  return []
+})
+
+const tasks = computed(() => {
+  console.log('[HoursView] Computing tasks from store:', tasksStore.tasks)
+  console.log('[HoursView] Store tasks type:', typeof tasksStore.tasks, 'Array:', Array.isArray(tasksStore.tasks))
+  
+  // Ensure we always return an array
+  const tasksData = tasksStore.tasks
+  if (Array.isArray(tasksData)) {
+    return tasksData
+  }
+  
+  console.warn('[HoursView] Store tasks is not an array, returning empty array:', tasksData)
+  return []
+})
+const billingEvents = computed(() => {
+  console.log('[HoursView] Computing billingEvents from store:', billingEventsStore.billingEvents)
+  console.log('[HoursView] Store billingEvents type:', typeof billingEventsStore.billingEvents, 'Array:', Array.isArray(billingEventsStore.billingEvents))
+  
+  // Ensure we always return an array
+  let events = billingEventsStore.billingEvents
+  if (!Array.isArray(events)) {
+    console.warn('[HoursView] Store billingEvents is not an array, returning empty array:', events)
+    return []
+  }
+  
+  // Apply client-side task filtering (backend doesn't support task_id filtering)
+  if (filters.taskId) {
+    const taskId = parseInt(filters.taskId)
+    console.log('[HoursView] Applying client-side task filtering for taskId:', taskId)
+    
+    const originalCount = events.length
+    events = events.filter(event => {
+      const matches = event.task_id === taskId
+      if (!matches) {
+        console.log(`[HoursView] Filtering out event ${event.uid} - task_id ${event.task_id} !== ${taskId}`)
+      }
+      return matches
+    })
+    
+    console.log(`[HoursView] Client-side task filtering: ${originalCount} → ${events.length} events`)
+  }
+  
+  return events
+})
 
 const filteredProjects = computed(() => {
-  if (!filters.clientId) return projects.value
-  return projects.value.filter(p => p.client_id === parseInt(filters.clientId))
+  console.log('[HoursView] Computing filteredProjects for clientId:', filters.clientId)
+  console.log('[HoursView] Available projects:', projects.value?.length || 0)
+  
+  if (!filters.clientId || filters.clientId === '') {
+    console.log('[HoursView] No client selected, returning all projects')
+    return projects.value
+  }
+  
+  const clientId = parseInt(filters.clientId)
+  console.log('[HoursView] Filtering projects for clientId:', clientId)
+  
+  const filtered = projects.value.filter(p => {
+    console.log(`[HoursView] Project "${p.title}" (ID: ${p.project_id}) belongs to client ${p.client_id}, matches: ${p.client_id === clientId}`)
+    return p.client_id === clientId
+  })
+  
+  console.log('[HoursView] Filtered projects result:', filtered.length, 'projects for client', clientId)
+  if (filtered.length) {
+    console.log('[HoursView] Filtered project names:', filtered.map(p => p.title))
+  }
+  
+  return filtered
 })
 
 const filteredTasks = computed(() => {
-  if (!filters.projectId) return tasks.value
-  return tasks.value.filter(t => t.project_id === parseInt(filters.projectId))
+  console.log('[HoursView] Computing filteredTasks for projectId:', filters.projectId)
+  console.log('[HoursView] Available tasks:', tasks.value?.length || 0)
+  
+  if (!filters.projectId || filters.projectId === '') {
+    console.log('[HoursView] No project selected, returning all tasks')
+    return tasks.value
+  }
+  
+  const projectId = parseInt(filters.projectId)
+  console.log('[HoursView] Filtering tasks for projectId:', projectId)
+  
+  const filtered = tasks.value.filter(t => {
+    console.log(`[HoursView] Task "${t.name}" (ID: ${t.task_id}) belongs to project ${t.project_id}, matches: ${t.project_id === projectId}`)
+    return t.project_id === projectId
+  })
+  
+  console.log('[HoursView] Filtered tasks result:', filtered.length, 'tasks for project', projectId)
+  if (filtered.length) {
+    console.log('[HoursView] Filtered task names:', filtered.map(t => t.name))
+  }
+  
+  return filtered
 })
 
 const totalHours = computed(() => {
+  console.log('[HoursView] Computing totalHours, billingEvents.value:', billingEvents.value)
+  console.log('[HoursView] billingEvents.value type:', typeof billingEvents.value, 'Array:', Array.isArray(billingEvents.value))
+  
+  // Ensure billingEvents.value is an array before calling reduce
+  if (!Array.isArray(billingEvents.value)) {
+    console.warn('[HoursView] billingEvents.value is not an array:', billingEvents.value)
+    return 0
+  }
+  
   return billingEvents.value.reduce((total, entry) => {
-    return total + calculateHours(entry.start_time, entry.end_time)
+    const hours = calculateHours(entry.start_time, entry.end_time)
+    console.log(`[HoursView] Entry ${entry.uid}: ${hours} hours`)
+    return total + hours
   }, 0)
 })
 
@@ -424,60 +572,272 @@ const dateRangeText = computed(() => {
 
 // Methods
 const loadData = async () => {
+  console.log('[HoursView] loadData called - starting data fetch')
   isLoading.value = true
   error.value = null
 
   try {
+    console.log('[HoursView] Fetching clients, projects, tasks, and billing events...')
     await Promise.all([
       clientsStore.fetchClients(),
       projectsStore.fetchProjects(),
       tasksStore.fetchTasks(),
       applyFilters()
     ])
+    console.log('[HoursView] All data loaded successfully')
+    console.log('[HoursView] Clients after load:', clientsStore.clients?.length || 0)
+    console.log('[HoursView] Projects after load:', projectsStore.projects?.length || 0)
+    console.log('[HoursView] Tasks after load:', tasksStore.tasks?.length || 0)
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load data'
+    console.error('[HoursView] Error in loadData:', err)
   } finally {
     isLoading.value = false
+    console.log('[HoursView] loadData completed')
   }
 }
 
 const applyFilters = async () => {
+  console.log('[HoursView] applyFilters called with current filter state:', filters)
+  
   isLoading.value = true
   error.value = null
 
   try {
     const filterParams: any = {}
     
-    if (filters.clientId) filterParams.clientId = parseInt(filters.clientId)
-    if (filters.projectId) filterParams.projectId = parseInt(filters.projectId)
-    if (filters.taskId) filterParams.taskId = parseInt(filters.taskId)
-    if (filters.startDate) filterParams.startDate = filters.startDate
-    if (filters.endDate) filterParams.endDate = filters.endDate
+    console.log('[HoursView] Building filter parameters:')
+    
+    if (filters.clientId) {
+      filterParams.clientId = parseInt(filters.clientId)
+      console.log('[HoursView] ✅ Added clientId:', filterParams.clientId)
+    } else {
+      console.log('[HoursView] ❌ No clientId selected')
+    }
+    
+    if (filters.projectId) {
+      filterParams.projectId = parseInt(filters.projectId)
+      console.log('[HoursView] ✅ Added projectId:', filterParams.projectId)
+    } else {
+      console.log('[HoursView] ❌ No projectId selected')
+    }
+    
+    // Note: taskId filtering is handled client-side since backend doesn't support task_id parameter
+    if (filters.taskId) {
+      console.log('[HoursView] 📝 TaskId selected but will be filtered client-side:', parseInt(filters.taskId))
+      console.log('[HoursView] ⚠️  Backend /api/events/ does not support task_id parameter')
+    } else {
+      console.log('[HoursView] ❌ No taskId selected')
+    }
+    
+    if (filters.startDate) {
+      filterParams.startDate = filters.startDate
+      console.log('[HoursView] ✅ Added startDate:', filterParams.startDate)
+    } else {
+      console.log('[HoursView] ❌ No startDate selected')
+    }
+    
+    if (filters.endDate) {
+      filterParams.endDate = filters.endDate
+      console.log('[HoursView] ✅ Added endDate:', filterParams.endDate)
+    } else {
+      console.log('[HoursView] ❌ No endDate selected')
+    }
 
+    console.log('[HoursView] Final filterParams being sent to API:', filterParams)
+    console.log('[HoursView] Calling billingEventsStore.fetchBillingEvents...')
+    
     await billingEventsStore.fetchBillingEvents(filterParams)
+    
+    console.log('[HoursView] ✅ Filters applied successfully')
+    console.log('[HoursView] Current billing events count:', billingEvents.value?.length || 0)
+    
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to apply filters'
+    console.error('[HoursView] ❌ Error applying filters:', err)
   } finally {
     isLoading.value = false
+    console.log('[HoursView] applyFilters completed')
   }
 }
 
-const clearFilters = () => {
+const clearFilters = async () => {
+  console.log('[HoursView] Clearing all filters')
+  
+  const previousFilters = { ...filters }
+  
   filters.clientId = ''
   filters.projectId = ''
   filters.taskId = ''
   filters.startDate = ''
   filters.endDate = ''
-  applyFilters()
+  
+  console.log('[HoursView] Filters cleared:', {
+    client: previousFilters.clientId + ' → empty',
+    project: previousFilters.projectId + ' → empty', 
+    task: previousFilters.taskId + ' → empty',
+    startDate: previousFilters.startDate + ' → empty',
+    endDate: previousFilters.endDate + ' → empty'
+  })
+  
+  console.log('[HoursView] Auto-applying filters after clear')
+  await applyFilters()
 }
 
-const onClientChange = () => {
+const onClientChange = async () => {
+  console.log('[HoursView] onClientChange called - client selected:', filters.clientId)
+  
+  // Reset dependent dropdowns when client changes
+  const previousProjectId = filters.projectId
+  const previousTaskId = filters.taskId
+  
   filters.projectId = ''
   filters.taskId = ''
+  
+  console.log('[HoursView] Reset projectId from', previousProjectId, 'to empty')
+  console.log('[HoursView] Reset taskId from', previousTaskId, 'to empty')
+  
+  // Log the selected client details
+  if (filters.clientId) {
+    const selectedClient = clients.value?.find(c => c.id === parseInt(filters.clientId))
+    if (selectedClient) {
+      console.log('[HoursView] Selected client:', selectedClient.organisation, '(ID:', selectedClient.id, ')')
+    }
+  }
+  
+  // Automatically apply filters to update billing events
+  console.log('[HoursView] Auto-applying filters after client change')
+  await applyFilters()
 }
 
-const onProjectChange = () => {
+const onProjectChange = async () => {
+  console.log('[HoursView] onProjectChange called - project selected:', filters.projectId)
+  
+  // Reset dependent dropdown when project changes
+  const previousTaskId = filters.taskId
   filters.taskId = ''
+  
+  console.log('[HoursView] Reset taskId from', previousTaskId, 'to empty')
+  
+  // Log the selected project details
+  if (filters.projectId) {
+    const selectedProject = filteredProjects.value?.find(p => p.project_id === parseInt(filters.projectId))
+    if (selectedProject) {
+      console.log('[HoursView] Selected project:', selectedProject.title, '(ID:', selectedProject.project_id, ')')
+    }
+  }
+  
+  // Automatically apply filters to update billing events
+  console.log('[HoursView] Auto-applying filters after project change')
+  await applyFilters()
+}
+
+const onTaskChange = async () => {
+  console.log('[HoursView] onTaskChange called - task selected:', filters.taskId)
+  
+  // Log the selected task details
+  if (filters.taskId) {
+    const selectedTask = filteredTasks.value?.find(t => t.task_id === parseInt(filters.taskId))
+    if (selectedTask) {
+      console.log('[HoursView] Selected task:', selectedTask.name, '(ID:', selectedTask.task_id, ')')
+    }
+  }
+  
+  // Automatically apply filters to update billing events
+  console.log('[HoursView] Auto-applying filters after task change')
+  await applyFilters()
+}
+
+// Debug method to test projects API
+const testProjectsAPI = async () => {
+  console.log('🔍 [DEBUG] Testing Projects API manually...')
+  
+  // Check authentication status
+  const token = localStorage.getItem('auth_token')
+  console.log('🔍 [DEBUG] Auth token in localStorage:', token ? `${token.substring(0, 20)}...` : 'NOT FOUND')
+  console.log('🔍 [DEBUG] Token exists:', !!token)
+  
+  if (!token) {
+    console.error('🔍 [DEBUG] ❌ NO AUTH TOKEN - This explains the 403 Forbidden errors!')
+    console.log('🔍 [DEBUG] You need to login first to get an auth token')
+    alert('❌ No authentication token found! Please login first.')
+    return
+  }
+  
+  console.log('🔍 [DEBUG] Current projectsStore.projects:', projectsStore.projects)
+  console.log('🔍 [DEBUG] Current projects computed:', projects.value)
+  
+  try {
+    console.log('🔍 [DEBUG] Calling projectsStore.fetchProjects()...')
+    await projectsStore.fetchProjects()
+    console.log('🔍 [DEBUG] After fetchProjects, store has:', projectsStore.projects?.length || 0, 'projects')
+    console.log('🔍 [DEBUG] Projects in store:', projectsStore.projects)
+  } catch (error) {
+    console.error('🔍 [DEBUG] Error in fetchProjects:', error)
+    
+    if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+      console.error('🔍 [DEBUG] ❌ 403 Forbidden - Token might be expired or invalid')
+      alert('❌ Authentication failed (403 Forbidden). Please login again.')
+    }
+  }
+}
+
+// Debug method to setup test tokens for token refresh system
+const setupTestTokens = () => {
+  console.log('🧪 [DEBUG] Setting up test tokens for token refresh system...')
+  
+  // Create mock tokens for testing (these won't work with real backend but will test the UI)
+  const mockAccessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk5NzEyNDN9.fake_token_for_testing'
+  const mockRefreshToken = 'refresh_token_for_testing_' + Date.now()
+  
+  localStorage.setItem('auth_token', mockAccessToken)
+  localStorage.setItem('refresh_token', mockRefreshToken)
+  
+  console.log('🧪 [DEBUG] ✅ Test tokens set in localStorage')
+  console.log('🧪 [DEBUG] Access token:', mockAccessToken.substring(0, 30) + '...')
+  console.log('🧪 [DEBUG] Refresh token:', mockRefreshToken)
+  
+  alert('🧪 Test tokens have been set! The token refresh system should now activate automatically.\n\nCheck the status bar at the top of the page.')
+  
+  // Reload the page to trigger auto-start
+  window.location.reload()
+}
+
+// Debug method to inspect localStorage contents
+const debugLocalStorage = () => {
+  console.log('🤖 [DEBUG] localStorage contents:')
+  console.log('🤖 [DEBUG] Total keys:', localStorage.length)
+  
+  const allItems = {}
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key) {
+      const value = localStorage.getItem(key)
+      allItems[key] = value
+      console.log(`🤖 [DEBUG] ${key}:`, value?.substring(0, 50) + (value && value.length > 50 ? '...' : ''))
+    }
+  }
+  
+  // Check specifically for token-related keys
+  const tokenKeys = ['auth_token', 'access_token', 'accessToken', 'token', 'authToken', 'refresh_token', 'refreshToken', 'refresh']
+  const foundTokens = {}
+  
+  console.log('🤖 [DEBUG] Checking for token-related keys:')
+  tokenKeys.forEach(key => {
+    const value = localStorage.getItem(key)
+    if (value) {
+      foundTokens[key] = value
+      console.log(`🤖 [DEBUG] ✅ Found token key '${key}':`, value.substring(0, 30) + '...')
+    } else {
+      console.log(`🤖 [DEBUG] ❌ Missing token key '${key}'`)
+    }
+  })
+  
+  // Show results in alert
+  const summary = `localStorage Debug Summary:\n\nTotal Keys: ${localStorage.length}\n\nFound Token Keys:\n${Object.keys(foundTokens).map(key => `- ${key}: ${foundTokens[key].substring(0, 20)}...`).join('\n')}\n\nAll Keys:\n${Object.keys(allItems).join(', ')}`
+  
+  console.log('🤖 [DEBUG] Summary:', summary)
+  alert(summary)
 }
 
 const calculateHours = (startTime: string, endTime: string): number => {
@@ -568,28 +928,38 @@ const handleDeleteConfirm = async () => {
   }
 }
 
-// Set default date range (current week)
+// Set default date range (current month)
 const setDefaultDateRange = () => {
   const today = new Date()
-  const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()))
-  const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6))
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
   
-  filters.startDate = firstDayOfWeek.toISOString().split('T')[0]
-  filters.endDate = lastDayOfWeek.toISOString().split('T')[0]
+  filters.startDate = firstDayOfMonth.toISOString().split('T')[0]
+  filters.endDate = lastDayOfMonth.toISOString().split('T')[0]
 }
 
 // Lifecycle
 onMounted(async () => {
+  console.log('[HoursView] Component mounted - initializing')
   setDefaultDateRange()
+  console.log('[HoursView] Default date range set, now loading data')
   await loadData()
+  console.log('[HoursView] Component initialization complete')
 })
 
 // Watch for filter changes
 watch(
   () => [filters.startDate, filters.endDate],
-  () => {
-    if (filters.startDate && filters.endDate) {
-      applyFilters()
+  async (newDates, oldDates) => {
+    console.log('[HoursView] Date range changed:', {
+      startDate: { old: oldDates?.[0], new: newDates[0] },
+      endDate: { old: oldDates?.[1], new: newDates[1] }
+    })
+    
+    // Apply filters when both dates are set or when dates are cleared
+    if ((filters.startDate && filters.endDate) || (!filters.startDate && !filters.endDate)) {
+      console.log('[HoursView] Auto-applying filters after date change')
+      await applyFilters()
     }
   }
 )

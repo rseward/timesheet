@@ -44,7 +44,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getAll()
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { params: {} })
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { params: {} })
       expect(result).toEqual(mockResponse)
     })
 
@@ -54,7 +54,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getAll({ clientId: 1 })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { client_id: 1 } 
       })
       expect(result).toEqual(mockResponse)
@@ -66,7 +66,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getAll({ projectId: 1 })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { project_id: 1 } 
       })
       expect(result).toEqual(mockResponse)
@@ -78,7 +78,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getAll({ taskId: 1 })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { task_id: 1 } 
       })
       expect(result).toEqual(mockResponse)
@@ -93,7 +93,7 @@ describe('billingEventsApi', () => {
         endDate: '2023-01-31'
       })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           start_date: '2023-01-01',
           end_date: '2023-01-31'
@@ -108,7 +108,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getAll({ timekeeperId: 1 })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { timekeeper_id: 1 } 
       })
       expect(result).toEqual(mockResponse)
@@ -127,7 +127,7 @@ describe('billingEventsApi', () => {
         timekeeperId: 1
       })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           client_id: 1,
           project_id: 1,
@@ -147,7 +147,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getById(1)
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents/1')
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/1')
       expect(result).toEqual(mockBillingEvent)
     })
   })
@@ -169,7 +169,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.create(createData)
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/billingevents', createData)
+      expect(mockApiService.post).toHaveBeenCalledWith('/events', createData)
       expect(result).toEqual(mockBillingEvent)
     })
   })
@@ -187,7 +187,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.update(1, updateData)
 
-      expect(mockApiService.put).toHaveBeenCalledWith('/billingevents/1', updateData)
+      expect(mockApiService.put).toHaveBeenCalledWith('/events/1', updateData)
       expect(result).toEqual(updatedBillingEvent)
     })
   })
@@ -198,7 +198,7 @@ describe('billingEventsApi', () => {
 
       await billingEventsApi.delete(1)
 
-      expect(mockApiService.delete).toHaveBeenCalledWith('/billingevents/1')
+      expect(mockApiService.delete).toHaveBeenCalledWith('/events/1')
     })
   })
 
@@ -209,7 +209,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getByDateRange('2023-01-01', '2023-01-31')
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           start_date: '2023-01-01',
           end_date: '2023-01-31'
@@ -227,7 +227,7 @@ describe('billingEventsApi', () => {
         projectId: 1
       })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           client_id: 1,
           project_id: 1,
@@ -246,7 +246,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getByProject(1)
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { project_id: 1 } 
       })
       expect(result).toEqual(mockResponse)
@@ -261,7 +261,7 @@ describe('billingEventsApi', () => {
         end: '2023-01-31'
       })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           project_id: 1,
           start_date: '2023-01-01',
@@ -279,7 +279,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getByClient(1)
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { client_id: 1 } 
       })
       expect(result).toEqual(mockResponse)
@@ -294,7 +294,7 @@ describe('billingEventsApi', () => {
         end: '2023-01-31'
       })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           client_id: 1,
           start_date: '2023-01-01',
@@ -312,7 +312,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getTotalHours()
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents/total-hours', { params: {} })
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/total-hours', { params: {} })
       expect(result).toBe(40)
     })
 
@@ -326,7 +326,7 @@ describe('billingEventsApi', () => {
         endDate: '2023-01-31'
       })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents/total-hours', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/total-hours', { 
         params: { 
           client_id: 1,
           start_date: '2023-01-01',
@@ -344,7 +344,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.getTimeSheet(1, '2023-01-01', '2023-01-31')
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/billingevents', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/events/', { 
         params: { 
           timekeeper_id: 1,
           start_date: '2023-01-01',

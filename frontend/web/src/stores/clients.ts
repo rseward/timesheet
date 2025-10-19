@@ -48,6 +48,7 @@ export const useClientsStore = defineStore('clients', () => {
 
   // Actions
   const fetchClients = async (params?: any): Promise<void> => {
+    console.log('[ClientsStore] fetchClients called with params:', params)
     loading.value = true
     error.value = null
 
@@ -61,17 +62,25 @@ export const useClientsStore = defineStore('clients', () => {
         }
       }
       
+      console.log('[ClientsStore] Making API call with queryParams:', queryParams)
       const response = await clientsApi.getAll(queryParams)
+      console.log('[ClientsStore] API response:', response)
+      
       if (response.success && response.data) {
         clients.value = response.data
+        console.log('[ClientsStore] Successfully updated clients state:', clients.value.length, 'clients loaded')
+        console.log('[ClientsStore] Client names:', clients.value.map(c => c.organisation))
       } else {
         error.value = response.error || 'Failed to fetch clients'
+        console.error('[ClientsStore] API call failed:', error.value)
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch clients'
+      console.error('[ClientsStore] Exception in fetchClients:', err)
       throw err
     } finally {
       loading.value = false
+      console.log('[ClientsStore] fetchClients completed. Loading:', loading.value, 'Error:', error.value)
     }
   }
 
@@ -80,17 +89,23 @@ export const useClientsStore = defineStore('clients', () => {
     error.value = null
 
     try {
-      const client = await clientsApi.getById(id)
-      
-      // Update client in store if it exists
-      const index = clients.value.findIndex(c => c.client_id === id)
-      if (index !== -1) {
-        clients.value[index] = client
+      const response = await clientsApi.getById(id)
+      if (response.success && response.data) {
+        const client = response.data
+        
+        // Update client in store if it exists
+        const index = clients.value.findIndex(c => c.client_id === id)
+        if (index !== -1) {
+          clients.value[index] = client
+        } else {
+          clients.value.push(client)
+        }
+        
+        return client
       } else {
-        clients.value.push(client)
+        error.value = response.error || 'Failed to fetch client'
+        return null
       }
-      
-      return client
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch client'
       return null

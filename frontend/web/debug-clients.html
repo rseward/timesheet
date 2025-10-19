@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Clients API</title>
+</head>
+<body>
+    <h1>Debug Clients API</h1>
+    <button onclick="testClientsAPI()">Test Clients API</button>
+    <div id="output"></div>
+
+    <script>
+        async function testClientsAPI() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Testing clients API...';
+            
+            try {
+                // Test different API endpoints
+                const endpoints = [
+                    '/api/clients/',
+                    '/api/clients',
+                    'http://127.0.0.1:8000/api/clients/',
+                    'http://127.0.0.1:8080/api/clients/'
+                ];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        console.log(`Testing endpoint: ${endpoint}`);
+                        const response = await fetch(endpoint, {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        console.log(`Response status: ${response.status}`);
+                        const data = await response.json();
+                        console.log(`Response data:`, data);
+                        
+                        if (response.ok) {
+                            output.innerHTML += `<h3>✅ SUCCESS: ${endpoint}</h3>`;
+                            output.innerHTML += `<p>Status: ${response.status}</p>`;
+                            output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                            break;
+                        } else {
+                            output.innerHTML += `<h3>❌ FAILED: ${endpoint}</h3>`;
+                            output.innerHTML += `<p>Status: ${response.status}</p>`;
+                            output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                        }
+                    } catch (error) {
+                        console.error(`Error testing ${endpoint}:`, error);
+                        output.innerHTML += `<h3>❌ ERROR: ${endpoint}</h3>`;
+                        output.innerHTML += `<p>Error: ${error.message}</p>`;
+                    }
+                }
+            } catch (error) {
+                console.error('General error:', error);
+                output.innerHTML += `<p>General error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

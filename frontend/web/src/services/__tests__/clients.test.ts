@@ -29,14 +29,55 @@ describe('clientsApi', () => {
       
       const expectedResponse = {
         success: true,
-        data: mockApiResponse
+        data: [
+          {
+            id: 1,
+            organisation: 'Test Corp',
+            description: undefined,
+            address1: undefined,
+            address2: undefined,
+            city: undefined,
+            state: undefined,
+            country: undefined,
+            postal_code: undefined,
+            contactName: '',
+            contactEmail: undefined,
+            phone_number: undefined,
+            fax_number: undefined,
+            gsm_number: undefined,
+            http_url: undefined,
+            active: true,
+            created_at: undefined,
+            updated_at: undefined
+          },
+          {
+            id: 2,
+            organisation: 'Another Corp',
+            description: undefined,
+            address1: undefined,
+            address2: undefined,
+            city: undefined,
+            state: undefined,
+            country: undefined,
+            postal_code: undefined,
+            contactName: '',
+            contactEmail: undefined,
+            phone_number: undefined,
+            fax_number: undefined,
+            gsm_number: undefined,
+            http_url: undefined,
+            active: false,
+            created_at: undefined,
+            updated_at: undefined
+          }
+        ]
       }
       
       mockApiService.get.mockResolvedValue(mockApiResponse)
 
       const result = await clientsApi.getAll()
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/clients', { params: {} })
+      expect(mockApiService.get).toHaveBeenCalledWith('/clients/', { params: {} })
       expect(result).toEqual(expectedResponse)
     })
 
@@ -47,14 +88,35 @@ describe('clientsApi', () => {
       
       const expectedResponse = {
         success: true,
-        data: mockApiResponse
+        data: [
+          {
+            id: 1,
+            organisation: 'Active Corp',
+            description: undefined,
+            address1: undefined,
+            address2: undefined,
+            city: undefined,
+            state: undefined,
+            country: undefined,
+            postal_code: undefined,
+            contactName: '',
+            contactEmail: undefined,
+            phone_number: undefined,
+            fax_number: undefined,
+            gsm_number: undefined,
+            http_url: undefined,
+            active: true,
+            created_at: undefined,
+            updated_at: undefined
+          }
+        ]
       }
       
       mockApiService.get.mockResolvedValue(mockApiResponse)
 
       const result = await clientsApi.getAll({ active: true })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/clients', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/clients/', { 
         params: { active: true } 
       })
       expect(result).toEqual(expectedResponse)
@@ -67,14 +129,35 @@ describe('clientsApi', () => {
       
       const expectedResponse = {
         success: true,
-        data: mockApiResponse
+        data: [
+          {
+            id: 1,
+            organisation: 'Test Corp',
+            description: undefined,
+            address1: undefined,
+            address2: undefined,
+            city: undefined,
+            state: undefined,
+            country: undefined,
+            postal_code: undefined,
+            contactName: '',
+            contactEmail: undefined,
+            phone_number: undefined,
+            fax_number: undefined,
+            gsm_number: undefined,
+            http_url: undefined,
+            active: true,
+            created_at: undefined,
+            updated_at: undefined
+          }
+        ]
       }
       
       mockApiService.get.mockResolvedValue(mockApiResponse)
 
       const result = await clientsApi.getAll({ search: 'test' })
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/clients', { 
+      expect(mockApiService.get).toHaveBeenCalledWith('/clients/', { 
         params: { search: 'test' } 
       })
       expect(result).toEqual(expectedResponse)
