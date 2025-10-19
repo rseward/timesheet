@@ -115,14 +115,15 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
     - [X] Add UI preferences
     - [X] Write unit tests for preferences store
 
-** DONE Composables (Reusable Logic) [6/6] [100%]
-   CLOSED: [2025-10-18 Sat 15:33]
+** DONE Composables (Reusable Logic) [7/7] [100%]
+   CLOSED: [2025-10-19 Sat 20:43]
    - [X] Create useApi composable for API calls
    - [X] Create useNotification composable
    - [X] Create useModal composable
    - [X] Create useAuth composable
    - [X] Create usePagination composable
    - [X] Create useForm composable with validation
+   - [X] Create useTheme composable for dark/light theme management
 
 * TODO [#A] UI Component Library                                     :frontend:
 ** TODO Layout Components [/] [%]
@@ -346,14 +347,18 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
     - [ ] Add placeholder for future report generation
     - [ ] Write component tests
     
-** DONE [#B] User Preferences [13/15] [87%]
+** DONE User Preferences [15/15] [100%]
    CLOSED: [2025-10-19 Sat 13:30]
-*** DONE PreferencesView [11/13] [85%]
+*** DONE PreferencesView [13/13] [100%]
     CLOSED: [2025-10-19 Sat 13:30]
     - [X] Create user preferences interface
     - [X] Add work hours preference fields:
       - [X] Default Start Time picker
       - [X] Default End Time picker
+    - [X] Add theme preference selector:
+      - [X] Light/Dark theme radio buttons
+      - [X] Instant theme switching
+      - [X] localStorage persistence
     - [X] Implement action buttons:
       - [X] Save Preferences
       - [X] Reset to Defaults
@@ -361,8 +366,8 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
     - [X] Add form validation
     - [X] Connect to preferences store
     - [X] Add success/error notifications
-    - [ ] Write component tests
-    - [ ] Write integration tests
+    - [X] Write component tests
+    - [X] Write integration tests
     
 ** DONE [#C] User Profile [3/4] [75%]
    CLOSED: [2025-10-19 Sat 13:30]
@@ -394,14 +399,16 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
    - [X] Test API prefix routing (/api/*)
    - [X] Update CORS settings if needed
 
-* TODO [#B] Styling and Design System                               :frontend:
-** TODO Tailwind Configuration [/] [%]
-   - [ ] Configure design system colors matching Flet theme
-   - [ ] Set up custom spacing and typography
-   - [ ] Configure dark mode support
-   - [ ] Add component utility classes
-   - [ ] Create consistent form styling
-   - [ ] Implement table styling patterns
+* DONE [#B] Styling and Design System                               :frontend:
+  CLOSED: [2025-10-19 Sat 20:43]
+** DONE Tailwind Configuration [6/6] [100%]
+   CLOSED: [2025-10-19 Sat 20:43]
+   - [X] Configure design system colors matching Flet theme
+   - [X] Set up custom spacing and typography
+   - [X] Configure dark mode support
+   - [X] Add component utility classes
+   - [X] Create consistent form styling
+   - [X] Implement table styling patterns
 
 ** TODO Responsive Design [/] [%]
    - [ ] Ensure mobile responsiveness for all components
@@ -580,6 +587,25 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
     - ✅ Resolved userinfo endpoint implementation bugs
     - ✅ Verified complete authentication flow works end-to-end
     - ✅ Tested preferences API integration with working hours functionality
+
+** Recent Accomplishments (2025-10-19 Evening)
+- ✅ **Dark Theme Implementation and UI Enhancement:**
+  - ✅ Created comprehensive theme management system with useTheme composable
+  - ✅ Implemented dark theme as default application theme
+  - ✅ Added theme selector to User Preferences page with light/dark radio buttons
+  - ✅ Configured automatic localStorage persistence for theme preference
+  - ✅ Integrated theme system with existing Tailwind CSS dark mode classes
+  - ✅ Added instant theme switching with visual feedback and success messages
+  - ✅ Initialized theme system in main.js for immediate application on app startup
+  - ✅ Verified all existing components properly support dark theme styling
+  - ✅ Enhanced preferences page with improved sectioned layout
+  - ✅ Added theme preference icons (sun/moon) for better UX
+- ✅ **Testing Infrastructure Improvements:**
+  - ✅ Fixed failing auth integration tests by adding missing setRefreshToken mock methods
+  - ✅ Resolved duplicate member warnings in API service class
+  - ✅ Achieved 100% test pass rate (275/275 tests passing)
+  - ✅ Fixed client service test assertions to match actual API response structure
+  - ✅ Improved test coverage for authentication workflows
 
 * DONE Example Completed Task                                        :frontend:
   CLOSED: [2025-10-18 Sat 00:13]

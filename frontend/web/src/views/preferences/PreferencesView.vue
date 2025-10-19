@@ -111,11 +111,65 @@
             </div>
 
             <!-- Preferences Form -->
-            <div v-else class="bg-white dark:bg-gray-800 shadow rounded-lg">
-              <div class="px-6 py-8">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-6">
-                  Working Hours Preferences
-                </h2>
+            <div v-else class="space-y-6">
+              <!-- Theme Preferences -->
+              <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                <div class="px-6 py-8">
+                  <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-6">
+                    Theme Preferences
+                  </h2>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Select Theme
+                      </label>
+                      <div class="flex space-x-4">
+                        <label class="flex items-center">
+                          <input
+                            v-model="selectedTheme"
+                            type="radio"
+                            value="light"
+                            @change="handleThemeChange"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                          />
+                          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Light
+                          </span>
+                        </label>
+                        <label class="flex items-center">
+                          <input
+                            v-model="selectedTheme"
+                            type="radio"
+                            value="dark"
+                            @change="handleThemeChange"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                          />
+                          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            Dark
+                          </span>
+                        </label>
+                      </div>
+                      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Choose your preferred theme. Dark theme is better for low-light environments.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Working Hours Preferences -->
+              <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                <div class="px-6 py-8">
+                  <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-6">
+                    Working Hours Preferences
+                  </h2>
                 
                 <form @submit.prevent="handleSave" class="space-y-6">
                   <!-- Default Start Time -->
@@ -234,6 +288,7 @@
                 </form>
               </div>
             </div>
+            </div>
           </div>
         </div>
       </main>
@@ -245,10 +300,12 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { usePreferencesStore } from '@/stores/preferences'
+import { useTheme } from '@/composables/useTheme'
 
 // Stores
 const authStore = useAuthStore()
 const preferencesStore = usePreferencesStore()
+const { currentTheme, setTheme } = useTheme()
 
 // State
 const isLoading = ref(false)
@@ -257,6 +314,7 @@ const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 const validationError = ref<string | null>(null)
 const showProfileMenu = ref(false)
+const selectedTheme = ref(currentTheme.value)
 
 // Form data
 const formData = reactive({
@@ -299,6 +357,17 @@ const handleClickOutside = (event: Event) => {
       closeProfileMenu()
     }
   }
+}
+
+const handleThemeChange = () => {
+  console.log('🎨 [PreferencesView] Theme changed to:', selectedTheme.value)
+  setTheme(selectedTheme.value)
+  
+  // Show success message
+  successMessage.value = `Theme changed to ${selectedTheme.value} mode successfully!`
+  setTimeout(() => {
+    successMessage.value = null
+  }, 3000)
 }
 
 const clearMessages = () => {
