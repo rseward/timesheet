@@ -47,10 +47,12 @@ def index(client_id: int = None, project_id: int = None, start_date: str = None,
 # @app.get("/events/{uid}")
 def event_by_id(uid: str) -> dict[str, BillingEventJson] :
         eventDao = daos.getBillingEventDao()
-        (dbevent, project_name, task_name) = eventDao.getById(uid)
+        result = eventDao.getById(uid)
         
-        if not(dbevent):
-            raise HTTPException( status_code=404, detail=f"event with uid={uid} does not exist.")
+        if result is None:
+            raise HTTPException(status_code=404, detail=f"event with uid={uid} does not exist.")
+        
+        (dbevent, project_name, task_name) = result
         return { "event": eventDao.toJson(dbevent, project_name, task_name) }
 
 
@@ -66,9 +68,11 @@ def event_add(js: BillingEventJson) -> dict[ str, BillingEventJson]:
         js.uid=None
     
     if js.uid: 
-        (dbrec, _, _) = eventDao.getById(js.uid)
-        if dbrec:
-            raise HTTPException(status_code=400, detail=f"event with uid={js.uid} already exists.")
+        result = eventDao.getById(js.uid)
+        if result is not None:
+            (dbrec, _, _) = result
+            if dbrec:
+                raise HTTPException(status_code=400, detail=f"event with uid={js.uid} already exists.")
         
     dbrec = eventDao.toModel(js)
     try:
@@ -93,15 +97,20 @@ def event_add(js: BillingEventJson) -> dict[ str, BillingEventJson]:
 #@app.put("/events/")
 def event_update(js: BillingEventJson) -> dict[ str, BillingEventJson]:
     eventDao = daos.getBillingEventDao()
-    (dbrec, _, _) = eventDao.getById(js.uid)
+    result = eventDao.getById(js.uid)
+    
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"event with uid={js.uid} does not exist.")
+    
+    (dbrec, project_name, task_name) = result
     
     try:    
         dbrec = eventDao.update(dbrec, js)
         eventDao.commit()
-    except:
+        return { "updated": eventDao.toJson(dbrec, project_name, task_name) }
+    except Exception as e:
         eventDao.rollback()
-        
-    return { "updated": eventDao.toJson(dbrec) }
+        raise HTTPException(status_code=500, detail=f"Failed to update event: {str(e)}")
 
 #@app.delete("/events/{uid}")
 @router.delete(
@@ -111,16 +120,18 @@ def event_update(js: BillingEventJson) -> dict[ str, BillingEventJson]:
 )
 def event_delete(uid: str) -> dict[str, BillingEventJson]:
     eventDao = daos.getBillingEventDao()
-    (dbrec, project_name, task_name) = eventDao.getById(uid)
+    result = eventDao.getById(uid)
     
-    if dbrec is None:
-        raise HTTPException(status_code=400, detail=f"event with {uid=} does not exist.")
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"event with uid={uid} does not exist.")
+    
+    (dbrec, project_name, task_name) = result
         
     print(f"deleting event with uid={uid}")
     eventDao.delete(dbrec.uid)
     eventDao.commit()
     
-    return { "deleted": eventDao.toJson(dbrec, project_name, task_name) }    
+    return { "deleted": eventDao.toJson(dbrec, project_name, task_name) }
     
 
 @router.get(

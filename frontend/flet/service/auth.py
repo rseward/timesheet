@@ -49,7 +49,7 @@ def login(page: ft.Page, username: str, password: str, rememberme: bool):
         "password": password
     }
     
-    res = requests.get(f"{baseurl}/login", params=params)
+    res = requests.get(f"{baseurl}/api/login", params=params)
     
     if res.status_code == 200:
         # save the tokens for use on subsequent requests
@@ -80,7 +80,7 @@ class AuthService(BaseService):
         params = {
             "refreshtoken": oldcreds.get("refresh_token")
         }
-        res = self.getAnonymousSession().get(f"{self.baseurl}/refresh", params=params)
+        res = self.getAnonymousSession().get(f"{self.baseurl}/api/refresh", params=params)
         
         if res.status_code == 200:
             # save the tokens for use on subsequent requests
@@ -104,7 +104,7 @@ class AuthService(BaseService):
 
 
     def logout(self, page: ft.Page):
-        res = self.getSession().get(f"{self.baseurl}/logout")
+        res = self.getSession().get(f"{self.baseurl}/api/logout")
         ic(res) 
         serverLogoutSuccess=False
         if res.status_code == 200:

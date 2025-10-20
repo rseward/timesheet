@@ -13,7 +13,7 @@ class TestFastApi(unittest.TestCase):
                 "username": "rseward@bluestone-consulting.com",
                 "password": "thepassword"
             }
-            res = requests.get(f"{baseurl}/login", params=params)
+            res = requests.get(f"{baseurl}/api/login", params=params)
             self.assertTrue(res.status_code == 200, f"FastAPI returned unexpected error. {res}")
             rjson = res.json()
             self.assertTrue(rjson is not None,f"Invalid json in the response! {res.content}")
@@ -26,7 +26,7 @@ class TestFastApi(unittest.TestCase):
                 "username": "rseward@bluestone-consulting.com",
                 "password": "foo"
             }
-            res = requests.get(f"{baseurl}/login", params=params)
+            res = requests.get(f"{baseurl}/api/login", params=params)
             self.assertTrue(res.status_code == 400, f"FastAPI returned unexpected error. {res}")
             rjson = res.json()
             self.assertTrue(rjson is not None,f"Invalid json in the response! {res.content}")

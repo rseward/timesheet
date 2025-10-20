@@ -162,36 +162,15 @@
                     </button>
                   </div>
 
-                    <button
-                      @click="testProjectsAPI"
-                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                    >
-                      🔍 Test Projects API
-                    </button>
-                    
-                    <button
-                      @click="setupTestTokens"
-                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    >
-                      🧪 Setup Test Tokens
-                    </button>
-                    
-                    <button
-                      @click="debugLocalStorage"
-                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      🤖 Debug localStorage
-                    </button>
-                    
-                    <button
-                      @click="showAddTimeEntry = true"
-                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    >
-                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Add Time Entry
-                    </button>
+                  <button
+                    @click="showAddTimeEntry = true"
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add Time Entry
+                  </button>
                 </div>
               </div>
             </div>
@@ -372,6 +351,9 @@
       :clients="clients"
       :projects="projects"
       :tasks="tasks"
+      :default-client-id="filters.clientId"
+      :default-project-id="filters.projectId"
+      :default-task-id="filters.taskId"
       @close="closeTimeEntryModal"
       @save="handleTimeEntrySave"
     />
@@ -748,98 +730,6 @@ const onTaskChange = async () => {
   await applyFilters()
 }
 
-// Debug method to test projects API
-const testProjectsAPI = async () => {
-  console.log('🔍 [DEBUG] Testing Projects API manually...')
-  
-  // Check authentication status
-  const token = localStorage.getItem('auth_token')
-  console.log('🔍 [DEBUG] Auth token in localStorage:', token ? `${token.substring(0, 20)}...` : 'NOT FOUND')
-  console.log('🔍 [DEBUG] Token exists:', !!token)
-  
-  if (!token) {
-    console.error('🔍 [DEBUG] ❌ NO AUTH TOKEN - This explains the 403 Forbidden errors!')
-    console.log('🔍 [DEBUG] You need to login first to get an auth token')
-    alert('❌ No authentication token found! Please login first.')
-    return
-  }
-  
-  console.log('🔍 [DEBUG] Current projectsStore.projects:', projectsStore.projects)
-  console.log('🔍 [DEBUG] Current projects computed:', projects.value)
-  
-  try {
-    console.log('🔍 [DEBUG] Calling projectsStore.fetchProjects()...')
-    await projectsStore.fetchProjects()
-    console.log('🔍 [DEBUG] After fetchProjects, store has:', projectsStore.projects?.length || 0, 'projects')
-    console.log('🔍 [DEBUG] Projects in store:', projectsStore.projects)
-  } catch (error) {
-    console.error('🔍 [DEBUG] Error in fetchProjects:', error)
-    
-    if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
-      console.error('🔍 [DEBUG] ❌ 403 Forbidden - Token might be expired or invalid')
-      alert('❌ Authentication failed (403 Forbidden). Please login again.')
-    }
-  }
-}
-
-// Debug method to setup test tokens for token refresh system
-const setupTestTokens = () => {
-  console.log('🧪 [DEBUG] Setting up test tokens for token refresh system...')
-  
-  // Create mock tokens for testing (these won't work with real backend but will test the UI)
-  const mockAccessToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QiLCJleHAiOjE3Mjk5NzEyNDN9.fake_token_for_testing'
-  const mockRefreshToken = 'refresh_token_for_testing_' + Date.now()
-  
-  localStorage.setItem('auth_token', mockAccessToken)
-  localStorage.setItem('refresh_token', mockRefreshToken)
-  
-  console.log('🧪 [DEBUG] ✅ Test tokens set in localStorage')
-  console.log('🧪 [DEBUG] Access token:', mockAccessToken.substring(0, 30) + '...')
-  console.log('🧪 [DEBUG] Refresh token:', mockRefreshToken)
-  
-  alert('🧪 Test tokens have been set! The token refresh system should now activate automatically.\n\nCheck the status bar at the top of the page.')
-  
-  // Reload the page to trigger auto-start
-  window.location.reload()
-}
-
-// Debug method to inspect localStorage contents
-const debugLocalStorage = () => {
-  console.log('🤖 [DEBUG] localStorage contents:')
-  console.log('🤖 [DEBUG] Total keys:', localStorage.length)
-  
-  const allItems = {}
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key) {
-      const value = localStorage.getItem(key)
-      allItems[key] = value
-      console.log(`🤖 [DEBUG] ${key}:`, value?.substring(0, 50) + (value && value.length > 50 ? '...' : ''))
-    }
-  }
-  
-  // Check specifically for token-related keys
-  const tokenKeys = ['auth_token', 'access_token', 'accessToken', 'token', 'authToken', 'refresh_token', 'refreshToken', 'refresh']
-  const foundTokens = {}
-  
-  console.log('🤖 [DEBUG] Checking for token-related keys:')
-  tokenKeys.forEach(key => {
-    const value = localStorage.getItem(key)
-    if (value) {
-      foundTokens[key] = value
-      console.log(`🤖 [DEBUG] ✅ Found token key '${key}':`, value.substring(0, 30) + '...')
-    } else {
-      console.log(`🤖 [DEBUG] ❌ Missing token key '${key}'`)
-    }
-  })
-  
-  // Show results in alert
-  const summary = `localStorage Debug Summary:\n\nTotal Keys: ${localStorage.length}\n\nFound Token Keys:\n${Object.keys(foundTokens).map(key => `- ${key}: ${foundTokens[key].substring(0, 20)}...`).join('\n')}\n\nAll Keys:\n${Object.keys(allItems).join(', ')}`
-  
-  console.log('🤖 [DEBUG] Summary:', summary)
-  alert(summary)
-}
-
 const calculateHours = (startTime: string, endTime: string): number => {
   if (!startTime || !endTime) return 0
   
@@ -918,24 +808,61 @@ const handleTimeEntrySave = async (data: BillingEventCreateData | BillingEventUp
 const handleDeleteConfirm = async () => {
   if (!deletingTimeEntry.value) return
 
+  console.log('[HoursView] DELETE - Attempting to delete time entry:', {
+    uid: deletingTimeEntry.value.uid,
+    uid_type: typeof deletingTimeEntry.value.uid,
+    project_id: deletingTimeEntry.value.project_id,
+    start_time: deletingTimeEntry.value.start_time
+  })
+
   try {
-    await billingEventsStore.deleteBillingEvent(parseInt(deletingTimeEntry.value.uid))
+    // uid should be passed as string, not converted to number
+    await billingEventsStore.deleteBillingEvent(deletingTimeEntry.value.uid)
     showDeleteModal.value = false
     deletingTimeEntry.value = null
     await applyFilters() // Refresh the list
   } catch (err) {
+    console.error('[HoursView] DELETE failed:', err)
     error.value = err instanceof Error ? err.message : 'Failed to delete time entry'
   }
 }
 
-// Set default date range (current month)
+// Helper function to get the date of last Monday (most recent Monday, including today if today is Monday)
+const getLastMonday = () => {
+  const today = new Date()
+  const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  
+  // Calculate days to subtract to get to the most recent Monday
+  // If today is Monday (1), use today (0 days to subtract)
+  // If today is Tuesday (2), use yesterday (1 day to subtract)
+  // If today is Sunday (0), use 6 days ago
+  let daysToSubtract
+  if (dayOfWeek === 0) { // Sunday
+    daysToSubtract = 6
+  } else { // Monday through Saturday
+    daysToSubtract = dayOfWeek - 1
+  }
+  
+  const lastMonday = new Date(today)
+  lastMonday.setDate(today.getDate() - daysToSubtract)
+  return lastMonday
+}
+
+// Set default date range (from last Monday to end of current month)
 const setDefaultDateRange = () => {
   const today = new Date()
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  const lastMonday = getLastMonday()
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
   
-  filters.startDate = firstDayOfMonth.toISOString().split('T')[0]
+  filters.startDate = lastMonday.toISOString().split('T')[0]
   filters.endDate = lastDayOfMonth.toISOString().split('T')[0]
+  
+  console.log('[HoursView] Set default date range:', {
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    lastMondayCalculated: lastMonday.toDateString(),
+    today: today.toDateString()
+  })
 }
 
 // Lifecycle

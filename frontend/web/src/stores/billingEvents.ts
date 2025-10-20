@@ -181,14 +181,17 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     }
   }
 
-  const deleteBillingEvent = async (id: number): Promise<void> => {
+  const deleteBillingEvent = async (uid: string): Promise<void> => {
+    console.log('[BillingEventsStore] deleteBillingEvent called with uid:', uid, 'type:', typeof uid)
     loading.value = true
     error.value = null
 
     try {
-      await billingEventsApi.delete(id)
-      billingEvents.value = billingEvents.value.filter(e => e.uid !== id.toString())
+      await billingEventsApi.delete(uid)
+      billingEvents.value = billingEvents.value.filter(e => e.uid !== uid)
+      console.log('[BillingEventsStore] Successfully deleted event with uid:', uid)
     } catch (err) {
+      console.error('[BillingEventsStore] Delete failed for uid:', uid, 'error:', err)
       error.value = err instanceof Error ? err.message : 'Failed to delete billing event'
       throw err
     } finally {
@@ -293,6 +296,21 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     })
   }
 
+  const getNextTransactionNumber = async (timekeeperId: number, projectId: number, taskId: number): Promise<number> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const nextTransNum = await billingEventsApi.getNextTransactionNumber(timekeeperId, projectId, taskId)
+      return nextTransNum
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to get next transaction number'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     billingEvents: computed(() => billingEvents.value),
@@ -328,6 +346,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     getBillingEventsByProject,
     getBillingEventsByClient,
     getBillingEventsByTask,
-    getBillingEventsByDateRange
+    getBillingEventsByDateRange,
+    getNextTransactionNumber
   }
 })

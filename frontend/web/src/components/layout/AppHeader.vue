@@ -56,6 +56,41 @@
                   </svg>
                   Preferences
                 </router-link>
+                
+                <!-- Debug Tools Separator -->
+                <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                <div class="px-4 py-2">
+                  <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Debug Tools
+                  </div>
+                </div>
+                
+                <!-- Debug: Test Projects API -->
+                <button
+                  @click="testProjectsAPI(); showProfileMenu = false"
+                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                >
+                  <span class="mr-3 text-purple-500">🔍</span>
+                  Test Projects API
+                </button>
+                
+                <!-- Debug: Setup Test Tokens -->
+                <button
+                  @click="setupTestTokens(); showProfileMenu = false"
+                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                >
+                  <span class="mr-3 text-yellow-500">🧪</span>
+                  Setup Test Tokens
+                </button>
+                
+                <!-- Debug: Debug localStorage -->
+                <button
+                  @click="debugLocalStorage(); showProfileMenu = false"
+                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                >
+                  <span class="mr-3 text-indigo-500">🤖</span>
+                  Debug localStorage
+                </button>
               </div>
             </div>
           </div>
@@ -86,6 +121,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useDebug } from '@/composables/useDebug'
 
 // Props
 interface Props {
@@ -100,6 +136,9 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+// Debug functions
+const { testProjectsAPI, setupTestTokens, debugLocalStorage } = useDebug()
 
 // State
 const showProfileMenu = ref(false)

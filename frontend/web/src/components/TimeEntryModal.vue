@@ -36,6 +36,25 @@
               {{ isEditing ? 'Edit Time Entry' : 'Add Time Entry' }}
             </h3>
             
+            <!-- Pre-filled Values Note -->
+            <div 
+              v-if="!isEditing && (props.defaultClientId || props.defaultProjectId || props.defaultTaskId)" 
+              class="mt-3 rounded-md bg-blue-50 dark:bg-blue-900/20 p-3"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-blue-800 dark:text-blue-200">
+                    Form pre-filled with selections from Time Tracking filters
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <form @submit.prevent="handleSubmit" class="mt-6 space-y-4">
               <!-- Client Selection -->
               <div>
@@ -95,6 +114,7 @@
                   id="task"
                   v-model="form.task_id"
                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-base text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                  @change="onTaskChange"
                   :disabled="!form.project_id"
                   required
                 >
@@ -115,12 +135,12 @@
                 <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Date
                 </label>
-                <input
-                  id="date"
+                <DatePicker
                   v-model="form.date"
-                  type="date"
-                  class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                  required
+                  input-id="date"
+                  placeholder="Select date or type naturally (e.g., 'today', 'tomorrow', 'next monday')"
+                  :required="true"
+                  @change="validateDateField"
                 />
                 <p v-if="errors.date" class="mt-1 text-sm text-red-600">{{ errors.date }}</p>
               </div>
@@ -175,14 +195,15 @@
               <!-- Transaction Number -->
               <div>
                 <label for="trans_num" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Transaction Number (Optional)
+                  Transaction Number
+                  <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(Auto-populated when task is selected)</span>
                 </label>
                 <input
                   id="trans_num"
                   v-model="form.trans_num"
                   type="text"
                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                  placeholder="Enter transaction number"
+                  placeholder="Will be auto-populated when task is selected"
                 />
               </div>
 
@@ -231,6 +252,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { usePreferencesStore } from '@/stores/preferences'
+import { useBillingEventsStore } from '@/stores/billingEvents'
+import DatePicker from '@/components/DatePicker.vue'
 import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } from '@/types/billingEvent'
 import type { Client } from '@/types/client'
 import type { Project } from '@/types/project'
@@ -242,6 +266,9 @@ interface Props {
   clients: Client[]
   projects: Project[]
   tasks: Task[]
+  defaultClientId?: string
+  defaultProjectId?: string
+  defaultTaskId?: string
 }
 
 interface Emits {
@@ -251,6 +278,10 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+// Stores
+const preferencesStore = usePreferencesStore()
+const billingEventsStore = useBillingEventsStore()
 
 const loading = ref(false)
 const errors = ref<Record<string, string>>({})
@@ -303,18 +334,43 @@ const isFormValid = computed(() => {
          calculatedHours.value > 0
 })
 
-const initializeForm = () => {
+const initializeForm = async () => {
   console.log('[TimeEntryModal] initializeForm called')
   console.log('[TimeEntryModal] Props.clients:', props.clients?.length || 0, 'clients available')
   if (props.clients?.length) {
     console.log('[TimeEntryModal] Client names:', props.clients.map(c => c.organisation))
   }
   
+  // Load user preferences to get the latest default working hours
+  if (!props.timeEntry) {
+    try {
+      await preferencesStore.fetchPreferences()
+      console.log('[TimeEntryModal] Preferences loaded for default times')
+    } catch (error) {
+      console.warn('[TimeEntryModal] Failed to load preferences, using fallback defaults:', error)
+    }
+  }
+  
   if (props.timeEntry) {
     // Edit mode - populate form with existing data
     const entry = props.timeEntry
-    const startDate = new Date(entry.start_time)
-    const endDate = new Date(entry.end_time)
+    
+    // Parse datetime strings directly to avoid timezone conversion
+    const startDateTime = entry.start_time // Assume backend sends in format: YYYY-MM-DDTHH:MM:SS
+    const endDateTime = entry.end_time
+    
+    // Extract date and time parts from the datetime strings
+    const datepart = startDateTime.split('T')[0]  // YYYY-MM-DD
+    const startTimepart = startDateTime.split('T')[1].slice(0, 5)  // HH:MM
+    const endTimepart = endDateTime.split('T')[1].slice(0, 5)  // HH:MM
+    
+    console.log('[TimeEntryModal] Edit mode - parsing times without timezone conversion:', {
+      original_start: entry.start_time,
+      original_end: entry.end_time,
+      parsed_date: datepart,
+      parsed_start_time: startTimepart,
+      parsed_end_time: endTimepart
+    })
     
     // Find client_id from project relationship
     const project = props.projects.find(p => p.project_id === entry.project_id)
@@ -324,27 +380,54 @@ const initializeForm = () => {
       project_id: entry.project_id,
       task_id: entry.task_id,
       timekeeper_id: entry.timekeeper_id,
-      date: startDate.toISOString().split('T')[0],
-      start_time: startDate.toTimeString().slice(0, 5),
-      end_time: endDate.toTimeString().slice(0, 5),
+      date: datepart,
+      start_time: startTimepart,
+      end_time: endTimepart,
       trans_num: entry.trans_num || '',
       log_message: entry.log_message || '',
       active: entry.active
     }
   } else {
-    // Add mode - reset form with defaults
+    // Add mode - reset form with defaults from filter selections
     const today = new Date().toISOString().split('T')[0]
+    console.log('[TimeEntryModal] Initializing new entry with filter defaults:', {
+      clientId: props.defaultClientId,
+      projectId: props.defaultProjectId, 
+      taskId: props.defaultTaskId
+    })
+    
+    // Get default working hours from user preferences
+    const defaultStartTime = preferencesStore.defaultStartTime || '09:00'
+    const defaultEndTime = preferencesStore.defaultEndTime || '17:00'
+    
+    console.log('[TimeEntryModal] Using default working hours from preferences:', {
+      startTime: defaultStartTime,
+      endTime: defaultEndTime
+    })
+    
     form.value = {
-      client_id: '',
-      project_id: 0,
-      task_id: 0,
+      client_id: props.defaultClientId || '',
+      project_id: props.defaultProjectId ? parseInt(props.defaultProjectId) : 0,
+      task_id: props.defaultTaskId ? parseInt(props.defaultTaskId) : 0,
       timekeeper_id: 1,
       date: today,
-      start_time: '09:00',
-      end_time: '17:00',
+      start_time: defaultStartTime,
+      end_time: defaultEndTime,
       trans_num: '',
       log_message: '',
       active: true
+    }
+    
+    console.log('[TimeEntryModal] Form initialized with values:', {
+      client_id: form.value.client_id,
+      project_id: form.value.project_id,
+      task_id: form.value.task_id
+    })
+    
+    // Fetch transaction number if not already set and all required fields are present
+    if (!form.value.trans_num && form.value.project_id && form.value.task_id) {
+      console.log('[TimeEntryModal] Auto-fetching transaction number for new entry')
+      await fetchNextTransactionNumber()
     }
   }
   errors.value = {}
@@ -356,9 +439,50 @@ const onClientChange = () => {
   errors.value.client_id = ''
 }
 
-const onProjectChange = () => {
+const onProjectChange = async () => {
   form.value.task_id = 0
+  form.value.trans_num = '' // Clear transaction number when project changes
   errors.value.project_id = ''
+}
+
+const onTaskChange = async () => {
+  console.log('[TimeEntryModal] Task changed to:', form.value.task_id)
+  errors.value.task_id = ''
+  
+  // Fetch next transaction number when task is selected
+  if (form.value.task_id && form.value.project_id) {
+    await fetchNextTransactionNumber()
+  }
+}
+
+const fetchNextTransactionNumber = async () => {
+  try {
+    console.log('[TimeEntryModal] Fetching next transaction number for:', {
+      timekeeperId: form.value.timekeeper_id,
+      projectId: form.value.project_id,
+      taskId: form.value.task_id
+    })
+    
+    const nextTransNum = await billingEventsStore.getNextTransactionNumber(
+      form.value.timekeeper_id,
+      form.value.project_id,
+      form.value.task_id
+    )
+    
+    console.log('[TimeEntryModal] Next transaction number received:', nextTransNum)
+    form.value.trans_num = nextTransNum.toString()
+    
+  } catch (error) {
+    console.error('[TimeEntryModal] Error fetching next transaction number:', error)
+    // Don't clear the field on error - user can manually enter if needed
+  }
+}
+
+const validateDateField = (dateValue: string) => {
+  console.log('[TimeEntryModal] Date changed to:', dateValue)
+  if (dateValue) {
+    errors.value.date = ''
+  }
 }
 
 const validateForm = (): boolean => {
@@ -389,10 +513,11 @@ const validateForm = (): boolean => {
   }
   
   if (form.value.start_time && form.value.end_time) {
-    const startTime = new Date(`${form.value.date}T${form.value.start_time}`)
-    const endTime = new Date(`${form.value.date}T${form.value.end_time}`)
+    // Compare times as strings to avoid timezone issues
+    const startTimeString = `${form.value.date}T${form.value.start_time}`
+    const endTimeString = `${form.value.date}T${form.value.end_time}`
     
-    if (endTime <= startTime) {
+    if (endTimeString <= startTimeString) {
       errors.value.end_time = 'End time must be after start time'
     }
   }
@@ -406,19 +531,42 @@ const handleSubmit = async () => {
   loading.value = true
   
   try {
-    const startDateTime = new Date(`${form.value.date}T${form.value.start_time}`)
-    const endDateTime = new Date(`${form.value.date}T${form.value.end_time}`)
+    // Create datetime strings in local time without timezone conversion
+    const startDateTimeString = `${form.value.date}T${form.value.start_time}:00`
+    const endDateTimeString = `${form.value.date}T${form.value.end_time}:00`
+    
+    console.log('[TimeEntryModal] Submitting with local times:', {
+      start_time: startDateTimeString,
+      end_time: endDateTimeString
+    })
     
     const data = {
+      ...(props.timeEntry ? { uid: props.timeEntry.uid } : {}), // Include uid for updates
       project_id: form.value.project_id,
       task_id: form.value.task_id,
       timekeeper_id: form.value.timekeeper_id,
-      start_time: startDateTime.toISOString(),
-      end_time: endDateTime.toISOString(),
+      start_time: startDateTimeString,
+      end_time: endDateTimeString,
       trans_num: form.value.trans_num || undefined,
       log_message: form.value.log_message || undefined,
       active: form.value.active
     }
+    
+    // Log key values being sent to endpoint
+    const isEditMode = !!props.timeEntry
+    console.log(`[TimeEntryModal] ${isEditMode ? 'UPDATE' : 'CREATE'} - Submitting data to endpoint:`, {
+      mode: isEditMode ? 'EDIT' : 'ADD',
+      uid: data.uid || 'NOT_SET',
+      project_id: data.project_id,
+      task_id: data.task_id,
+      timekeeper_id: data.timekeeper_id,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      trans_num: data.trans_num,
+      original_entry_uid: props.timeEntry?.uid || 'N/A',
+      data_has_uid: 'uid' in data,
+      full_data: data
+    })
     
     emit('save', data)
   } catch (error) {
@@ -429,9 +577,9 @@ const handleSubmit = async () => {
 }
 
 // Watch for prop changes to reinitialize form
-watch(() => [props.isOpen, props.timeEntry], () => {
+watch(() => [props.isOpen, props.timeEntry], async () => {
   if (props.isOpen) {
-    initializeForm()
+    await initializeForm()
   }
 }, { immediate: true })
 
@@ -443,9 +591,9 @@ watch(() => props.clients, (newClients) => {
   }
 }, { immediate: true })
 
-onMounted(() => {
+onMounted(async () => {
   if (props.isOpen) {
-    initializeForm()
+    await initializeForm()
   }
 })
 </script>

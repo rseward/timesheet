@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
@@ -129,6 +129,28 @@ import FormButton from '@/components/forms/FormButton.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+// Theme management for login page (hard-coded to light theme)
+let originalThemeClass = false // Was dark theme originally applied?
+
+// Force light theme without using localStorage or theme composable
+const forceLightTheme = () => {
+  if (typeof document !== 'undefined') {
+    const html = document.documentElement
+    originalThemeClass = html.classList.contains('dark')
+    html.classList.remove('dark') // Remove dark class to force light theme
+    console.log('🎨 [LoginView] Forced light theme for login page')
+  }
+}
+
+// Restore original theme
+const restoreOriginalTheme = () => {
+  if (typeof document !== 'undefined' && originalThemeClass) {
+    const html = document.documentElement
+    html.classList.add('dark') // Restore dark theme if it was originally applied
+    console.log('🎨 [LoginView] Restored original theme')
+  }
+}
 
 // Form data
 const formData = reactive({
@@ -203,6 +225,9 @@ const handleSubmit = async () => {
     })
     
     if (result.success) {
+      // Restore original theme before redirect
+      restoreOriginalTheme()
+      
       // Redirect to intended page or dashboard
       const redirectTo = (route.query.redirect as string) || '/dashboard'
       await router.push(redirectTo)
@@ -219,10 +244,18 @@ const handleSubmit = async () => {
 
 // Initialize component
 onMounted(() => {
+  // Force light theme for login page (bypassing localStorage completely)
+  forceLightTheme()
+  
   // Focus username field
   const usernameInput = document.querySelector('input[type="text"]') as HTMLInputElement
   if (usernameInput) {
     usernameInput.focus()
   }
+})
+
+// Restore original theme when leaving login page
+onUnmounted(() => {
+  restoreOriginalTheme()
 })
 </script>

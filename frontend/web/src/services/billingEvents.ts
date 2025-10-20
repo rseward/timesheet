@@ -92,17 +92,20 @@ export const billingEventsApi = {
   },
 
   async create(data: BillingEventCreateData): Promise<BillingEvent> {
-    const response = await apiService.post<BillingEvent>('/events', data)
+    const response = await apiService.post<BillingEvent>('/events/', data)
     return response
   },
 
   async update(id: number, data: BillingEventUpdateData): Promise<BillingEvent> {
-    const response = await apiService.put<BillingEvent>(`/events/${id}`, data)
+    const response = await apiService.put<BillingEvent>('/events/', data)
     return response
   },
 
-  async delete(id: number): Promise<void> {
-    await apiService.delete<void>(`/events/${id}`)
+  async delete(uid: string): Promise<void> {
+    console.log('[BillingEventsAPI] delete called with uid:', uid, 'type:', typeof uid)
+    console.log('[BillingEventsAPI] Making DELETE request to:', `/events/${uid}`)
+    await apiService.delete<void>(`/events/${uid}`)
+    console.log('[BillingEventsAPI] DELETE request completed for uid:', uid)
   },
 
   async getByDateRange(startDate: string, endDate: string, filters?: {
@@ -160,5 +163,21 @@ export const billingEventsApi = {
       startDate,
       endDate
     })
+  },
+
+  async getNextTransactionNumber(timekeeperId: number, projectId: number, taskId: number): Promise<number> {
+    console.log('[BillingEventsAPI] getNextTransactionNumber called with:', { timekeeperId, projectId, taskId })
+    
+    try {
+      const response = await apiService.get<{ next_trans_num: number }>(
+        `/events/nextid/${timekeeperId}/${projectId}/${taskId}`
+      )
+      console.log('[BillingEventsAPI] Next transaction number response:', response)
+      
+      return response.next_trans_num
+    } catch (error) {
+      console.error('[BillingEventsAPI] Error fetching next transaction number:', error)
+      throw error
+    }
   }
 }
