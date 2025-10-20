@@ -112,18 +112,113 @@ export const clientsApi = {
   },
 
   async create(data: ClientCreateData): Promise<{ success: boolean; data: Client }> {
-    const result = await apiService.post<Client>('/clients', data)
+    // Map frontend ClientCreateData to backend ClientJson format
+    const backendData = {
+      organisation: data.organisation,
+      description: data.description || '',
+      address1: data.address1 || '',
+      address2: data.address2 || '',
+      city: data.city || '',
+      state: data.state || '',
+      country: data.country || '',
+      postal_code: data.postal_code || '',
+      // Split contactName into first and last name
+      contact_first_name: data.contactName?.split(' ')[0] || '',
+      contact_last_name: data.contactName?.split(' ').slice(1).join(' ') || '',
+      username: data.contactEmail || '',
+      contact_email: data.contactEmail || '',
+      phone_number: data.phone_number || '',
+      fax_number: data.fax_number || null,
+      gsm_number: data.gsm_number || null,
+      http_url: data.http_url || null,
+      active: data.active !== undefined ? data.active : true
+    }
+    
+    const result = await apiService.post<any>('/clients/', backendData)
+    
+    // Map the response back to frontend format
+    const mappedResult: Client = {
+      id: result.client_id || result.id,
+      organisation: result.organisation,
+      description: result.description,
+      address1: result.address1,
+      address2: result.address2,
+      city: result.city,
+      state: result.state,
+      country: result.country,
+      postal_code: result.postal_code,
+      contactName: result.contact_first_name && result.contact_last_name 
+        ? `${result.contact_first_name} ${result.contact_last_name}`
+        : '',
+      contactEmail: result.contact_email,
+      phone_number: result.phone_number,
+      fax_number: result.fax_number,
+      gsm_number: result.gsm_number,
+      http_url: result.http_url,
+      active: result.active !== undefined ? result.active : true,
+      created_at: result.created_at,
+      updated_at: result.updated_at
+    }
+    
     return {
       success: true,
-      data: result
+      data: mappedResult
     }
   },
 
   async update(id: number, data: Partial<Client>): Promise<{ success: boolean; data: Client }> {
-    const result = await apiService.put<Client>(`/clients/${id}`, data)
+    // Map frontend Client data to backend ClientJson format
+    const backendData = {
+      client_id: id,
+      organisation: data.organisation,
+      description: data.description || '',
+      address1: data.address1 || '',
+      address2: data.address2 || '',
+      city: data.city || '',
+      state: data.state || '',
+      country: data.country || '',
+      postal_code: data.postal_code || '',
+      // Split contactName back into first and last name
+      contact_first_name: data.contactName?.split(' ')[0] || '',
+      contact_last_name: data.contactName?.split(' ').slice(1).join(' ') || '',
+      username: data.contactEmail || '',
+      contact_email: data.contactEmail || '',
+      phone_number: data.phone_number || '',
+      fax_number: data.fax_number || null,
+      gsm_number: data.gsm_number || null,
+      http_url: data.http_url || null,
+      active: data.active !== undefined ? data.active : true
+    }
+    
+    const result = await apiService.put<any>('/clients/', backendData)
+    
+    // Map the response back to frontend format
+    const mappedResult: Client = {
+      id: result.client_id || result.id,
+      organisation: result.organisation,
+      description: result.description,
+      address1: result.address1,
+      address2: result.address2,
+      city: result.city,
+      state: result.state,
+      country: result.country,
+      postal_code: result.postal_code,
+      contactName: result.contact_first_name && result.contact_last_name 
+        ? `${result.contact_first_name} ${result.contact_last_name}`
+        : '',
+      contactEmail: result.contact_email,
+      phone_number: result.phone_number,
+      fax_number: result.fax_number,
+      gsm_number: result.gsm_number,
+      http_url: result.http_url,
+      active: result.active !== undefined ? result.active : true,
+      created_at: result.created_at,
+      updated_at: result.updated_at
+    }
+    
     return {
       success: true,
-      data: result
+      data: mappedResult
     }
   },
 

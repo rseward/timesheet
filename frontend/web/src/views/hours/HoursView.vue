@@ -5,7 +5,7 @@
     
     <div class="py-10">
       <header>
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="w-[90%] mx-auto px-4">
           <div class="flex items-center justify-between">
             <div>
               <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
@@ -29,7 +29,7 @@
       </header>
       
       <main>
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="w-[90%] mx-auto px-4">
           <div class="px-4 py-8 sm:px-0">
             <!-- Filter Controls -->
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">

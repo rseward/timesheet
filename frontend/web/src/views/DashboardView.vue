@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header with user info and logout -->
     <div class="bg-white dark:bg-gray-800 shadow">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="w-[90%] mx-auto px-4">
         <div class="flex h-16 justify-between items-center">
           <div class="flex items-center">
             <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -80,8 +80,8 @@
 
     <div class="py-10">
       <main>
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div class="px-4 py-8 sm:px-0">
+        <div class="w-[90%] mx-auto px-4">
+          <div class="py-6 sm:py-8">
             <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
               Dashboard
             </h1>
@@ -90,12 +90,12 @@
             </p>
             
             <!-- Navigation Cards Grid -->
-            <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+            <div class="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
-                      <div class="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <div class="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors duration-200">
                         <span class="text-white text-sm font-medium">C</span>
                       </div>
                     </div>
@@ -111,24 +111,24 @@
                     </div>
                   </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-green-50 dark:group-hover:bg-green-900/20 transition-colors duration-200">
                   <div class="text-sm">
                     <router-link
                       to="/clients"
                       class="font-medium text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100"
                     >
-                      View all clients
+                      View all clients →
                     </router-link>
                   </div>
                 </div>
               </div>
 
               <!-- Add more navigation cards for other sections -->
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
-                      <div class="h-8 w-8 bg-amber-500 rounded-full flex items-center justify-center">
+                      <div class="h-8 w-8 bg-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-600 transition-colors duration-200">
                         <span class="text-white text-sm font-medium">P</span>
                       </div>
                     </div>
@@ -144,23 +144,23 @@
                     </div>
                   </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 transition-colors duration-200">
                   <div class="text-sm">
                     <router-link
                       to="/projects"
                       class="font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
                     >
-                      View all projects
+                      View all projects →
                     </router-link>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
-                      <div class="h-8 w-8 bg-cyan-500 rounded-full flex items-center justify-center">
+                      <div class="h-8 w-8 bg-cyan-500 rounded-full flex items-center justify-center group-hover:bg-cyan-600 transition-colors duration-200">
                         <span class="text-white text-sm font-medium">T</span>
                       </div>
                     </div>
@@ -176,23 +176,23 @@
                     </div>
                   </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-cyan-50 dark:group-hover:bg-cyan-900/20 transition-colors duration-200">
                   <div class="text-sm">
                     <router-link
                       to="/tasks"
                       class="font-medium text-cyan-700 dark:text-cyan-300 hover:text-cyan-900 dark:hover:text-cyan-100"
                     >
-                      View all tasks
+                      View all tasks →
                     </router-link>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
-                      <div class="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
+                      <div class="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors duration-200">
                         <span class="text-white text-sm font-medium">H</span>
                       </div>
                     </div>
@@ -208,23 +208,23 @@
                     </div>
                   </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20 transition-colors duration-200">
                   <div class="text-sm">
                     <router-link
                       to="/hours"
                       class="font-medium text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100"
                     >
-                      Track time
+                      Track time →
                     </router-link>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
-                      <div class="h-8 w-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <div class="h-8 w-8 bg-yellow-500 rounded-full flex items-center justify-center group-hover:bg-yellow-600 transition-colors duration-200">
                         <span class="text-white text-sm font-medium">R</span>
                       </div>
                     </div>
@@ -240,13 +240,13 @@
                     </div>
                   </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3">
+                <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-yellow-50 dark:group-hover:bg-yellow-900/20 transition-colors duration-200">
                   <div class="text-sm">
                     <router-link
                       to="/reports"
                       class="font-medium text-yellow-700 dark:text-yellow-300 hover:text-yellow-900 dark:hover:text-yellow-100"
                     >
-                      View reports
+                      View reports →
                     </router-link>
                   </div>
                 </div>

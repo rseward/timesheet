@@ -124,9 +124,11 @@ export const usePreferencesStore = defineStore('preferences', () => {
       const preference = await preferencesApi.update(key, value)
       
       // Update local state
-      const existingIndex = preferences.value.findIndex(p => p.key === key)
+      const existingIndex = preferences.value.findIndex(p => p.preference_key === key)
       if (existingIndex !== -1) {
-        preferences.value[existingIndex] = preference
+        if (preference.data) {
+          preferences.value[existingIndex] = preference.data
+        }
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to update preference'
@@ -144,7 +146,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
       await preferencesApi.delete(key)
       
       // Remove from local state
-      preferences.value = preferences.value.filter(p => p.key !== key)
+      preferences.value = preferences.value.filter(p => p.preference_key !== key)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to delete preference'
       throw err

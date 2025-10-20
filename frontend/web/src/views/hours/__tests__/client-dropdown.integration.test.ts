@@ -81,10 +81,10 @@ describe('Client Dropdown Integration Tests', () => {
     authStore.token = 'mock-jwt-token'
 
     // Mock store methods
-    vi.spyOn(clientsStore, 'fetchClients').mockResolvedValue()
-    vi.spyOn(projectsStore, 'fetchProjects').mockResolvedValue()
-    vi.spyOn(billingEventsStore, 'fetchBillingEvents').mockResolvedValue()
-    vi.spyOn(tasksStore, 'fetchTasks').mockResolvedValue()
+    vi.spyOn(clientsStore, 'fetchClients').mockResolvedValue(undefined)
+    vi.spyOn(projectsStore, 'fetchProjects').mockResolvedValue(undefined)
+    vi.spyOn(billingEventsStore, 'fetchBillingEvents').mockResolvedValue(undefined)
+    vi.spyOn(tasksStore, 'fetchTasks').mockResolvedValue(undefined)
 
     // Set up mock data in stores
     clientsStore.clients = mockClients

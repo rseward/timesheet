@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <div class="py-10">
       <header>
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="w-[90%] mx-auto px-4">
           <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
             Tasks
           </h1>

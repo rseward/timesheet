@@ -93,8 +93,11 @@ describe('Clients Store Integration Tests', () => {
     })
 
     it('should handle wrapped error response', async () => {
-      // Mock service throwing an error
-      vi.spyOn(clientsApi, 'getAll').mockRejectedValue(new Error('Failed to fetch clients from server'))
+      // Mock service returning error response (not throwing)
+      vi.spyOn(clientsApi, 'getAll').mockResolvedValue({
+        success: false,
+        data: []
+      })
 
       await clientsStore.fetchClients()
 
@@ -341,7 +344,10 @@ describe('Clients Store Integration Tests', () => {
     })
 
     it('should handle create error response', async () => {
-      vi.spyOn(clientsApi, 'create').mockRejectedValue(new Error('Validation failed'))
+      vi.spyOn(clientsApi, 'create').mockResolvedValue({
+        success: false,
+        data: {} as any
+      })
 
       const result = await clientsStore.createClient({
         organisation: 'Test',

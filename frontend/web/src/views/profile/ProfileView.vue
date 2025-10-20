@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header with user info and navigation -->
     <div class="bg-white dark:bg-gray-800 shadow">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="w-[90%] mx-auto px-4">
         <div class="flex h-16 justify-between items-center">
           <div class="flex items-center">
             <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -12,7 +12,7 @@
           
           <div class="flex items-center space-x-4">
             <div class="text-sm text-gray-700 dark:text-gray-300">
-              Welcome, {{ user?.name || user?.username || 'User' }}
+              Welcome, {{ user?.first_name || user?.username || 'User' }}
             </div>
             
             <!-- Profile/Settings dropdown -->
@@ -65,7 +65,7 @@
 
     <div class="py-10">
       <header>
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="w-[90%] mx-auto px-4">
           <div class="flex items-center justify-between">
             <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
               User Profile
@@ -103,7 +103,7 @@
                   </div>
                   <div class="ml-6">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                      {{ user?.name || 'User Name' }}
+                      {{ (user?.first_name && user?.last_name) ? `${user.first_name} ${user.last_name}` : user?.username || 'User Name' }}
                     </h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                       {{ user?.email || 'user@example.com' }}
@@ -129,7 +129,7 @@
                       <div>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</dt>
                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                          {{ user?.name || 'Not provided' }}
+                          {{ (user?.first_name && user?.last_name) ? `${user.first_name} ${user.last_name}` : 'Not provided' }}
                         </dd>
                       </div>
                       

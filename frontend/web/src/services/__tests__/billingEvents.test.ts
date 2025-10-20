@@ -169,7 +169,7 @@ describe('billingEventsApi', () => {
 
       const result = await billingEventsApi.create(createData)
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/events', createData)
+      expect(mockApiService.post).toHaveBeenCalledWith('/events/', createData)
       expect(result).toEqual(mockBillingEvent)
     })
   })
