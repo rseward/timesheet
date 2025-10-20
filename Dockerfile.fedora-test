@@ -1,0 +1,93 @@
+# Test Dockerfile using Fedora base images to verify build process
+FROM fedora:latest AS frontend-builder
+
+# Install Node.js and npm
+RUN dnf install -y nodejs npm && dnf clean all
+
+# Set working directory
+WORKDIR /app/frontend
+
+# Copy frontend package files
+COPY frontend/web/package*.json ./
+
+# Install dependencies (use npm ci equivalent)
+RUN npm install --omit=dev
+
+# Copy frontend source code
+COPY frontend/web/ ./
+
+# Build the Vue.js application
+RUN npm run build
+
+FROM fedora:latest AS backend-builder
+
+# Install Python and pip
+RUN dnf install -y python3 python3-pip && dnf clean all
+
+# Install uv
+RUN pip install uv
+
+# Set working directory
+WORKDIR /app/backend
+
+# Copy backend requirements
+COPY backend/requirements.txt ./
+
+# Install Python dependencies using uv
+RUN uv pip install --system -r requirements.txt
+
+FROM fedora:latest AS runtime
+
+# Install nginx, supervisor, and Python
+RUN dnf install -y nginx supervisor python3 python3-pip curl && dnf clean all
+
+# Create app user
+RUN useradd --create-home --shell /bin/bash app
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python dependencies from builder
+COPY --from=backend-builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=backend-builder /usr/local/bin /usr/local/bin
+
+# Copy backend source code
+COPY --chown=app:app backend/ ./backend/
+
+# Copy built frontend from frontend-builder
+COPY --from=frontend-builder --chown=app:app /app/frontend/dist ./frontend/web/dist/
+
+# Copy source code for container build reference
+COPY --chown=app:app . ./src/
+
+# Create necessary directories
+RUN mkdir -p /data /var/log/supervisor /var/log/nginx
+
+# Copy nginx configuration
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy startup script
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Set environment variables
+ENV TIMESHEET_SQLITE=/data/timesheet.sqlite
+ENV TIMESHEET_SRC_HOME=/app/src
+ENV TIMESHEET_SA_URL=sqlite:///data/timesheet.sqlite
+ENV PYTHONPATH=/app/backend
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/api/health || exit 1
+
+# Set user
+USER app
+
+# Start the application
+CMD ["/start.sh"]

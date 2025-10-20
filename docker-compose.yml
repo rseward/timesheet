@@ -1,0 +1,66 @@
+# Docker Compose configuration for Timesheet Application
+# Provides easy development and testing setup
+
+version: '3.8'
+
+services:
+  timesheet-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: timesheet-app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data:/data
+      - ./logs:/var/log/supervisor
+    environment:
+      - TIMESHEET_SQLITE=/data/timesheet.sqlite
+      - TIMESHEET_SRC_HOME=/app/src
+      - TIMESHEET_SA_URL=sqlite:///data/timesheet.sqlite
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development service with live reload
+  timesheet-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-builder
+    container_name: timesheet-dev
+    ports:
+      - "8081:8080"  # Different port for dev
+      - "3000:3000"  # Frontend dev server
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend/web:/app/frontend/web
+      - ./data:/data
+    environment:
+      - TIMESHEET_SQLITE=/data/timesheet_dev.sqlite
+      - TIMESHEET_SRC_HOME=/app/src
+      - TIMESHEET_SA_URL=sqlite:///data/timesheet_dev.sqlite
+      - NODE_ENV=development
+    command: >
+      sh -c "
+        cd /app/backend && 
+        uvicorn main:app --host 0.0.0.0 --port 8080 --reload &
+        cd /app/frontend/web &&
+        npm run dev -- --host 0.0.0.0
+      "
+    profiles:
+      - dev
+
+volumes:
+  data:
+    driver: local
+  logs:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

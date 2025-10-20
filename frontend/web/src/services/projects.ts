@@ -59,10 +59,13 @@ export const projectsApi = {
       console.error('[ProjectsAPI] Exception in getAll:', error)
       
       // Log specific error details
-      if (error.response?.status === 403) {
-        console.error('[ProjectsAPI] 🚫 403 Forbidden - Authentication failed for /api/projects/')
-      } else if (error.response?.status === 401) {
-        console.error('[ProjectsAPI] 🚫 401 Unauthorized - Invalid or expired token')
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status === 403) {
+          console.error('[ProjectsAPI] 🚫 403 Forbidden - Authentication failed for /api/projects/')
+        } else if (axiosError.response?.status === 401) {
+          console.error('[ProjectsAPI] 🚫 401 Unauthorized - Invalid or expired token')
+        }
       }
       
       throw error

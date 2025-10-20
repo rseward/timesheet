@@ -275,9 +275,9 @@ describe('Billing Events Store', () => {
         
         mockBillingEventsApi.delete.mockResolvedValue(undefined)
 
-        await store.deleteBillingEvent(1)
+        await store.deleteBillingEvent('1')
 
-        expect(mockBillingEventsApi.delete).toHaveBeenCalledWith(1)
+        expect(mockBillingEventsApi.delete).toHaveBeenCalledWith('1')
         expect(store.billingEvents).toHaveLength(0)
       })
 
@@ -285,7 +285,7 @@ describe('Billing Events Store', () => {
         mockBillingEventsApi.delete.mockRejectedValue(new Error('Delete failed'))
         const store = useBillingEventsStore()
 
-        await expect(store.deleteBillingEvent(1)).rejects.toThrow('Delete failed')
+        await expect(store.deleteBillingEvent('1')).rejects.toThrow('Delete failed')
         expect(store.error).toBe('Delete failed')
       })
     })

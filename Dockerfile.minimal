@@ -1,0 +1,14 @@
+# Minimal test Dockerfile using local system
+FROM scratch AS test-stage
+
+# Copy a test file to verify the build process works
+COPY README-DOCKER.md /test-file.md
+
+# Simple runtime test
+FROM busybox:latest AS runtime
+
+# Copy test file from previous stage
+COPY --from=test-stage /test-file.md /app/
+
+# Simple command to verify container works
+CMD ["cat", "/app/test-file.md"]

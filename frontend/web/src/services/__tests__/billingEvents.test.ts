@@ -196,7 +196,7 @@ describe('billingEventsApi', () => {
     it('calls DELETE /billingevents/:id', async () => {
       mockApiService.delete.mockResolvedValue(undefined)
 
-      await billingEventsApi.delete(1)
+      await billingEventsApi.delete('1')
 
       expect(mockApiService.delete).toHaveBeenCalledWith('/events/1')
     })

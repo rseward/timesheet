@@ -47,7 +47,7 @@ export const useProjectsStore = defineStore('projects', () => {
       result = result.filter(project => 
         project.title.toLowerCase().includes(search) ||
         project.description?.toLowerCase().includes(search) ||
-        project.projectLeader?.toLowerCase().includes(search)
+        project.proj_leader?.toLowerCase().includes(search)
       )
     }
 

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useClientsStore } from '../clients'
 import { clientsApi } from '@/services/clients'
+import type { Client } from '@/types/client'
 
 // Mock client data factory function to ensure fresh data for each test
 const createMockClientsData = () => [
@@ -92,12 +93,8 @@ describe('Clients Store Integration Tests', () => {
     })
 
     it('should handle wrapped error response', async () => {
-      // Mock service returning error in wrapper
-      const errorResponse = {
-        success: false,
-        error: 'Failed to fetch clients from server'
-      }
-      vi.spyOn(clientsApi, 'getAll').mockResolvedValue(errorResponse)
+      // Mock service throwing an error
+      vi.spyOn(clientsApi, 'getAll').mockRejectedValue(new Error('Failed to fetch clients from server'))
 
       await clientsStore.fetchClients()
 
@@ -171,8 +168,8 @@ describe('Clients Store Integration Tests', () => {
     })
 
     it('should show loading state during fetch', async () => {
-      let resolvePromise: any
-      const promise = new Promise(resolve => {
+      let resolvePromise!: (value: { success: boolean; data: Client[] }) => void
+      const promise = new Promise<{ success: boolean; data: Client[] }>(resolve => {
         resolvePromise = resolve
       })
 
@@ -344,16 +341,12 @@ describe('Clients Store Integration Tests', () => {
     })
 
     it('should handle create error response', async () => {
-      const errorResponse = {
-        success: false,
-        error: 'Validation failed'
-      }
-
-      vi.spyOn(clientsApi, 'create').mockResolvedValue(errorResponse)
+      vi.spyOn(clientsApi, 'create').mockRejectedValue(new Error('Validation failed'))
 
       const result = await clientsStore.createClient({
         organisation: 'Test',
-        contactEmail: 'test@test.com'
+        contactEmail: 'test@test.com',
+        active: true
       })
 
       expect(result.success).toBe(false)

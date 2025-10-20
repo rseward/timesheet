@@ -1,0 +1,105 @@
+# Docker ignore file for timesheet application
+
+# Node modules and build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation and README files
+README.md
+DESIGN.md
+DOCKER.md
+*.md
+
+# Test files and coverage reports
+coverage/
+.nyc_output/
+.coverage
+htmlcov/
+.pytest_cache/
+test-results/
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Database files (will be mounted as volume)
+*.sqlite
+*.db
+
+# Temporary files
+tmp/
+temp/
+
+# Frontend development server
+frontend/web/dist/
+frontend/web/.vite/
+
+# Backend development files
+backend/.pytest_cache/
+backend/htmlcov/
+
+# Container build artifacts
+Dockerfile.dev
+docker-compose.yml
+docker-compose.override.yml

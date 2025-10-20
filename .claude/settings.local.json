@@ -9,7 +9,9 @@
       "Bash(find:*)",
       "Bash(curl:*)",
       "Bash(python3:*)",
-      "Bash(yes)"
+      "Bash(yes)",
+      "Bash(buildah rm:*)",
+      "Bash(./.github/workflows/build_hosting_container.sh:*)"
     ],
     "deny": [],
     "ask": []

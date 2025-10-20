@@ -37,7 +37,7 @@ export const useTasksStore = defineStore('tasks', () => {
     }
 
     if (filters.value.clientId) {
-      result = result.filter(task => {
+      result = result.filter(() => {
         // Note: Task doesn't have clientId directly, would need project lookup
         return true // TODO: Implement client filtering via project relationship
       })

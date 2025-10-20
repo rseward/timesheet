@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 interface CalendarDate {
   day: number
@@ -250,7 +250,6 @@ const yearRange = computed(() => {
 
 const calendarDates = computed<CalendarDate[]>(() => {
   const firstDay = new Date(calendarYear.value, calendarMonth.value, 1)
-  const lastDay = new Date(calendarYear.value, calendarMonth.value + 1, 0)
   const startDate = new Date(firstDay)
   startDate.setDate(startDate.getDate() - firstDay.getDay())
   

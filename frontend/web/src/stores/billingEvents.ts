@@ -106,7 +106,18 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
     try {
       console.log('[BillingEventsStore] Calling billingEventsApi.getAll...')
-      const result = await billingEventsApi.getAll(filterOptions)
+      
+      // Convert null values to undefined for API compatibility
+      const apiFilters = filterOptions ? {
+        clientId: filterOptions.clientId ?? undefined,
+        projectId: filterOptions.projectId ?? undefined,
+        taskId: filterOptions.taskId ?? undefined,
+        timekeeperId: filterOptions.timekeeperId ?? undefined,
+        startDate: filterOptions.startDate,
+        endDate: filterOptions.endDate
+      } : undefined
+      
+      const result = await billingEventsApi.getAll(apiFilters)
       console.log('[BillingEventsStore] API returned:', result)
       console.log('[BillingEventsStore] Result type:', typeof result, 'Array:', Array.isArray(result))
       
@@ -239,7 +250,17 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     error.value = null
 
     try {
-      const total = await billingEventsApi.getTotalHours(filterOptions)
+      // Convert null values to undefined for API compatibility
+      const apiFilters = filterOptions ? {
+        clientId: filterOptions.clientId ?? undefined,
+        projectId: filterOptions.projectId ?? undefined,
+        taskId: filterOptions.taskId ?? undefined,
+        timekeeperId: filterOptions.timekeeperId ?? undefined,
+        startDate: filterOptions.startDate,
+        endDate: filterOptions.endDate
+      } : undefined
+      
+      const total = await billingEventsApi.getTotalHours(apiFilters)
       return total
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to get total hours'
@@ -277,10 +298,11 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     return billingEvents.value.filter(e => e.project_id === projectId)
   }
 
-  const getBillingEventsByClient = (clientId: number): BillingEvent[] => {
+  const getBillingEventsByClient = (_clientId: number): BillingEvent[] => {
     // Note: clientId filtering requires project lookup
-    return billingEvents.value.filter(e => {
+    return billingEvents.value.filter(() => {
       // This would need to be implemented with project data
+      // For now, we return all events as the filtering is not yet implemented
       return true // TODO: Implement client filtering via project lookup
     })
   }
@@ -312,11 +334,11 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
   }
 
   return {
-    // State
-    billingEvents: computed(() => billingEvents.value),
-    loading: computed(() => loading.value),
-    error: computed(() => error.value),
-    filters: computed(() => filters.value),
+    // State (direct refs for test mutability)
+    billingEvents,
+    loading,
+    error,
+    filters,
 
     // Getters
     filteredBillingEvents,

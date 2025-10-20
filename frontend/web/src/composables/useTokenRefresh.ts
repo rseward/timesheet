@@ -1,13 +1,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { apiService } from '@/services/api'
+import type { Ref } from 'vue'
 import { registerTokenRefreshSystem, unregisterTokenRefreshSystem } from './useGlobalTokenRefresh'
 
 export interface TokenRefreshState {
-  isActive: ref<boolean>
-  nextRefreshTime: ref<Date | null>
-  refreshCount: ref<number>
-  lastRefreshStatus: ref<'success' | 'failed' | 'idle'>
-  timeRemaining: ref<string>
+  isActive: Ref<boolean>
+  nextRefreshTime: Ref<Date | null>
+  refreshCount: Ref<number>
+  lastRefreshStatus: Ref<'success' | 'failed' | 'idle'>
+  timeRemaining: Ref<string>
 }
 
 export function useTokenRefresh() {

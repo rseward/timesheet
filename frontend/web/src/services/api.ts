@@ -103,9 +103,6 @@ class ApiService {
     localStorage.removeItem('auth_token')
   }
 
-  private getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token')
-  }
 
   private clearRefreshToken(): void {
     localStorage.removeItem('refresh_token')

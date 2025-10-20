@@ -45,7 +45,7 @@ describe('Auth E2E Tests', () => {
           }
         }
       } catch (error) {
-        console.log(`❌ Backend not available at ${url}: ${error.message}`)
+        console.log(`❌ Backend not available at ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)
         // Continue to next URL
       }
     }

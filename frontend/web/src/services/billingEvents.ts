@@ -76,10 +76,13 @@ export const billingEventsApi = {
       console.error('[BillingEventsAPI] Exception in getAll:', error)
       
       // Log specific error details
-      if (error.response?.status === 403) {
-        console.error('[BillingEventsAPI] 🚫 403 Forbidden - Authentication failed for /api/events/')
-      } else if (error.response?.status === 401) {
-        console.error('[BillingEventsAPI] 🚫 401 Unauthorized - Invalid or expired token')
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status === 403) {
+          console.error('[BillingEventsAPI] 🚫 403 Forbidden - Authentication failed for /api/events/')
+        } else if (axiosError.response?.status === 401) {
+          console.error('[BillingEventsAPI] 🚫 401 Unauthorized - Invalid or expired token')
+        }
       }
       
       throw error
@@ -97,7 +100,7 @@ export const billingEventsApi = {
   },
 
   async update(id: number, data: BillingEventUpdateData): Promise<BillingEvent> {
-    const response = await apiService.put<BillingEvent>('/events/', data)
+    const response = await apiService.put<BillingEvent>(`/events/${id}`, data)
     return response
   },
 

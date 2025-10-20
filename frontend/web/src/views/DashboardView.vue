@@ -12,7 +12,7 @@
           
           <div class="flex items-center space-x-4">
             <div class="text-sm text-gray-700 dark:text-gray-300">
-              Welcome, {{ user?.name || user?.username || 'User' }}
+              Welcome, {{ userName }}
             </div>
             
             <!-- Profile/Settings dropdown -->
@@ -274,6 +274,16 @@ const showProfileMenu = ref(false)
 
 // Computed
 const user = computed(() => authStore.user)
+const userName = computed(() => {
+  if (!user.value) return 'User'
+  
+  // Create display name from first_name and last_name, fallback to username
+  const fullName = [user.value.first_name, user.value.last_name]
+    .filter(Boolean)
+    .join(' ')
+  
+  return fullName || user.value.username || 'User'
+})
 
 // Methods
 const toggleProfileMenu = () => {

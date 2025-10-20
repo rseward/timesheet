@@ -34,7 +34,7 @@ export const useClientsStore = defineStore('clients', () => {
       const search = filters.value.search.toLowerCase()
       result = result.filter(client => 
         client.organisation.toLowerCase().includes(search) ||
-        client.contactEmail.toLowerCase().includes(search) ||
+        client.contactEmail?.toLowerCase().includes(search) ||
         client.city?.toLowerCase().includes(search) ||
         client.state?.toLowerCase().includes(search)
       )
@@ -71,7 +71,7 @@ export const useClientsStore = defineStore('clients', () => {
         console.log('[ClientsStore] Successfully updated clients state:', clients.value.length, 'clients loaded')
         console.log('[ClientsStore] Client names:', clients.value.map(c => c.organisation))
       } else {
-        error.value = response.error || 'Failed to fetch clients'
+        error.value = 'Failed to fetch clients'
         console.error('[ClientsStore] API call failed:', error.value)
       }
     } catch (err) {
@@ -94,7 +94,7 @@ export const useClientsStore = defineStore('clients', () => {
         const client = response.data
         
         // Update client in store if it exists
-        const index = clients.value.findIndex(c => c.client_id === id)
+        const index = clients.value.findIndex(c => c.id === id)
         if (index !== -1) {
           clients.value[index] = client
         } else {
@@ -103,7 +103,7 @@ export const useClientsStore = defineStore('clients', () => {
         
         return client
       } else {
-        error.value = response.error || 'Failed to fetch client'
+        error.value = 'Failed to fetch client'
         return null
       }
     } catch (err) {
@@ -124,7 +124,7 @@ export const useClientsStore = defineStore('clients', () => {
         clients.value.push(response.data)
         return response
       } else {
-        error.value = response.error || 'Failed to create client'
+        error.value = 'Failed to create client'
         return response
       }
     } catch (err) {
@@ -148,7 +148,7 @@ export const useClientsStore = defineStore('clients', () => {
         }
         return response
       } else {
-        error.value = response.error || 'Failed to update client'
+        error.value = 'Failed to update client'
         return response
       }
     } catch (err) {
@@ -169,7 +169,7 @@ export const useClientsStore = defineStore('clients', () => {
         clients.value = clients.value.filter(c => c.id !== id)
         return response
       } else {
-        error.value = response.error || 'Failed to delete client'
+        error.value = 'Failed to delete client'
         return response
       }
     } catch (err) {
