@@ -6,6 +6,7 @@ import logging
 from enum import Enum
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 # Host the web frontend static files
 from fastapi.staticfiles import StaticFiles
@@ -35,6 +36,16 @@ logger.info(f"{__name__} is starting")
 
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite dev server and common dev ports
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 daos = getDaoFactory()
 
 # Debug route to check if our routes are working

@@ -5,6 +5,7 @@
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true"
+    :data-testid="dataTestId"
   >
     <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
       <!-- Background overlay -->
@@ -42,6 +43,7 @@
           <button
             type="button"
             :disabled="loading"
+            :data-testid="confirmButtonTestId"
             class="inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
             :class="confirmButtonClasses"
             @click="handleConfirm"
@@ -54,6 +56,7 @@
           </button>
           <button
             type="button"
+            :data-testid="cancelButtonTestId"
             class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
             @click="$emit('cancel')"
             :disabled="loading"
@@ -79,6 +82,9 @@ interface Props {
   confirmText?: string
   cancelText?: string
   loadingText?: string
+  dataTestId?: string
+  confirmButtonTestId?: string
+  cancelButtonTestId?: string
 }
 
 interface Emits {

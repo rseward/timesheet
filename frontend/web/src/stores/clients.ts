@@ -71,7 +71,7 @@ export const useClientsStore = defineStore('clients', () => {
         console.log('[ClientsStore] Successfully updated clients state:', clients.value.length, 'clients loaded')
         console.log('[ClientsStore] Client names:', clients.value.map(c => c.organisation))
       } else {
-        error.value = 'Failed to fetch clients'
+        error.value = response.error || 'Failed to fetch clients'
         console.error('[ClientsStore] API call failed:', error.value)
       }
     } catch (err) {
@@ -103,7 +103,7 @@ export const useClientsStore = defineStore('clients', () => {
         
         return client
       } else {
-        error.value = 'Failed to fetch client'
+        error.value = response.error || 'Failed to fetch client'
         return null
       }
     } catch (err) {
@@ -124,7 +124,7 @@ export const useClientsStore = defineStore('clients', () => {
         clients.value.push(response.data)
         return response
       } else {
-        error.value = 'Failed to create client'
+        error.value = response.error || 'Failed to create client'
         return response
       }
     } catch (err) {
@@ -148,7 +148,7 @@ export const useClientsStore = defineStore('clients', () => {
         }
         return response
       } else {
-        error.value = 'Failed to update client'
+        error.value = response.error || 'Failed to update client'
         return response
       }
     } catch (err) {
@@ -169,7 +169,7 @@ export const useClientsStore = defineStore('clients', () => {
         clients.value = clients.value.filter(c => c.id !== id)
         return response
       } else {
-        error.value = 'Failed to delete client'
+        error.value = response.error || 'Failed to delete client'
         return response
       }
     } catch (err) {

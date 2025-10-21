@@ -78,12 +78,13 @@ export const projectsApi = {
   },
 
   async create(data: ProjectCreateData): Promise<Project> {
-    const response = await apiService.post<Project>('/projects', data)
+    const response = await apiService.post<Project>('/projects/', data)
     return response
   },
 
   async update(id: number, data: ProjectUpdateData): Promise<Project> {
-    const response = await apiService.put<Project>(`/projects/${id}`, data)
+    const updateData = { ...data, project_id: id }
+    const response = await apiService.put<Project>('/projects/', updateData)
     return response
   },
 

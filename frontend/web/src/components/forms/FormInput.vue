@@ -24,6 +24,7 @@
         :placeholder="placeholder"
         :disabled="disabled"
         :autocomplete="autocomplete"
+        :data-testid="dataTestId"
         :class="inputClasses"
         @input="handleInput"
         @blur="handleBlur"
@@ -108,6 +109,7 @@ interface Props {
   autocomplete?: string
   showPasswordToggle?: boolean
   id?: string
+  dataTestId?: string
 }
 
 interface Emits {

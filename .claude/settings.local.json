@@ -11,7 +11,13 @@
       "Bash(python3:*)",
       "Bash(yes)",
       "Bash(buildah rm:*)",
-      "Bash(./.github/workflows/build_hosting_container.sh:*)"
+      "Bash(./.github/workflows/build_hosting_container.sh:*)",
+      "Read(///**)",
+      "Bash(npm run build:*)",
+      "Bash(npm run test)",
+      "Bash(npm run test -- src/views/projects/__tests__/project-management.integration.test.ts)",
+      "Bash(npm run test -- src/views/projects/__tests__/project-management.integration.test.ts -t \"Empty States\")",
+      "Bash(npm run test -- src/views/projects/__tests__/project-management.integration.test.ts -t \"Project Deletion\")"
     ],
     "deny": [],
     "ask": []

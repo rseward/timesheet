@@ -2,6 +2,7 @@
   <button
     :type="type"
     :disabled="disabled || loading"
+    :data-testid="dataTestId"
     :class="buttonClasses"
     @click="handleClick"
   >
@@ -67,6 +68,7 @@ interface Props {
   loading?: boolean
   loadingText?: string
   fullWidth?: boolean
+  dataTestId?: string
 }
 
 interface Emits {

@@ -2,7 +2,7 @@ import { apiService } from './api'
 import type { Client, ClientCreateData } from '@/types/client'
 
 export const clientsApi = {
-  async getAll(filters?: { active?: boolean; search?: string }): Promise<{ success: boolean; data: Client[] }> {
+  async getAll(filters?: { active?: boolean; search?: string }): Promise<{ success: boolean; data: Client[]; error?: string }> {
     console.log('[ClientsAPI] getAll called with filters:', filters)
     const params = { ...(filters || {}) }
     console.log('[ClientsAPI] Making API request to /clients/ with params:', params)
@@ -103,7 +103,7 @@ export const clientsApi = {
     }
   },
 
-  async getById(id: number): Promise<{ success: boolean; data: Client }> {
+  async getById(id: number): Promise<{ success: boolean; data: Client; error?: string }> {
     const data = await apiService.get<Client>(`/clients/${id}`)
     return {
       success: true,
@@ -111,7 +111,7 @@ export const clientsApi = {
     }
   },
 
-  async create(data: ClientCreateData): Promise<{ success: boolean; data: Client }> {
+  async create(data: ClientCreateData): Promise<{ success: boolean; data: Client; error?: string }> {
     // Map frontend ClientCreateData to backend ClientJson format
     const backendData = {
       organisation: data.organisation,
@@ -166,7 +166,7 @@ export const clientsApi = {
     }
   },
 
-  async update(id: number, data: Partial<Client>): Promise<{ success: boolean; data: Client }> {
+  async update(id: number, data: Partial<Client>): Promise<{ success: boolean; data: Client; error?: string }> {
     // Map frontend Client data to backend ClientJson format
     const backendData = {
       client_id: id,
@@ -222,7 +222,7 @@ export const clientsApi = {
     }
   },
 
-  async delete(id: number): Promise<{ success: boolean; data: null }> {
+  async delete(id: number): Promise<{ success: boolean; data: null; error?: string }> {
     await apiService.delete(`/clients/${id}`)
     return {
       success: true,

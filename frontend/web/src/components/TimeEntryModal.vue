@@ -5,6 +5,7 @@
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true"
+    data-testid="time-entry-modal"
   >
     <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
       <!-- Background overlay -->

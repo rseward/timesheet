@@ -189,7 +189,7 @@ describe('clientsApi', () => {
   })
 
   describe('create', () => {
-    it('calls POST /clients with client data', async () => {
+    it('calls POST /clients/ with transformed client data', async () => {
       const clientData: ClientCreateData = {
         organisation: 'New Corp',
         contactName: 'Jane Smith',
@@ -199,49 +199,88 @@ describe('clientsApi', () => {
 
       const mockApiResponse = {
         id: 3,
-        ...clientData
+        organisation: 'New Corp',
+        contact_first_name: 'Jane',
+        contact_last_name: 'Smith',
+        contact_email: 'jane@newcorp.com',
+        active: true
       }
-      
-      const expectedResponse = {
-        success: true,
-        data: mockApiResponse
+
+      const expectedBackendData = {
+        organisation: 'New Corp',
+        description: '',
+        address1: '',
+        address2: '',
+        city: '',
+        state: '',
+        country: '',
+        postal_code: '',
+        contact_first_name: 'Jane',
+        contact_last_name: 'Smith',
+        username: 'jane@newcorp.com',
+        contact_email: 'jane@newcorp.com',
+        phone_number: '',
+        fax_number: null,
+        gsm_number: null,
+        http_url: null,
+        active: true
       }
-      
+
       mockApiService.post.mockResolvedValue(mockApiResponse)
 
       const result = await clientsApi.create(clientData)
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/clients', clientData)
-      expect(result).toEqual(expectedResponse)
+      expect(mockApiService.post).toHaveBeenCalledWith('/clients/', expectedBackendData)
+      expect(result.success).toBe(true)
+      expect(result.data.organisation).toBe('New Corp')
     })
   })
 
   describe('update', () => {
-    it('calls PUT /clients/:id with update data', async () => {
+    it('calls PUT /clients/ with transformed update data including client_id', async () => {
       const updateData = {
-        contactName: 'Updated Name',
-        contactEmail: 'updated@email.com'
-      }
-
-      const mockApiResponse = {
-        id: 1,
-        organisation: 'Test Corp',
         contactName: 'Updated Name',
         contactEmail: 'updated@email.com',
         active: true
       }
-      
-      const expectedResponse = {
-        success: true,
-        data: mockApiResponse
+
+      const mockApiResponse = {
+        client_id: 1,
+        organisation: 'Test Corp',
+        contact_first_name: 'Updated',
+        contact_last_name: 'Name',
+        contact_email: 'updated@email.com',
+        active: true
       }
-      
+
+      const expectedBackendData = {
+        client_id: 1,
+        organisation: undefined,
+        description: '',
+        address1: '',
+        address2: '',
+        city: '',
+        state: '',
+        country: '',
+        postal_code: '',
+        contact_first_name: 'Updated',
+        contact_last_name: 'Name',
+        username: 'updated@email.com',
+        contact_email: 'updated@email.com',
+        phone_number: '',
+        fax_number: null,
+        gsm_number: null,
+        http_url: null,
+        active: true
+      }
+
       mockApiService.put.mockResolvedValue(mockApiResponse)
 
       const result = await clientsApi.update(1, updateData)
 
-      expect(mockApiService.put).toHaveBeenCalledWith('/clients/1', updateData)
-      expect(result).toEqual(expectedResponse)
+      expect(mockApiService.put).toHaveBeenCalledWith('/clients/', expectedBackendData)
+      expect(result.success).toBe(true)
+      expect(result.data.contactEmail).toBe('updated@email.com')
     })
   })
 

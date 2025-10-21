@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Auth</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        // Check if token exists
+        const token = localStorage.getItem('auth_token');
+        document.getElementById('result').innerHTML = `
+            <p>Token exists: ${!!token}</p>
+            <p>Token: ${token ? token.substring(0, 20) + '...' : 'None'}</p>
+        `;
+        
+        // Test API call
+        if (token) {
+            fetch('/api/projects/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: 'Test Project',
+                    client_id: 1,
+                    description: 'Test Description',
+                    start_date: '2024-01-01',
+                    http_link: '',
+                    proj_status: 'Pending',
+                    proj_leader: 'Test Leader',
+                    active: true
+                })
+            })
+            .then(response => {
+                document.getElementById('result').innerHTML += `
+                    <p>Response status: ${response.status}</p>
+                    <p>Response statusText: ${response.statusText}</p>
+                    <p>Response headers: ${JSON.stringify([...response.headers.entries()])}</p>
+                `;
+                return response.text();
+            })
+            .then(text => {
+                document.getElementById('result').innerHTML += `
+                    <p>Response body: ${text}</p>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML += `
+                    <p>Error: ${error.message}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
