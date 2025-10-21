@@ -48,7 +48,8 @@ RUN useradd --create-home --shell /bin/bash app
 WORKDIR /app
 
 # Copy Python dependencies from builder
-COPY --from=backend-builder /usr/local/lib/python3.*/site-packages /usr/local/lib/python3.*/site-packages
+COPY --from=backend-builder /usr/local/lib /usr/local/lib
+COPY --from=backend-builder /usr/local/lib64 /usr/local/lib64
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 
 # Copy backend source code
