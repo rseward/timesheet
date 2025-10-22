@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { tasksApi } from '@/services/tasks'
 import type { Task, TaskCreateData, TaskUpdateData, TaskStatus } from '@/types/task'
+import { useProjectsStore } from './projects'
 
 export interface TaskFilters {
   projectId?: number | null
@@ -12,6 +13,8 @@ export interface TaskFilters {
 }
 
 export const useTasksStore = defineStore('tasks', () => {
+  // Get projects store for client filtering
+  const projectsStore = useProjectsStore()
   // State
   const tasks = ref<Task[]>([])
   const loading = ref(false)
@@ -32,28 +35,35 @@ export const useTasksStore = defineStore('tasks', () => {
   const filteredTasks = computed(() => {
     let result = tasks.value
 
+    // Filter by client (need to get project's client_id)
+    if (filters.value.clientId) {
+      // Get all project IDs for this client
+      const clientProjectIds = projectsStore.projects
+        .filter(p => p.client_id === filters.value.clientId)
+        .map(p => p.project_id)
+
+      result = result.filter(task => clientProjectIds.includes(task.project_id))
+    }
+
+    // Filter by project
     if (filters.value.projectId) {
       result = result.filter(task => task.project_id === filters.value.projectId)
     }
 
-    if (filters.value.clientId) {
-      result = result.filter(() => {
-        // Note: Task doesn't have clientId directly, would need project lookup
-        return true // TODO: Implement client filtering via project relationship
-      })
-    }
-
+    // Filter by active status
     if (filters.value.active !== null && filters.value.active !== undefined) {
       result = result.filter(task => task.active === filters.value.active)
     }
 
+    // Filter by task status
     if (filters.value.status) {
       result = result.filter(task => task.status === filters.value.status)
     }
 
+    // Filter by search text
     if (filters.value.search) {
       const search = filters.value.search.toLowerCase()
-      result = result.filter(task => 
+      result = result.filter(task =>
         task.name.toLowerCase().includes(search) ||
         task.description?.toLowerCase().includes(search) ||
         task.project_name?.toLowerCase().includes(search)

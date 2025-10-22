@@ -78,12 +78,33 @@ export const tasksApi = {
   },
 
   async create(data: TaskCreateData): Promise<Task> {
-    const response = await apiService.post<Task>('/tasks', data)
+    console.log('[TasksAPI] Creating task with data:', data)
+    const response = await apiService.post<any>('/tasks/', data)
+    console.log('[TasksAPI] Create response:', response)
+
+    // Backend returns { "added": TaskJson }
+    if (response && response.added) {
+      return response.added
+    }
     return response
   },
 
   async update(id: number, data: TaskUpdateData): Promise<Task> {
-    const response = await apiService.put<Task>(`/tasks/${id}`, data)
+    console.log('[TasksAPI] Updating task', id, 'with data:', data)
+
+    // Backend expects the full task object with task_id included
+    const updatePayload = {
+      ...data,
+      task_id: id
+    }
+
+    const response = await apiService.put<any>('/tasks/', updatePayload)
+    console.log('[TasksAPI] Update response:', response)
+
+    // Backend returns { "updated": TaskJson }
+    if (response && response.updated) {
+      return response.updated
+    }
     return response
   },
 

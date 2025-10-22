@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { mount, VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TimeEntryModal from '../TimeEntryModal.vue'
 import type { Client } from '@/types/client'
@@ -8,8 +8,17 @@ import type { Task } from '@/types/task'
 import type { BillingEvent } from '@/types/billingEvent'
 
 describe('TimeEntryModal', () => {
+  let wrapper: VueWrapper | null = null
+
   beforeEach(() => {
     setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    if (wrapper) {
+      wrapper.unmount()
+      wrapper = null
+    }
   })
 
   const mockClients: Client[] = [
@@ -67,7 +76,7 @@ describe('TimeEntryModal', () => {
   }
 
   it('renders modal when isOpen is true', () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -76,7 +85,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('does not render modal when isOpen is false', () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: {
         ...defaultProps,
         isOpen: false
@@ -97,7 +106,7 @@ describe('TimeEntryModal', () => {
       active: true
     }
 
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: {
         ...defaultProps,
         timeEntry: mockTimeEntry
@@ -120,7 +129,7 @@ describe('TimeEntryModal', () => {
       active: true
     }
 
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: {
         ...defaultProps,
         timeEntry: mockTimeEntry
@@ -147,7 +156,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('filters projects based on selected client', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -162,7 +171,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('filters tasks based on selected project', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -180,7 +189,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('calculates hours correctly based on start and end time', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -198,7 +207,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('shows validation errors for required fields', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -211,7 +220,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('validates that end time is after start time', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -238,7 +247,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('emits close event when cancel button is clicked', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -249,7 +258,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('emits close event when background overlay is clicked', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -260,7 +269,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('emits save event with correct data when form is submitted', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -302,7 +311,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('disables project select when no client is selected', () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -311,7 +320,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('disables task select when no project is selected', () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -320,7 +329,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('shows loading state when saving', async () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
@@ -361,7 +370,7 @@ describe('TimeEntryModal', () => {
       active: true
     }
 
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: {
         ...defaultProps,
         timeEntry: mockTimeEntry
@@ -373,7 +382,7 @@ describe('TimeEntryModal', () => {
   })
 
   it('displays correct button text for add mode', () => {
-    const wrapper = mount(TimeEntryModal, {
+    wrapper = mount(TimeEntryModal, {
       props: defaultProps
     })
 
