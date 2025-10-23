@@ -33,7 +33,7 @@ describe('Hours Workflow Basic Integration Tests', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.exists()).toBe(true)
-    expect(wrapper.text()).toContain('Time Tracking')
+    expect(wrapper.text()).toContain('Filter Time Entries')
   })
 
   it('has basic structure and elements', async () => {

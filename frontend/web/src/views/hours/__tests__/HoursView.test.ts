@@ -94,7 +94,7 @@ describe('HoursView Basic Tests', () => {
 
     // Basic rendering test
     expect(wrapper.find('[data-testid="app-header"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Time Tracking')
+    expect(wrapper.text()).toContain('Filter Time Entries')
   })
 
   it('shows filter controls', async () => {

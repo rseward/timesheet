@@ -3,40 +3,53 @@
     <!-- App Header with Profile Navigation -->
     <AppHeader />
     
-    <div class="py-10">
-      <header>
-        <div class="w-[90%] mx-auto px-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
-                Time Tracking
-              </h1>
-              <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                Track your work hours and manage time entries.
-              </p>
-            </div>
-            <router-link
-              to="/dashboard"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Dashboard
-            </router-link>
-          </div>
-        </div>
-      </header>
-      
+    <div class="py-6">
       <main>
         <div class="w-[90%] mx-auto px-4">
-          <div class="px-4 py-8 sm:px-0">
+          <div class="px-4 py-4 sm:px-0">
             <!-- Filter Controls -->
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-4">
               <div class="px-6 py-4">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  Filter Time Entries
-                </h2>
+                <!-- Filter Header with Action Buttons -->
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+                    Filter Time Entries
+                  </h2>
+
+                  <!-- Action Buttons -->
+                  <div class="flex items-center space-x-3">
+                    <button
+                      @click="applyFilters"
+                      :disabled="isLoading"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                      </svg>
+                      Apply Filters
+                    </button>
+
+                    <button
+                      @click="clearFilters"
+                      class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Clear Filters
+                    </button>
+
+                    <button
+                      @click="showAddTimeEntry = true"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add Time Entry
+                    </button>
+                  </div>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <!-- Client Filter -->
@@ -136,76 +149,11 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Filter Actions -->
-                <div class="mt-4 flex items-center justify-between">
-                  <div class="flex items-center space-x-4">
-                    <button
-                      @click="applyFilters"
-                      :disabled="isLoading"
-                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    >
-                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-                      </svg>
-                      Apply Filters
-                    </button>
-                    
-                    <button
-                      @click="clearFilters"
-                      class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Clear Filters
-                    </button>
-                  </div>
-
-                  <button
-                    @click="showAddTimeEntry = true"
-                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add Time Entry
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Total Hours Display -->
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-              <div class="px-6 py-4">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                      Total Hours
-                    </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ dateRangeText }}
-                    </p>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                      {{ totalHours.toFixed(2) }}
-                    </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      hours ({{ billingEvents.length }} entries)
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
 
             <!-- Time Entries Table -->
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-              <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                  Time Entries
-                </h3>
-              </div>
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden mb-4">
 
               <!-- Loading State -->
               <div v-if="isLoading" class="flex justify-center py-8">
@@ -336,6 +284,30 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- Total Hours Display - Moved Below Table -->
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+              <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                      Total Hours
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ dateRangeText }}
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                      {{ totalHours.toFixed(2) }}
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      hours ({{ billingEvents.length }} entries)
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

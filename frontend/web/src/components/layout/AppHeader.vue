@@ -91,6 +91,24 @@
                   <span class="mr-3 text-indigo-500">🤖</span>
                   Debug localStorage
                 </button>
+
+                <!-- Debug: Token Refresh -->
+                <button
+                  @click="refreshToken(); showProfileMenu = false"
+                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                >
+                  <span class="mr-3 text-green-500">🔄</span>
+                  Refresh Token
+                </button>
+
+                <!-- Debug: Toggle Token Refresh Status -->
+                <button
+                  @click="toggleTokenRefreshStatus?.(); showProfileMenu = false"
+                  class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                >
+                  <span class="mr-3 text-blue-500">📊</span>
+                  Token Refresh Status
+                </button>
               </div>
             </div>
           </div>
@@ -118,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDebug } from '@/composables/useDebug'
@@ -138,6 +156,9 @@ const authStore = useAuthStore()
 
 // Debug functions
 const { testProjectsAPI, setupTestTokens, debugLocalStorage } = useDebug()
+
+// Inject the toggle function from App.vue
+const toggleTokenRefreshStatus = inject<() => void>('toggleTokenRefreshStatus')
 
 // State
 const showProfileMenu = ref(false)
@@ -176,7 +197,7 @@ const handleClickOutside = (event: Event) => {
 
 const handleLogout = async () => {
   isLoggingOut.value = true
-  
+
   try {
     await authStore.logout()
     // Redirect to login page
@@ -187,6 +208,18 @@ const handleLogout = async () => {
     await router.push('/login')
   } finally {
     isLoggingOut.value = false
+  }
+}
+
+const refreshToken = async () => {
+  try {
+    console.log('[AppHeader] Refreshing authentication token...')
+    await authStore.refreshToken()
+    console.log('[AppHeader] Token refresh successful')
+    alert('Token refreshed successfully!')
+  } catch (error) {
+    console.error('[AppHeader] Token refresh failed:', error)
+    alert('Token refresh failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
   }
 }
 
