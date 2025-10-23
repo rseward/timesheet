@@ -763,13 +763,13 @@ const closeTimeEntryModal = () => {
 const handleTimeEntrySave = async (data: BillingEventCreateData | BillingEventUpdateData) => {
   try {
     if (editingTimeEntry.value) {
-      // Update existing entry
-      await billingEventsStore.updateBillingEvent(parseInt(editingTimeEntry.value.uid), data as BillingEventUpdateData)
+      // Update existing entry - uid is a string (UUID), not a number
+      await billingEventsStore.updateBillingEvent(editingTimeEntry.value.uid, data as BillingEventUpdateData)
     } else {
       // Create new entry
       await billingEventsStore.createBillingEvent(data as BillingEventCreateData)
     }
-    
+
     closeTimeEntryModal()
     await applyFilters() // Refresh the list
   } catch (err) {

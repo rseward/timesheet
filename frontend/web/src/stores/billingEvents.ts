@@ -133,21 +133,21 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     }
   }
 
-  const fetchBillingEventById = async (id: number): Promise<BillingEvent | null> => {
+  const fetchBillingEventById = async (uid: string): Promise<BillingEvent | null> => {
     loading.value = true
     error.value = null
 
     try {
-      const event = await billingEventsApi.getById(id)
-      
+      const event = await billingEventsApi.getById(uid)
+
       // Update event in store if it exists
-      const index = billingEvents.value.findIndex(e => e.uid === id.toString())
+      const index = billingEvents.value.findIndex(e => e.uid === uid)
       if (index !== -1) {
         billingEvents.value[index] = event
       } else {
         billingEvents.value.push(event)
       }
-      
+
       return event
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch billing event'
@@ -173,13 +173,14 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     }
   }
 
-  const updateBillingEvent = async (id: number, eventData: BillingEventUpdateData): Promise<BillingEvent | null> => {
+  const updateBillingEvent = async (uid: string, eventData: BillingEventUpdateData): Promise<BillingEvent | null> => {
     loading.value = true
     error.value = null
 
     try {
-      const updatedEvent = await billingEventsApi.update(id, eventData)
-      const index = billingEvents.value.findIndex(e => e.uid === id.toString())
+      console.log('[BillingEventsStore] updateBillingEvent called with uid:', uid, 'type:', typeof uid)
+      const updatedEvent = await billingEventsApi.update(uid, eventData)
+      const index = billingEvents.value.findIndex(e => e.uid === uid)
       if (index !== -1) {
         billingEvents.value[index] = updatedEvent
       }

@@ -89,19 +89,34 @@ export const billingEventsApi = {
     }
   },
 
-  async getById(id: number): Promise<BillingEvent> {
-    const response = await apiService.get<BillingEvent>(`/events/${id}`)
+  async getById(uid: string): Promise<BillingEvent> {
+    const response = await apiService.get<BillingEvent>(`/events/${uid}`)
     return response
   },
 
   async create(data: BillingEventCreateData): Promise<BillingEvent> {
-    const response = await apiService.post<BillingEvent>('/events/', data)
-    return response
+    console.log('[BillingEventsAPI] create called with data:', data)
+    const response = await apiService.post<{ added: BillingEvent }>('/events/', data)
+    console.log('[BillingEventsAPI] POST request completed, response:', response)
+    // Backend returns { added: BillingEvent }, extract the event
+    return response.added
   },
 
-  async update(id: number, data: BillingEventUpdateData): Promise<BillingEvent> {
-    const response = await apiService.put<BillingEvent>(`/events/${id}`, data)
-    return response
+  async update(uid: string, data: BillingEventUpdateData): Promise<BillingEvent> {
+    console.log('[BillingEventsAPI] update called with uid:', uid, 'type:', typeof uid)
+    console.log('[BillingEventsAPI] Making PUT request to /events/ with uid in body')
+
+    // Backend expects PUT /api/events/ with uid in the request body, not in the URL path
+    const payload = {
+      ...data,
+      uid
+    }
+
+    const response = await apiService.put<{ updated: BillingEvent }>('/events/', payload)
+    console.log('[BillingEventsAPI] PUT request completed for uid:', uid)
+
+    // Backend returns { updated: BillingEvent }, extract the event
+    return response.updated
   },
 
   async delete(uid: string): Promise<void> {

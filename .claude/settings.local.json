@@ -25,7 +25,9 @@
       "Bash(npm run test -- src/views/tasks/__tests__/TaskModal.test.ts -t \"creates new task successfully\")",
       "Bash(npm run test -- src/views/tasks/__tests__/TasksView.test.ts -t \"applies client filter\")",
       "Bash(npm run test -- src/views/tasks/__tests__/task-management.integration.test.ts -t \"actually filters tasks by client\")",
-      "Bash(npm run build:dev)"
+      "Bash(npm run build:dev)",
+      "Bash(npm run test -- src/stores/__tests__/billingEvents.test.ts)",
+      "Bash(npm run test -- src/services/__tests__/billingEvents.test.ts)"
     ],
     "deny": [],
     "ask": []

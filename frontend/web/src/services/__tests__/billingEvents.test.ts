@@ -142,10 +142,10 @@ describe('billingEventsApi', () => {
   })
 
   describe('getById', () => {
-    it('calls GET /billingevents/:id', async () => {
+    it('calls GET /billingevents/:uid', async () => {
       mockApiService.get.mockResolvedValue(mockBillingEvent)
 
-      const result = await billingEventsApi.getById(1)
+      const result = await billingEventsApi.getById('1')
 
       expect(mockApiService.get).toHaveBeenCalledWith('/events/1')
       expect(result).toEqual(mockBillingEvent)
@@ -165,7 +165,8 @@ describe('billingEventsApi', () => {
         active: true
       }
 
-      mockApiService.post.mockResolvedValue(mockBillingEvent)
+      // Backend returns { added: BillingEvent }
+      mockApiService.post.mockResolvedValue({ added: mockBillingEvent })
 
       const result = await billingEventsApi.create(createData)
 
@@ -175,7 +176,7 @@ describe('billingEventsApi', () => {
   })
 
   describe('update', () => {
-    it('calls PUT /billingevents/:id with update data', async () => {
+    it('calls PUT /billingevents with uid in body', async () => {
       const updateData: BillingEventUpdateData = {
         start_time: '2023-01-01T10:00:00',
         end_time: '2023-01-01T18:00:00',
@@ -183,11 +184,16 @@ describe('billingEventsApi', () => {
       }
 
       const updatedBillingEvent = { ...mockBillingEvent, ...updateData }
-      mockApiService.put.mockResolvedValue(updatedBillingEvent)
+      // Backend returns { updated: BillingEvent }
+      mockApiService.put.mockResolvedValue({ updated: updatedBillingEvent })
 
-      const result = await billingEventsApi.update(1, updateData)
+      const result = await billingEventsApi.update('1', updateData)
 
-      expect(mockApiService.put).toHaveBeenCalledWith('/events/1', updateData)
+      // API should send uid in the request body, not in the URL path
+      expect(mockApiService.put).toHaveBeenCalledWith('/events/', {
+        ...updateData,
+        uid: '1'
+      })
       expect(result).toEqual(updatedBillingEvent)
     })
   })

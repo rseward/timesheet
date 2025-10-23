@@ -166,9 +166,9 @@ describe('Billing Events Store', () => {
         mockBillingEventsApi.getById.mockResolvedValue(mockEvent)
         const store = useBillingEventsStore()
 
-        const result = await store.fetchBillingEventById(1)
+        const result = await store.fetchBillingEventById('1')
 
-        expect(mockBillingEventsApi.getById).toHaveBeenCalledWith(1)
+        expect(mockBillingEventsApi.getById).toHaveBeenCalledWith('1')
         expect(result).toEqual(mockEvent)
         expect(store.billingEvents).toHaveLength(1)
         expect(store.billingEvents[0].uid).toBe(mockEvent.uid)
@@ -176,16 +176,16 @@ describe('Billing Events Store', () => {
 
       it('updates existing event in store', async () => {
         const store = useBillingEventsStore()
-        
+
         // First, add the initial event
         mockBillingEventsApi.getById.mockResolvedValue(mockBillingEvents[0])
-        await store.fetchBillingEventById(1)
-        
+        await store.fetchBillingEventById('1')
+
         // Then update it
         const updatedEvent = { ...mockBillingEvents[0], log_message: 'Updated message' }
         mockBillingEventsApi.getById.mockResolvedValue(updatedEvent)
 
-        await store.fetchBillingEventById(1)
+        await store.fetchBillingEventById('1')
 
         expect(store.billingEvents[0].log_message).toBe('Updated message')
       })
@@ -194,7 +194,7 @@ describe('Billing Events Store', () => {
         mockBillingEventsApi.getById.mockRejectedValue(new Error('Not found'))
         const store = useBillingEventsStore()
 
-        const result = await store.fetchBillingEventById(1)
+        const result = await store.fetchBillingEventById('1')
 
         expect(result).toBe(null)
         expect(store.error).toBe('Not found')
@@ -243,18 +243,18 @@ describe('Billing Events Store', () => {
     describe('updateBillingEvent', () => {
       it('updates existing billing event', async () => {
         const store = useBillingEventsStore()
-        
+
         // First, populate store with initial data via fetchBillingEvents
         mockBillingEventsApi.getAll.mockResolvedValue(mockBillingEvents)
         await store.fetchBillingEvents()
-        
+
         const updateData: BillingEventUpdateData = { log_message: 'Updated work' }
         const updatedEvent = { ...mockBillingEvents[0], ...updateData }
         mockBillingEventsApi.update.mockResolvedValue(updatedEvent)
 
-        const result = await store.updateBillingEvent(1, updateData)
+        const result = await store.updateBillingEvent('1', updateData)
 
-        expect(mockBillingEventsApi.update).toHaveBeenCalledWith(1, updateData)
+        expect(mockBillingEventsApi.update).toHaveBeenCalledWith('1', updateData)
         expect(result).toEqual(updatedEvent)
         expect(store.billingEvents[0].log_message).toBe('Updated work')
       })
@@ -263,7 +263,7 @@ describe('Billing Events Store', () => {
         mockBillingEventsApi.update.mockRejectedValue(new Error('Update failed'))
         const store = useBillingEventsStore()
 
-        await expect(store.updateBillingEvent(1, {})).rejects.toThrow('Update failed')
+        await expect(store.updateBillingEvent('1', {})).rejects.toThrow('Update failed')
         expect(store.error).toBe('Update failed')
       })
     })
