@@ -152,140 +152,66 @@
               </div>
             </div>
 
-            <!-- Time Entries Table -->
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden mb-4">
-
-              <!-- Loading State -->
-              <div v-if="isLoading" class="flex justify-center py-8">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-
-              <!-- Error State -->
-              <div v-else-if="error" class="px-6 py-8">
-                <div class="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
-                  <div class="flex">
-                    <div class="flex-shrink-0">
-                      <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                      </svg>
-                    </div>
-                    <div class="ml-3">
-                      <h3 class="text-sm font-medium text-red-800 dark:text-red-300">
-                        Error loading time entries
-                      </h3>
-                      <div class="mt-1 text-sm text-red-700 dark:text-red-400">
-                        {{ error }}
-                      </div>
-                    </div>
+            <!-- Time Entries Table with DataTable Component -->
+            <DataTable
+              :data="billingEvents"
+              :columns="columns"
+              :loading="isLoading"
+              :error="error || undefined"
+              :actions="actions"
+              row-key="uid"
+              empty-title="No time entries"
+              empty-message="Get started by creating your first time entry."
+              show-pagination
+              :page-size="25"
+              :default-sort="{ key: 'start_time', order: 'desc' }"
+              class="mb-4"
+              @retry="applyFilters"
+            >
+              <!-- Custom cell for Project / Task -->
+              <template #cell-project_task="{ item }">
+                <div>
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ item.project_name || `Project ${item.project_id}` }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ item.task_name || `Task ${item.task_id}` }}
                   </div>
                 </div>
-              </div>
+              </template>
 
-              <!-- Empty State -->
-              <div v-else-if="billingEvents.length === 0" class="px-6 py-8 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No time entries</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Get started by creating your first time entry.
-                </p>
-                <div class="mt-6">
-                  <button
-                    @click="showAddTimeEntry = true"
-                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add Time Entry
-                  </button>
+              <!-- Custom cell for Hours -->
+              <template #cell-hours="{ item }">
+                <span class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ calculateHours(item.start_time, item.end_time).toFixed(2) }}
+                </span>
+              </template>
+
+              <!-- Custom cell for Time Period -->
+              <template #cell-time_period="{ item }">
+                <div>
+                  <div class="text-sm text-gray-900 dark:text-white">
+                    {{ formatTime(item.start_time) }} - {{ formatTime(item.end_time) }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ formatDate(item.start_time) }}
+                  </div>
                 </div>
-              </div>
+              </template>
 
-              <!-- Time Entries Data Table -->
-              <div v-else class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead class="bg-gray-50 dark:bg-gray-900">
-                    <tr>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Project / Task
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Trans #
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Hours
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Time Period
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Description
-                      </th>
-                      <th scope="col" class="relative px-6 py-3">
-                        <span class="sr-only">Actions</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    <tr v-for="entry in billingEvents" :key="entry.uid" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900 dark:text-white">
-                          {{ entry.project_name || `Project ${entry.project_id}` }}
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                          {{ entry.task_name || `Task ${entry.task_id}` }}
-                        </div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {{ entry.trans_num || '-' }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">
-                          {{ calculateHours(entry.start_time, entry.end_time).toFixed(2) }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900 dark:text-white">
-                          {{ formatTime(entry.start_time) }} - {{ formatTime(entry.end_time) }}
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                          {{ formatDate(entry.start_time) }}
-                        </div>
-                      </td>
-                      <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900 dark:text-white max-w-xs truncate">
-                          {{ entry.log_message || '-' }}
-                        </div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div class="flex items-center space-x-2">
-                          <button
-                            @click="editTimeEntry(entry)"
-                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                            title="Edit"
-                          >
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                          <button
-                            @click="deleteTimeEntry(entry)"
-                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                            title="Delete"
-                          >
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              <!-- Empty state slot with Add button -->
+              <template #empty>
+                <button
+                  @click="showAddTimeEntry = true"
+                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Time Entry
+                </button>
+              </template>
+            </DataTable>
 
             <!-- Total Hours Display - Moved Below Table -->
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
@@ -355,6 +281,8 @@ import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } fro
 import AppHeader from '@/components/layout/AppHeader.vue'
 import TimeEntryModal from '@/components/TimeEntryModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import DataTable from '@/components/DataTable.vue'
+import type { TableColumn, TableAction } from '@/components/DataTable.vue'
 
 // Stores
 const billingEventsStore = useBillingEventsStore()
@@ -379,6 +307,57 @@ const filters = reactive({
   startDate: '',
   endDate: ''
 })
+
+// DataTable configuration
+const columns: TableColumn[] = [
+  {
+    key: 'project_task',
+    title: 'Project / Task',
+    sortable: false,
+    width: 'w-64'
+  },
+  {
+    key: 'trans_num',
+    title: 'Trans #',
+    sortable: true,
+    formatter: (value) => value || '-'
+  },
+  {
+    key: 'hours',
+    title: 'Hours',
+    sortable: true,
+    width: 'w-24'
+  },
+  {
+    key: 'time_period',
+    title: 'Time Period',
+    sortable: true,
+    sortKey: 'start_time',  // Sort by start_time field instead of time_period
+    width: 'w-48'
+  },
+  {
+    key: 'log_message',
+    title: 'Description',
+    sortable: false,
+    cellClass: 'max-w-xs truncate'
+  }
+]
+
+const actions: TableAction[] = [
+  {
+    key: 'edit',
+    label: 'Edit',
+    icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+    handler: (item: BillingEvent) => editTimeEntry(item)
+  },
+  {
+    key: 'delete',
+    label: 'Delete',
+    variant: 'danger',
+    icon: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
+    handler: (item: BillingEvent) => deleteTimeEntry(item)
+  }
+]
 
 // Computed
 const clients = computed(() => {

@@ -128,45 +128,82 @@
               </div>
             </div>
 
-            <!-- Projects Table -->
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden" data-testid="projects-table">
-              <!-- Loading State -->
-              <div v-if="loading" class="flex items-center justify-center py-12" data-testid="loading-spinner">
-                <div class="text-center">
-                  <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <p class="text-gray-500 dark:text-gray-400">Loading projects...</p>
+            <!-- Projects Table with DataTable Component -->
+            <DataTable
+              :data="filteredProjects"
+              :columns="columns"
+              :loading="loading"
+              :error="error || undefined"
+              :actions="actions"
+              row-key="project_id"
+              empty-title="No projects found"
+              :empty-message="hasActiveFilters ? 'Try adjusting your filters or creating your first project.' : 'Get started by creating your first project.'"
+              show-pagination
+              :page-size="25"
+              :default-sort="{ key: 'title', order: 'asc' }"
+              data-testid="projects-table"
+              @retry="loadProjects"
+            >
+              <!-- Custom cell for Client -->
+              <template #cell-client="{ item }">
+                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ item.client_name || `Client ${item.client_id}` }}
                 </div>
-              </div>
+              </template>
 
-              <!-- Error State -->
-              <div v-else-if="error" class="flex items-center justify-center py-12" data-testid="error-alert">
-                <div class="text-center">
-                  <svg class="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p class="text-red-600 dark:text-red-400 mb-4">{{ error }}</p>
-                  <FormButton
-                    variant="primary"
-                    text="Retry"
-                    @click="loadProjects"
-                    data-testid="retry-button"
-                  />
+              <!-- Custom cell for Project Name -->
+              <template #cell-project_name="{ item }">
+                <div>
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ item.title }}
+                  </div>
+                  <div v-if="item.description" class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                    {{ item.description }}
+                  </div>
                 </div>
-              </div>
+              </template>
 
-              <!-- Empty State -->
-              <div v-else-if="filteredProjects.length === 0" class="flex items-center justify-center py-12" data-testid="empty-state">
-                <div class="text-center">
-                  <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No projects found</h3>
-                  <p class="text-gray-500 dark:text-gray-400 mb-4">
-                    {{ hasActiveFilters ? 'Try adjusting your filters or' : 'Get started by' }} creating your first project.
-                  </p>
+              <!-- Custom cell for Start Date -->
+              <template #cell-start_date="{ item }">
+                <div class="text-sm text-gray-900 dark:text-white">
+                  {{ formatDate(item.start_date) }}
+                </div>
+              </template>
+
+              <!-- Custom cell for Deadline -->
+              <template #cell-deadline="{ item }">
+                <div class="text-sm text-gray-900 dark:text-white">
+                  {{ formatDate(item.deadline) }}
+                </div>
+              </template>
+
+              <!-- Custom cell for Status -->
+              <template #cell-status="{ item }">
+                <span :class="getStatusBadgeClasses(item.proj_status)">
+                  {{ item.proj_status }}
+                </span>
+              </template>
+
+              <!-- Custom cell for Lead -->
+              <template #cell-lead="{ item }">
+                <div class="text-sm text-gray-900 dark:text-white">
+                  {{ item.proj_leader || '-' }}
+                </div>
+              </template>
+
+              <!-- Custom cell for Active -->
+              <template #cell-active="{ item }">
+                <span
+                  :class="item.active ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'"
+                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                >
+                  {{ item.active ? 'Active' : 'Inactive' }}
+                </span>
+              </template>
+
+              <!-- Empty state slot -->
+              <template #empty>
+                <div class="flex flex-col items-center space-y-3">
                   <FormButton
                     v-if="hasActiveFilters"
                     variant="secondary"
@@ -175,114 +212,26 @@
                     data-testid="clear-filters-button"
                   />
                   <FormButton
-                    v-else
                     variant="primary"
                     text="Add Project"
                     @click="openAddProjectModal"
                     data-testid="empty-state-add-button"
                   />
                 </div>
-              </div>
+              </template>
 
-              <!-- Data Table -->
-              <div v-else class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Client
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Project Name
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Start Date
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Deadline
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Lead
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Active
-                      </th>
-                      <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    <tr v-for="project in filteredProjects" :key="project.project_id" class="hover:bg-gray-50 dark:hover:bg-gray-750">
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900 dark:text-white">
-                          {{ project.client_name || `Client ${project.client_id}` }}
-                        </div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900 dark:text-white">
-                          {{ project.title }}
-                        </div>
-                        <div v-if="project.description" class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
-                          {{ project.description }}
-                        </div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {{ formatDate(project.start_date) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {{ formatDate(project.deadline) }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span :class="getStatusBadgeClasses(project.proj_status)">
-                          {{ project.proj_status }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {{ project.proj_leader || '-' }}
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span :class="project.active ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
-                          {{ project.active ? 'Active' : 'Inactive' }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          @click="openEditProjectModal(project)"
-                          class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
-                          :data-testid="`edit-project-${project.project_id}`"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          @click="openDeleteConfirmation(project)"
-                          class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          :data-testid="`delete-project-${project.project_id}`"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Summary Stats -->
-              <div v-if="filteredProjects.length > 0" class="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-t border-gray-200 dark:border-gray-600">
+              <!-- Header slot for summary stats -->
+              <template #header>
                 <div class="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
                   <span>
                     Showing {{ filteredProjects.length }} of {{ projectsCount }} projects
                   </span>
                   <span>
-                    Active: {{ activeProjectsCount }} | 
-                    Total: {{ projectsCount }}
+                    Active: {{ activeProjectsCount }} | Total: {{ projectsCount }}
                   </span>
                 </div>
-              </div>
-            </div>
+              </template>
+            </DataTable>
           </div>
         </div>
       </main>
@@ -322,6 +271,8 @@ import FormButton from '@/components/forms/FormButton.vue'
 import FormInput from '@/components/forms/FormInput.vue'
 import ProjectModal from './ProjectModal.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import DataTable from '@/components/DataTable.vue'
+import type { TableColumn, TableAction } from '@/components/DataTable.vue'
 import type { Project, ProjectStatus } from '@/types/project'
 import { PROJECT_STATUS_OPTIONS } from '@/types/project'
 
@@ -344,6 +295,72 @@ const filters = ref({
   active: null as boolean | null,
   search: ''
 })
+
+// DataTable configuration
+const columns: TableColumn[] = [
+  {
+    key: 'client',
+    title: 'Client',
+    sortable: true,
+    sortKey: 'client_name',
+    width: 'w-[15%]'
+  },
+  {
+    key: 'project_name',
+    title: 'Project Name',
+    sortable: true,
+    sortKey: 'title',
+    width: 'w-[25%]'
+  },
+  {
+    key: 'start_date',
+    title: 'Start Date',
+    sortable: true,
+    width: 'w-[12%]'
+  },
+  {
+    key: 'deadline',
+    title: 'Deadline',
+    sortable: true,
+    width: 'w-[12%]'
+  },
+  {
+    key: 'status',
+    title: 'Status',
+    sortable: true,
+    sortKey: 'proj_status',
+    width: 'w-[12%]'
+  },
+  {
+    key: 'lead',
+    title: 'Lead',
+    sortable: true,
+    sortKey: 'proj_leader',
+    width: 'w-[12%]'
+  },
+  {
+    key: 'active',
+    title: 'Active',
+    sortable: true,
+    width: 'w-[12%]'
+  }
+]
+
+const actions: TableAction[] = [
+  {
+    key: 'edit',
+    label: 'Edit',
+    icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+    handler: (project: Project) => openEditProjectModal(project)
+  },
+  {
+    key: 'delete',
+    label: 'Delete',
+    variant: 'danger',
+    icon: 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
+    handler: (project: Project) => openDeleteConfirmation(project)
+  }
+]
 
 // Computed
 const clients = computed(() => clientsStore.clients)

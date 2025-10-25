@@ -101,7 +101,8 @@ async def api_userinfo(request: Request):
 
 
 # Include API routers
-app.include_router(api.routers.auth.router)
+# NOTE: auth router is not included because we have explicit /api/* wrapper endpoints above
+# app.include_router(api.routers.auth.router)
 app.include_router(api.routers.client.router)
 app.include_router(api.routers.user.router)
 app.include_router(api.routers.project.router)

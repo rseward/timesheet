@@ -127,18 +127,18 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
 
 * TODO [#A] UI Component Library                                     :frontend:
 ** TODO Layout Components [/] [%]
-*** TODO MainLayout [/] [%]
-    - [ ] Create main application layout structure
-    - [ ] Implement responsive navigation header
+*** TODO MainLayout [3/5] [60%]
+    - [X] Create main application layout structure
+    - [X] Implement responsive navigation header
     - [ ] Add sidebar support (future expansion)
     - [ ] Include notification area
-    - [ ] Write component tests
+    - [X] Write component tests
     
-*** TODO AuthLayout [/] [%]
-    - [ ] Create centered layout for login/auth pages
-    - [ ] Add background image support
-    - [ ] Implement responsive design
-    - [ ] Write component tests
+*** DONE AuthLayout [4/4] [100%]
+    - [X] Create centered layout for login/auth pages
+    - [X] Add background image support
+    - [X] Implement responsive design
+    - [X] Write component tests
 
 ** TODO Form Components [/] [%]
 *** TODO FormInput [/] [%]
@@ -178,19 +178,21 @@ This org file tracks all tasks required to build the Vue.js frontend for the tim
     - [ ] Write component tests
 
 ** TODO Data Display Components [/] [%]
-*** TODO DataTable [/] [%]
-    - [ ] Create sortable, filterable table component
-    - [ ] Add pagination support
-    - [ ] Implement row selection
-    - [ ] Add loading and empty states
-    - [ ] Create responsive behavior
-    - [ ] Add action buttons (edit, delete)
-    - [ ] Write comprehensive component tests
+*** DONE DataTable [7/7] [100%]
+    CLOSED: [2025-10-24 Fri 12:00]
+    - [X] Create sortable, filterable table component
+    - [X] Add pagination support
+    - [X] Implement row selection
+    - [X] Add loading and empty states
+    - [X] Create responsive behavior
+    - [X] Add action buttons (edit, delete)
+    - [X] Write comprehensive component tests
     
-*** TODO LoadingSpinner [/] [%]
-    - [ ] Create loading indicator component
-    - [ ] Add different sizes and styles
-    - [ ] Write component tests
+*** DONE LoadingSpinner [3/3] [100%]
+    CLOSED: [2025-10-24 Fri 12:00]
+    - [X] Create loading indicator component
+    - [X] Add different sizes and styles
+    - [X] Write component tests
     
 *** TODO Modal [/] [%]
     - [ ] Create modal dialog component

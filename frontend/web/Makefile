@@ -18,11 +18,11 @@ test:
 	npm run test
 
 # Build for production
-build-prod:
+prod-build:
 	npm run build
 
 # Development build
-build-dev:
+dev-build:
 	npm run build:dev
 
 # Clean build artifacts
@@ -38,7 +38,7 @@ dev:
 	npm run dev
 
 # Preview production build
-preview: build-prod
+preview: prod-build
 	npm run preview
 
 # Run integration tests (requires backend)
@@ -61,8 +61,8 @@ help:
 	@echo "  test          - Run unit tests"
 	@echo "  test-integration - Run integration tests (requires backend)"
 	@echo "  test-all      - Run all tests (unit + integration)"
-	@echo "  build-prod    - Build for production"
-	@echo "  build-dev     - Build for development"
+	@echo "  prod-build    - Build for production"
+	@echo "  dev-build     - Build for development"
 	@echo "  dev           - Start development server"
 	@echo "  preview       - Preview production build"
 	@echo "  check         - Quick development check (install, lint, type-check)"

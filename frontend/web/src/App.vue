@@ -2,6 +2,7 @@
 // Main App component with router
 import { ref, provide } from 'vue'
 import TokenRefreshStatus from '@/components/TokenRefreshStatus.vue'
+import NotificationContainer from '@/components/NotificationContainer.vue'
 
 // State to control TokenRefreshStatus visibility
 const showTokenRefreshStatus = ref(false)
@@ -23,6 +24,9 @@ provide('toggleTokenRefreshStatus', () => {
         <TokenRefreshStatus />
       </div>
     </div>
+
+    <!-- Global Notification Container -->
+    <NotificationContainer />
 
     <!-- Main content with dynamic top margin based on status bar visibility -->
     <div :class="showTokenRefreshStatus ? 'pt-20' : 'pt-0'">
