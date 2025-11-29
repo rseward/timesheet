@@ -45,4 +45,8 @@ lint:	steps/ruff
 	cd src; ruff check
 	cd src; ruff format
 
+backup:
+	cp timesheet.sqlite backups/timesheet_$(shell date +%Y%m%d).sqlite
+	ls -ltr backups
+
 

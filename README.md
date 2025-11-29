@@ -1,12 +1,16 @@
 # timesheet
 
-## Goals
-
-A Python / DJango re-implementation of the classic timesheet.php project used for
-client timetracking.
-
 Any software consultancy needs to track time spent on client tasks. This project aims to
 provide this capability in as simple manner as possible. The project should enable easy generation of invoices for client work.
+
+Early in the life cycle of my company, I used the quasi open source timesheet.php project. It provided the capability I needed to track time spent on client tasks and prepare invoices for clients.
+
+This project seeks to provide a modernized open source project for these purposes.
+
+## Goals
+
+A Python / vue.js re-implementation of the classic timesheet.php project used for
+client timetracking.
 
 A secondary purpose is to gain experience on common full stack python development tools and frameworks.
 
@@ -18,8 +22,8 @@ Project components:
 - alembic (to manage the schema)
 - sqlalchemy
 - sqllite3 or postgres
-- django
-- ReactJS
+- vue.js
+- fastapi
 - docker to easily host the project in a container
 
 ## Project Development Setup
@@ -76,6 +80,18 @@ Alembic database definitions and migrations
 #### backend/src
 
 Pydantic Models, SQLAlchemy data model and other support classes
+
+### frontend
+
+Frontend components including vue.js
+
+#### frontend/web
+
+Vue.js UI
+
+#### frontend/flet
+
+python flet UI frontend. First UI implementation used to prototype the UI.
 
 ## Contributions
 
