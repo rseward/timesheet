@@ -138,3 +138,5 @@ install
 pip.out
 timesheet.sqlite
 frontend/flet/user-creds.pickle
+node_modules
+myenv
