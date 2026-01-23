@@ -8,6 +8,10 @@ query:	steps/db
 	#sqlite3 $(TIMESHEET_SQLITE)
 	litecli $(TIMESHEET_SQLITE)
 
+querytool:
+	sqlit $(TIMESHEET_SA_URL)
+	clear
+
 migratedb:	steps/db
 	ls -l timesheet.sqlite
 

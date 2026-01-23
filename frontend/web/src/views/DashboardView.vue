@@ -91,7 +91,10 @@
             
             <!-- Navigation Cards Grid -->
             <div class="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
+              <router-link
+                to="/clients"
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group block"
+              >
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -112,19 +115,17 @@
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-green-50 dark:group-hover:bg-green-900/20 transition-colors duration-200">
-                  <div class="text-sm">
-                    <router-link
-                      to="/clients"
-                      class="font-medium text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100"
-                    >
-                      View all clients →
-                    </router-link>
+                  <div class="text-sm font-medium text-green-700 dark:text-green-300">
+                    View all clients →
                   </div>
                 </div>
-              </div>
+              </router-link>
 
               <!-- Add more navigation cards for other sections -->
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
+              <router-link
+                to="/projects"
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group block"
+              >
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -145,18 +146,16 @@
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 transition-colors duration-200">
-                  <div class="text-sm">
-                    <router-link
-                      to="/projects"
-                      class="font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
-                    >
-                      View all projects →
-                    </router-link>
+                  <div class="text-sm font-medium text-amber-700 dark:text-amber-300">
+                    View all projects →
                   </div>
                 </div>
-              </div>
+              </router-link>
 
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
+              <router-link
+                to="/tasks"
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group block"
+              >
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -177,18 +176,16 @@
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-cyan-50 dark:group-hover:bg-cyan-900/20 transition-colors duration-200">
-                  <div class="text-sm">
-                    <router-link
-                      to="/tasks"
-                      class="font-medium text-cyan-700 dark:text-cyan-300 hover:text-cyan-900 dark:hover:text-cyan-100"
-                    >
-                      View all tasks →
-                    </router-link>
+                  <div class="text-sm font-medium text-cyan-700 dark:text-cyan-300">
+                    View all tasks →
                   </div>
                 </div>
-              </div>
+              </router-link>
 
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
+              <router-link
+                to="/hours"
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group block"
+              >
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -209,18 +206,16 @@
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20 transition-colors duration-200">
-                  <div class="text-sm">
-                    <router-link
-                      to="/hours"
-                      class="font-medium text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100"
-                    >
-                      Track time →
-                    </router-link>
+                  <div class="text-sm font-medium text-purple-700 dark:text-purple-300">
+                    Track time →
                   </div>
                 </div>
-              </div>
+              </router-link>
 
-              <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group">
+              <router-link
+                to="/reports"
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group block"
+              >
                 <div class="p-5">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -241,16 +236,11 @@
                   </div>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-yellow-50 dark:group-hover:bg-yellow-900/20 transition-colors duration-200">
-                  <div class="text-sm">
-                    <router-link
-                      to="/reports"
-                      class="font-medium text-yellow-700 dark:text-yellow-300 hover:text-yellow-900 dark:hover:text-yellow-100"
-                    >
-                      View reports →
-                    </router-link>
+                  <div class="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                    View reports →
                   </div>
                 </div>
-              </div>
+              </router-link>
             </div>
           </div>
         </div>

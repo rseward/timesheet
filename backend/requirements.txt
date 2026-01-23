@@ -10,9 +10,8 @@ cachetools
 bcrypt==3.2.2
 marimo
 pandas
-
-
 litecli
 sqlglot
 pytest
 pytest-asyncio
+sqlit-tui
