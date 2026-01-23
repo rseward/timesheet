@@ -1,5 +1,9 @@
 # Timesheet Release Notes
 
+## Version 0.3.0 - January 2026
+
+- Improved dashboard usability. Clicking can be done anywhere on the activity/task button
+
 ## Version 0.2.0 - October 2025
 
 ### New Features
