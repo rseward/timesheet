@@ -22,7 +22,7 @@ The Admin screen will provide a link to Manage Federal Holidays. Holidays entere
 ## Time Entry
 
 Disable the entry of hours on a Federal or Client Holiday. When the user attempts to use a holiday date display a message stating the Day is a holiday
-for the client.
+for the specific client or indicate it is a Federal Holiday if that is the case.
 
 # [x] User Dashboard Useability Change
 
