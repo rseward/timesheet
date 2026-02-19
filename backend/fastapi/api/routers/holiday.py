@@ -105,10 +105,10 @@ def client_holidays(client_id: int, year: int | None = None) -> dict[str, dict[i
 
 @router.get(
     "/check-date",
-    response_model=dict[str, any],
+    response_model=None,
     dependencies=[Depends(JWTBearer())],
 )
-def check_date_is_holiday(client_id: int, date: date) -> dict[str, any]:
+def check_date_is_holiday(client_id: int, date: date) -> dict:
     holidayDao = daos.getHolidayDao()
     holiday = holidayDao.checkDateIsHoliday(client_id, date)
 
