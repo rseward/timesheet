@@ -41,7 +41,7 @@ def upgrade() -> None:
 
     op.create_table(
        'assignments',
-       sa.Column('proj_id', sa.Integer, primary_key=True),
+       sa.Column('project_id', sa.Integer, primary_key=True),
        sa.Column('username', sa.String(32), primary_key=True)
     )
 
@@ -71,46 +71,45 @@ def upgrade() -> None:
     op.create_table(
        'note',
        sa.Column('note_id', sa.Integer, nullable=False, primary_key=True),
-       sa.Column('proj_id', sa.Integer, nullable=False),
+       sa.Column('project_id', sa.Integer, nullable=False),
        sa.Column('date', sa.DateTime, nullable=False, default='0000-00-00 00:00:00'),
        sa.Column('subject', sa.String(128), nullable=True),
        sa.Column('body', sa.Text, nullable=True),
        sa.Column('to_contact', sa.Boolean, nullable=False, default=False)    
     )
 
-    ProjectStatusType.create(op.get_bind(), checkfirst=True)        
     op.create_table(
        'project',
-       sa.Column('proj_id', sa.Integer, nullable=False, primary_key=True),
+       sa.Column('project_id', sa.Integer, nullable=False, primary_key=True),
        sa.Column('title', sa.String(200), nullable=False, default=''),
        sa.Column('client_id', sa.Integer, nullable=False, default=0),
        sa.Column('description', sa.String(256), default=None),
        sa.Column('start_date', sa.Date, nullable=False, default='1970-01-01'),
        sa.Column('deadline', sa.Date, nullable=False, default='0000-00-00'),
        sa.Column('http_link', sa.String(128), default=None),
-       sa.Column('proj_status', ProjectStatusType, nullable=False, default='Pending'),
-       sa.Column('proj_leader', sa.String(32), nullable=True)    
+       sa.Column('proj_status', sa.Enum('Pending', 'Started', 'Suspended', name='project_status_type'), nullable=False, default='Pending'),
+       sa.Column('proj_leader', sa.String(32), nullable=True)
     )
 
-    TaskStatusType.create(op.get_bind(), checkfirst=True)        
     op.create_table(
        'task',
        sa.Column('task_id', sa.Integer, nullable=False, primary_key=True),
-       sa.Column('proj_id', sa.Integer, nullable=False, default=0),
+       sa.Column('project_id', sa.Integer, nullable=False, default=0),
        sa.Column('name', sa.String(128), nullable=False, default=''),
        sa.Column('description', sa.Text),
-       sa.Column('assigned', sa.DateTime, nullable=False, default='0000-00-00 00:00:00'),
-       sa.Column('started', sa.DateTime, nullable=False, default='0000-00-00 00:00:00'),
-       sa.Column('suspended', sa.DateTime(), nullable=False, default='0000-00-00 00:00:00'),
-       sa.Column('completed', sa.DateTime(), nullable=False, default='0000-00-00 00:00:00'),
-       sa.Column('status', TaskStatusType, nullable=False, default='Pending')
+       sa.Column('assigned', sa.DateTime, nullable=True),
+       sa.Column('started', sa.DateTime, nullable=True),
+       sa.Column('suspended', sa.DateTime(), nullable=True),
+       sa.Column('completed', sa.DateTime(), nullable=True),
+       sa.Column('http_link', sa.String(128), nullable=True),
+       sa.Column('status', sa.Enum('Pending', 'Assigned', 'Started', 'Suspended', 'Complete', name='task_type'), nullable=False, default='Pending')
     )
 
     op.create_table(
        'task_assignments',
        sa.Column('task_id', sa.Integer, nullable=False, default=0),
        sa.Column('username', sa.String(32), nullable=False, default=''),
-       sa.Column('proj_id', sa.Integer, nullable=False, default=0)
+       sa.Column('project_id', sa.Integer, nullable=False, default=0)
     )
 
     op.create_table(
@@ -119,7 +118,7 @@ def upgrade() -> None:
        sa.Column('start_time', sa.DateTime, nullable=False, default='1970-01-01 00:00:00'),
        sa.Column('end_time', sa.DateTime, nullable=False, default='0000-00-00 00:00:00'),
        sa.Column('trans_num', sa.Integer, sa.Identity(start=1, cycle=True), nullable=False),
-       sa.Column('proj_id', sa.Integer, nullable=False, default=1),
+       sa.Column('project_id', sa.Integer, nullable=False, default=1),
        sa.Column('task_id', sa.Integer, nullable=False, default=1),
        sa.Column('log_message', sa.String(255), default=None)
     )
