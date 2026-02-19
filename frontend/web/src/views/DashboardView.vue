@@ -240,13 +240,44 @@
                     View reports →
                   </div>
                 </div>
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
+               </router-link>
+
+               <!-- Admin Section -->
+               <router-link
+                 to="/holidays/federal"
+                 class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-lg transition-all duration-200 hover:-translate-y-1 cursor-pointer group block"
+               >
+                 <div class="p-5">
+                   <div class="flex items-center">
+                     <div class="flex-shrink-0">
+                       <div class="h-8 w-8 bg-red-500 rounded-full flex items-center justify-center group-hover:bg-red-600 transition-colors duration-200">
+                         <span class="text-white text-sm font-medium">A</span>
+                       </div>
+                     </div>
+                     <div class="ml-5 w-0 flex-1">
+                       <dl>
+                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                           Admin
+                         </dt>
+                         <dd class="text-lg font-medium text-gray-900 dark:text-white">
+                           Federal Holidays
+                         </dd>
+                       </dl>
+                     </div>
+                   </div>
+                 </div>
+                 <div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors duration-200">
+                   <div class="text-sm font-medium text-red-700 dark:text-red-300">
+                     Manage holidays →
+                   </div>
+                 </div>
+               </router-link>
+             </div>
+           </div>
+         </div>
+       </main>
+     </div>
+   </div>
 </template>
 
 <script setup lang="ts">

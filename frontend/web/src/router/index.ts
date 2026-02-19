@@ -104,6 +104,38 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
+  // Holiday Management
+  {
+    path: '/holidays',
+    name: 'holidays',
+    component: () => import('@/views/holidays/HolidaysView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Holidays',
+      breadcrumb: 'Holidays'
+    }
+  },
+  {
+    path: '/holidays/federal',
+    name: 'holidays-federal',
+    component: () => import('@/views/holidays/HolidaysView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Federal Holidays',
+      breadcrumb: 'Federal Holidays'
+    }
+  },
+  {
+    path: '/holidays/client/:clientId',
+    name: 'holidays-client',
+    component: () => import('@/views/holidays/HolidaysView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Client Holidays',
+      breadcrumb: 'Client Holidays'
+    }
+  },
+
   // User Preferences
   {
     path: '/preferences',

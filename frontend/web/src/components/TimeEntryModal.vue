@@ -131,6 +131,28 @@
                 <p v-if="errors.task_id" class="mt-1 text-sm text-red-600">{{ errors.task_id }}</p>
               </div>
 
+              <!-- Holiday Warning -->
+              <div v-if="isHolidayWarning" class="rounded-md bg-yellow-50 dark:bg-yellow-900/20 p-4 border border-yellow-200 dark:border-yellow-800">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400 dark:text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v2a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                      Holiday Notice
+                    </h3>
+                    <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                      {{ holidayWarningMessage }}
+                    </p>
+                    <p class="mt-1 text-xs text-yellow-600 dark:text-yellow-400">
+                      Time entry is disabled on holidays.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <!-- Date -->
               <div>
                 <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -255,6 +277,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useBillingEventsStore } from '@/stores/billingEvents'
+import { useHolidaysStore } from '@/stores/holidays'
 import DatePicker from '@/components/DatePicker.vue'
 import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } from '@/types/billingEvent'
 import type { Client } from '@/types/client'
@@ -283,9 +306,12 @@ const emit = defineEmits<Emits>()
 // Stores
 const preferencesStore = usePreferencesStore()
 const billingEventsStore = useBillingEventsStore()
+const holidaysStore = useHolidaysStore()
 
 const loading = ref(false)
 const errors = ref<Record<string, string>>({})
+const holidayCheckResult = ref<any>(null)
+const checkingHoliday = ref(false)
 
 const form = ref({
   client_id: '',
@@ -326,13 +352,24 @@ const calculatedHours = computed(() => {
 })
 
 const isFormValid = computed(() => {
+  const hasHoliday = holidayCheckResult.value && holidayCheckResult.value.is_holiday
   return form.value.client_id &&
          form.value.project_id &&
          form.value.task_id &&
          form.value.date &&
          form.value.start_time &&
          form.value.end_time &&
-         calculatedHours.value > 0
+         calculatedHours.value > 0 &&
+         !hasHoliday
+})
+
+const isHolidayWarning = computed(() => {
+  return holidayCheckResult.value && holidayCheckResult.value.is_holiday
+})
+
+const holidayWarningMessage = computed(() => {
+  if (!isHolidayWarning.value) return null
+  return holidayCheckResult.value.message
 })
 
 const initializeForm = async () => {
@@ -591,6 +628,31 @@ watch(() => props.clients, (newClients) => {
     console.log('[TimeEntryModal] New client names:', newClients.map(c => c.organisation))
   }
 }, { immediate: true })
+
+// Watch for date and client changes to check for holidays
+watch([() => form.value.date, () => form.value.client_id], async ([newDate, newClientId]) => {
+  if (newDate && newClientId) {
+    await checkHolidayForDate(newDate, parseInt(newClientId))
+  } else {
+    holidayCheckResult.value = null
+  }
+})
+
+const checkHolidayForDate = async (date: string, clientId: number) => {
+  checkingHoliday.value = true
+  try {
+    const result = await holidaysStore.checkDateIsHoliday(clientId, date)
+    holidayCheckResult.value = result
+    if (result.is_holiday) {
+      console.log('[TimeEntryModal] Holiday detected:', result)
+    }
+  } catch (error) {
+    console.error('[TimeEntryModal] Error checking holiday:', error)
+    holidayCheckResult.value = null
+  } finally {
+    checkingHoliday.value = false
+  }
+}
 
 onMounted(async () => {
   if (props.isOpen) {

@@ -116,3 +116,14 @@ class UserPreferenceJson(BaseModel):
     user_id: int
     preference_key: constr(max_length=64)
     preference_value: Optional[constr(max_length=255)] = None
+
+
+class HolidayJson(BaseModel):
+    holiday_id: Optional[int] = None
+    client_id: int
+    holiday_date: datetime.date
+    name: constr(max_length=128)
+    description: Optional[str] = None
+    is_federal: Optional[bool] = False
+    active: Optional[bool] = True
+    client_name: Optional[str] = None

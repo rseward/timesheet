@@ -1,7 +1,7 @@
 This file lists features for the current release. If the feature section contains empty square brackets. The feature is still pending implementation.
 Otherwise assume it is complete.
 
-# [ ] Holiday feature.
+# [x] Holiday feature.
 
 Add a holiday feature. Support the configuration of client specific holidays for each calendar year.
 
@@ -11,7 +11,7 @@ To implement this feature follow all the existing patterns for the project's cod
 
 ## Holiday entry
 
-On the client edit window, provide a button to navigate to the holiday entry screen. 
+On the client edit window, provide a button to navigate to the holiday entry screen.
 
 The holiday entry screen will behave and look like other entry screens. E.g. time entries.
 

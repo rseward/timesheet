@@ -186,5 +186,17 @@ class UserPreference(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.user_id"), nullable=False)
     preference_key = Column(String(64), nullable=False)
     preference_value = Column(String(255), nullable=True)
+
+
+class Holiday(Base):
+    __tablename__ = "holiday"
+
+    holiday_id = Column(Integer, primary_key=True, autoincrement=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("client.client_id"), nullable=False)
+    holiday_date = Column(Date, nullable=False)
+    name = Column(String(128), nullable=False)
+    description = Column(String(255))
+    is_federal = Column(Boolean, nullable=False, default=False)
+    active = Column(Boolean, nullable=False)
     
     
