@@ -164,7 +164,7 @@ describe('DashboardView', () => {
       const wrapper = createWrapper()
       
       const cards = wrapper.findAll('.group')
-      expect(cards.length).toBe(5) // Should have 5 navigation cards
+      expect(cards.length).toBe(6) // Should have 6 navigation cards (5 main + 1 admin)
       
       cards.forEach(card => {
         expect(card.classes()).toContain('hover:shadow-lg')

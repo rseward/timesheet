@@ -1,6 +1,9 @@
 # Build target for fresh Git checkout
 build: install lint type-check test build-prod
 
+# Build without linting (ESLint 9 migration in progress)
+build-no-lint: install type-check test build-prod
+
 # Install dependencies
 install:
 	npm ci

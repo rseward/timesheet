@@ -225,7 +225,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useHolidaysStore } from '@/stores/holidays'
 import { useClientsStore } from '@/stores/clients'
 import AppHeader from '@/components/layout/AppHeader.vue'

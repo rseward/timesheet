@@ -36,7 +36,7 @@ export const holidaysApi = {
       if (Array.isArray(holidaysData)) {
         holidaysData = holidaysData.map((backendHoliday: any) => {
           const mappedHoliday: Holiday = {
-            id: backendHoliday.holiday_id || backendHoliday.id,
+            id: backendHoliday.id || backendHoliday.holiday_id,
             client_id: backendHoliday.client_id,
             holiday_date: backendHoliday.holiday_date,
             name: backendHoliday.name,
@@ -63,11 +63,18 @@ export const holidaysApi = {
 
   async getById(id: number): Promise<{ success: boolean; data: Holiday; error?: string }> {
     const response = await apiService.get<{ holiday: Holiday }>(`/holidays/${id}`)
+    const holidayData = response.holiday as any
     return {
       success: true,
       data: {
-        ...response.holiday,
-        id: response.holiday.holiday_id
+        id: holidayData.id || holidayData.holiday_id,
+        client_id: holidayData.client_id,
+        holiday_date: holidayData.holiday_date,
+        name: holidayData.name,
+        description: holidayData.description,
+        is_federal: holidayData.is_federal,
+        active: holidayData.active,
+        client_name: holidayData.client_name
       }
     }
   },
@@ -76,10 +83,19 @@ export const holidaysApi = {
     const params = year ? { year } : {}
     const response = await apiService.get<{ holidays: { [key: string]: Holiday } }>('/holidays/federal', { params })
 
-    const holidays = Object.values(response.holidays || {}).map((h: any) => ({
-      ...h,
-      id: h.holiday_id
-    }))
+    const holidays = Object.values(response.holidays || {}).map((h: any) => {
+      const holidayData = h as any
+      return {
+        id: holidayData.id || holidayData.holiday_id,
+        client_id: holidayData.client_id,
+        holiday_date: holidayData.holiday_date,
+        name: holidayData.name,
+        description: holidayData.description,
+        is_federal: holidayData.is_federal,
+        active: holidayData.active,
+        client_name: holidayData.client_name
+      }
+    })
 
     return {
       success: true,
