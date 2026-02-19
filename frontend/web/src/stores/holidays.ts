@@ -42,8 +42,7 @@ export const useHolidaysStore = defineStore('holidays', () => {
     if (filters.value.year !== null && filters.value.year !== undefined) {
       const year = filters.value.year
       result = result.filter(holiday => {
-        const holidayDate = new Date(holiday.holiday_date)
-        return holidayDate.getFullYear() === year
+        return holiday.holiday_date.startsWith(String(year))
       })
     }
 
