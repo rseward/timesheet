@@ -379,7 +379,9 @@ const formatDate = (dateString: string): string => {
   if (!dateString) return ''
 
   try {
-    const date = new Date(dateString)
+    // Parse date parts directly to avoid UTC-to-local timezone shift
+    const [year, month, day] = dateString.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       year: 'numeric',

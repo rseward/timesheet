@@ -42,31 +42,6 @@ def index(active: bool = True, client_id: int | None = None, year: int | None = 
 
 
 @router.get(
-    "/{holiday_id}",
-    response_model=dict[str, HolidayJson],
-    dependencies=[Depends(JWTBearer())],
-)
-def holiday_by_id(holiday_id: int) -> dict[str, HolidayJson]:
-    holidayDao = daos.getHolidayDao()
-    dbholiday = holidayDao.getById(holiday_id)
-
-    if not(dbholiday):
-        raise HTTPException(status_code=404, detail=f"Holiday with holiday_id={holiday_id} does not exist.")
-
-    j = holidayDao.toJson(dbholiday)
-    j.client_name = None
-    if dbholiday.client_id != 0:
-        clientDao = daos.getClientDao()
-        client = clientDao.getById(dbholiday.client_id)
-        if client:
-            j.client_name = client.organisation
-    else:
-        j.client_name = "Federal"
-
-    return {"holiday": j}
-
-
-@router.get(
     "/federal",
     response_model=dict[str, dict[int, HolidayJson]],
     dependencies=[Depends(JWTBearer())],
@@ -128,6 +103,31 @@ def check_date_is_holiday(client_id: int, date: date) -> dict:
         result["message"] = None
 
     return result
+
+
+@router.get(
+    "/{holiday_id}",
+    response_model=dict[str, HolidayJson],
+    dependencies=[Depends(JWTBearer())],
+)
+def holiday_by_id(holiday_id: int) -> dict[str, HolidayJson]:
+    holidayDao = daos.getHolidayDao()
+    dbholiday = holidayDao.getById(holiday_id)
+
+    if not(dbholiday):
+        raise HTTPException(status_code=404, detail=f"Holiday with holiday_id={holiday_id} does not exist.")
+
+    j = holidayDao.toJson(dbholiday)
+    j.client_name = None
+    if dbholiday.client_id != 0:
+        clientDao = daos.getClientDao()
+        client = clientDao.getById(dbholiday.client_id)
+        if client:
+            j.client_name = client.organisation
+    else:
+        j.client_name = "Federal"
+
+    return {"holiday": j}
 
 
 @router.post(
