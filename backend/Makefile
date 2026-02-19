@@ -1,4 +1,12 @@
-run:	
+#TIMESHEET_SQLITE ?= $(CURDIR)/timesheet.sqlite
+#TIMESHEET_SA_URL ?= sqlite:///$(CURDIR)/timesheet.sqlite
+#export TIMESHEET_SQLITE
+#export TIMESHEET_SA_URL
+
+venv:
+	uv venv
+
+run:
 	./run.sh
 
 devsetup:	steps/db steps/install tests
@@ -17,7 +25,7 @@ migratedb:	steps/db
 
 steps/install:	pip.out
 	mkdir -p steps
-	pip install ./
+	uv pip install ./
 	touch steps/install
 
 install:	pip.out
@@ -31,7 +39,7 @@ steps/db:
 	scripts/alembic-upgrade.sh
 	touch steps/db
 
-test:	steps/install
+test:	steps/db steps/install
 	tests/testModelEnums.py
 	tests/testModels.py
 	tests/testJsonModels.py
