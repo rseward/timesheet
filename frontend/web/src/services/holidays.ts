@@ -135,7 +135,8 @@ export const holidaysApi = {
       active: data.active !== undefined ? data.active : true
     }
 
-    const result = await apiService.post<any>('/holidays/', backendData)
+    const response = await apiService.post<any>('/holidays/', backendData)
+    const result = response.added || response
 
     const mappedResult: Holiday = {
       id: result.holiday_id || result.id,
@@ -165,7 +166,8 @@ export const holidaysApi = {
       active: data.active !== undefined ? data.active : true
     }
 
-    const result = await apiService.put<any>('/holidays/', backendData)
+    const response = await apiService.put<any>('/holidays/', backendData)
+    const result = response.updated || response
 
     const mappedResult: Holiday = {
       id: result.holiday_id || result.id,
