@@ -37,13 +37,13 @@ def is_holiday(date: datetime.date, client_id: Optional[int] = None) -> bool:
     
     # Check client-specific holidays
     if client_id:
-        holidays = HolidayDao.get_holidays_for_client(client_id, date.year)
-        if any(h.date == date for h in holidays):
+        holidays = HolidayDao.getAll(client_id=client_id, year=date.year)
+        if any(h.holiday_date == date for h in holidays):
             return True
     
     # Check federal holidays (client_id=0)
-    federal_holidays = HolidayDao.get_holidays_for_client(0, date.year)
-    if any(h.date == date for h in federal_holidays):
+    federal_holidays = HolidayDao.getFederalHolidays(year=date.year)
+    if any(h.holiday_date == date for h in federal_holidays):
         return True
     
     return False
