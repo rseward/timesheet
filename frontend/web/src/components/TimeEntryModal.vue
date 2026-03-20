@@ -56,6 +56,25 @@
               </div>
             </div>
             
+            <!-- Smart Date Defaulting Info (Ticket #56) -->
+            <div 
+              v-if="!isEditing && smartDateInfo" 
+              class="mt-3 rounded-md bg-green-50 dark:bg-green-900/20 p-3"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-green-800 dark:text-green-200">
+                    Date auto-set to next available work day ({{ smartDateInfo.reason }})
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <form @submit.prevent="handleSubmit" class="mt-6 space-y-4">
               <!-- Client Selection -->
               <div>
@@ -135,6 +154,7 @@
               <div>
                 <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Date
+                  <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(Auto-computed for new entries)</span>
                 </label>
                 <DatePicker
                   v-model="form.date"
@@ -286,6 +306,7 @@ const billingEventsStore = useBillingEventsStore()
 
 const loading = ref(false)
 const errors = ref<Record<string, string>>({})
+const smartDateInfo = ref<{date: string, reason: string, iterations: number} | null>(null)
 
 const form = ref({
   client_id: '',
@@ -334,6 +355,43 @@ const isFormValid = computed(() => {
          form.value.end_time &&
          calculatedHours.value > 0
 })
+
+const computeSmartDefaultDate = async () => {
+  try {
+    const timekeeperId = 1 // TODO: Get from auth context
+    const clientId = props.defaultClientId ? parseInt(props.defaultClientId) : null
+    const projectId = props.defaultProjectId ? parseInt(props.defaultProjectId) : null
+    
+    console.log('[TimeEntryModal] Computing smart default date:', {
+      timekeeperId,
+      clientId,
+      projectId
+    })
+    
+    const api = await import('@/services/api')
+    const response = await api.get('/api/time-entry/next-date', {
+      params: {
+        timekeeper_id: timekeeperId,
+        client_id: clientId,
+        project_id: projectId
+      }
+    })
+    
+    if (response.data && response.data.date) {
+      smartDateInfo.value = {
+        date: response.data.date,
+        reason: response.data.reason,
+        iterations: response.data.iterations
+      }
+      console.log('[TimeEntryModal] Smart date computed:', smartDateInfo.value)
+      return response.data.date
+    }
+  } catch (error) {
+    console.warn('[TimeEntryModal] Failed to compute smart date, using today:', error)
+  }
+  
+  return new Date().toISOString().split('T')[0]
+}
 
 const initializeForm = async () => {
   console.log('[TimeEntryModal] initializeForm called')
@@ -389,17 +447,22 @@ const initializeForm = async () => {
       active: entry.active
     }
   } else {
-    // Add mode - reset form with defaults from filter selections
-    const today = new Date().toISOString().split('T')[0]
-    console.log('[TimeEntryModal] Initializing new entry with filter defaults:', {
-      clientId: props.defaultClientId,
-      projectId: props.defaultProjectId, 
-      taskId: props.defaultTaskId
-    })
+    // Add mode - compute smart default date (Ticket #56)
+    console.log('[TimeEntryModal] Initializing new entry with smart date defaulting')
     
     // Get default working hours from user preferences
     const defaultStartTime = preferencesStore.defaultStartTime || '09:00'
     const defaultEndTime = preferencesStore.defaultEndTime || '17:00'
+    
+    // Compute next available date using smart algorithm
+    const smartDate = await computeSmartDefaultDate()
+    
+    console.log('[TimeEntryModal] Initializing new entry with filter defaults:', {
+      clientId: props.defaultClientId,
+      projectId: props.defaultProjectId, 
+      taskId: props.defaultTaskId,
+      smartDate
+    })
     
     console.log('[TimeEntryModal] Using default working hours from preferences:', {
       startTime: defaultStartTime,
@@ -411,7 +474,7 @@ const initializeForm = async () => {
       project_id: props.defaultProjectId ? parseInt(props.defaultProjectId) : 0,
       task_id: props.defaultTaskId ? parseInt(props.defaultTaskId) : 0,
       timekeeper_id: 1,
-      date: today,
+      date: smartDate,
       start_time: defaultStartTime,
       end_time: defaultEndTime,
       trans_num: '',
@@ -422,7 +485,8 @@ const initializeForm = async () => {
     console.log('[TimeEntryModal] Form initialized with values:', {
       client_id: form.value.client_id,
       project_id: form.value.project_id,
-      task_id: form.value.task_id
+      task_id: form.value.task_id,
+      date: form.value.date
     })
     
     // Fetch transaction number if not already set and all required fields are present
