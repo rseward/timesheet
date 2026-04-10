@@ -3,7 +3,7 @@
 Tests the smart date computation algorithm:
 - Work day detection (Mon-Fri)
 - Holiday skipping
-- Late entry detection (≥5PM)
+- Late entry detection (>4:55 PM)
 - Next available date computation
 """
 
@@ -116,7 +116,7 @@ class TestIsHoliday:
 
 
 class TestHasLateEntry:
-    """Test late entry detection (entries ending ≥5PM)."""
+    """Test late entry detection (entries ending >4:55 PM)."""
     
     def test_no_billing_event_dao_returns_false(self):
         """Graceful degradation when BillingEventDao not available."""
@@ -142,35 +142,35 @@ class TestHasLateEntry:
             assert result is False
     
     def test_early_entry_returns_false(self):
-        """Entry ending before 5PM is not late."""
+        """Entry ending at or before 4:55 PM is not late."""
         with patch('api.routers.time_entry.daos') as mock_daos:
             mock_event_dao = Mock()
             mock_daos.getBillingEventDao.return_value = mock_event_dao
-            
-            # Mock entry ending at 4:30 PM
+
+            # Mock entry ending at 4:55 PM (exactly at threshold)
             mock_entry = Mock()
-            mock_entry.end_time = datetime.datetime(2026, 3, 17, 16, 30)
+            mock_entry.end_time = datetime.datetime(2026, 3, 17, 16, 55)
             mock_event_dao.get_by_timekeeper_and_range.return_value = [mock_entry]
-            
+
             date = datetime.date(2026, 3, 17)
             result = has_late_entry(date, timekeeper_id=1)
-            
+
             assert result is False
     
     def test_late_entry_returns_true(self):
-        """Entry ending at 5PM or later is late."""
+        """Entry ending after 4:55 PM is late."""
         with patch('api.routers.time_entry.daos') as mock_daos:
             mock_event_dao = Mock()
             mock_daos.getBillingEventDao.return_value = mock_event_dao
-            
-            # Mock entry ending at 5:00 PM (exactly)
+
+            # Mock entry ending at 4:56 PM (one minute after threshold)
             mock_entry = Mock()
-            mock_entry.end_time = datetime.datetime(2026, 3, 17, 17, 0)
+            mock_entry.end_time = datetime.datetime(2026, 3, 17, 16, 56)
             mock_event_dao.get_by_timekeeper_and_range.return_value = [mock_entry]
-            
+
             date = datetime.date(2026, 3, 17)
             result = has_late_entry(date, timekeeper_id=1)
-            
+
             assert result is True
     
     def test_late_entry_after_5pm_returns_true(self):

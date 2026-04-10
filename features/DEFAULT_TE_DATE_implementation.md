@@ -13,10 +13,12 @@ When creating a new time entry, users had to manually select a date. This led to
 
 Smart date defaulting algorithm computes the next available work day when the Time Entry modal opens:
 
-1. **Find next work day** (Monday-Friday)
-2. **Skip holidays** (client-specific or federal)
-3. **Skip days with late entries** (existing entries ending ≥5PM)
-4. **Return first available date**
+1. **Find most recent billing entry date** (or today if no entries exist)
+2. **Start from that date**
+3. **Find next work day** (Monday-Friday)
+4. **Skip holidays** (client-specific or federal)
+5. **Skip days with late entries** (existing entries ending >4:55 PM)
+6. **Return first available date**
 
 ---
 
@@ -68,22 +70,35 @@ GET /api/time-entry/default-times
 
 ```python
 def compute_next_available_date(timekeeper_id, client_id, project_id, start_from):
-    current = start_from or today
+    if start_from is None:
+        # Find most recent billing entry date
+        recent_events = BillingEventDao.get_by_timekeeper_and_range(
+            timekeeper_id,
+            start_dt=today - 90 days,
+            end_dt=today
+        )
+        if recent_events:
+            current = max(event.start_time.date() for event in recent_events)
+        else:
+            current = today
+    else:
+        current = start_from
+
     max_iterations = 365
-    
+
     while iterations < max_iterations:
         if not is_workday(current):      # Skip weekends
             current += 1 day
             continue
-        
+
         if is_holiday(current, client_id):  # Skip holidays
             current += 1 day
             continue
-        
-        if has_late_entry(current, timekeeper_id):  # Skip ≥5PM entries
+
+        if has_late_entry(current, timekeeper_id):  # Skip >4:55PM entries
             current += 1 day
             continue
-        
+
         return current  # Found available date
 ```
 
@@ -99,7 +114,7 @@ def compute_next_available_date(timekeeper_id, client_id, project_id, start_from
 
 **`has_late_entry(date, timekeeper_id)`**
 - Queries billing events for the date
-- Returns `True` if any entry ends ≥17:00
+- Returns `True` if any entry ends >16:55 (after 4:55 PM)
 
 ---
 
@@ -108,11 +123,14 @@ def compute_next_available_date(timekeeper_id, client_id, project_id, start_from
 ```json
 GET /api/time-entry/next-date?timekeeper_id=1&client_id=5
 {
-  "date": "2026-03-18",
+  "date": "2026-03-17",
   "reason": "next_available_workday",
-  "checked_from": "2026-03-17",
-  "iterations": 1
+  "checked_from": "2026-03-16",
+  "iterations": 2
 }
+// Most recent entry: Mar 16 (ends at 5PM, >4:55PM)
+// Mar 16: skipped (has late entry)
+// Mar 17: available!
 ```
 
 ```json
@@ -121,9 +139,13 @@ GET /api/time-entry/next-date?timekeeper_id=1&client_id=5
   "date": "2026-03-20",
   "reason": "next_available_workday",
   "checked_from": "2026-03-17",
-  "iterations": 3
+  "iterations": 4
 }
-// Iterations: 1 (Mar 17 has late entry), 2 (Mar 18 is holiday), 3 (Mar 19 weekend)
+// Most recent entry: Mar 17
+// Mar 17: skipped (has late entry ending at 6PM)
+// Mar 18: skipped (holiday)
+// Mar 19: skipped (weekend - Saturday)
+// Mar 20: available! (Friday)
 ```
 
 ---
@@ -149,17 +171,26 @@ GET /api/time-entry/next-date?timekeeper_id=1&client_id=5
 ### **Manual Test Cases**
 
 ```bash
-# Test 1: Normal work day (no conflicts)
+# Test 1: No recent entries
 curl "http://localhost:8000/api/time-entry/next-date?timekeeper_id=1"
-# Expected: today or next work day
+# Expected: today (or next workday if today is weekend/holiday)
 
-# Test 2: With client holidays
+# Test 2: With recent entry ending at 5PM on Mar 16
+# Database: Mar 16 entry ending at 17:00
+curl "http://localhost:8000/api/time-entry/next-date?timekeeper_id=1"
+# Expected: Mar 17 (next day after late entry)
+
+# Test 3: With client holidays
 curl "http://localhost:8000/api/time-entry/next-date?timekeeper_id=1&client_id=5"
 # Expected: skips holidays for client 5
 
-# Test 3: After late entry day
-# Create entry ending at 17:30 on Mar 17
-# Expected: skips Mar 17, returns Mar 18 or later
+# Test 4: Entry ending at 4:55 PM (boundary test)
+# Database: Mar 16 entry ending at 16:55
+# Expected: Mar 16 is NOT skipped (4:55 PM is acceptable)
+
+# Test 5: Entry ending at 4:56 PM (boundary test)
+# Database: Mar 16 entry ending at 16:56
+# Expected: Mar 16 IS skipped (after 4:55 PM threshold)
 ```
 
 ### **Frontend Test**
@@ -229,9 +260,31 @@ If not available, `has_late_entry()` returns `False` (graceful degradation).
 1. ✅ Backend API implemented
 2. ✅ Frontend modal updated
 3. ✅ Router registered in main.py
-4. ⏳ Test with real data
-5. ⏳ Deploy to production
+4. ✅ Test with real data
+5. ✅ Bug fixes applied (threshold corrected to 4:55 PM, start from most recent entry)
+6. ⏳ Deploy to production
 
 ---
 
-**Ticket #56 Status:** ✅ **COMPLETE**
+## Updates and Bug Fixes
+
+### **2026-03-20: Threshold and Start Date Corrections**
+
+**Issues Found:**
+1. Algorithm was starting from "today" instead of most recent entry date
+2. Threshold was set to 5:00 PM instead of 4:55 PM
+
+**Fixes Applied:**
+1. Modified `compute_next_available_date()` to find most recent billing entry date (within past 90 days) and start from there
+2. Changed threshold from `datetime.time(17, 0)` to `datetime.time(16, 55)`
+3. Changed comparison from `>=` to `>` so entries ending exactly at 4:55 PM are allowed
+4. Updated all documentation and tests to reflect ">4:55 PM" instead of "≥5PM"
+
+**Example:**
+- Most recent entry: Mar 16 ending at 5:00 PM
+- Before fix: Would suggest Mar 20 (today)
+- After fix: Correctly suggests Mar 17 (next day after late entry)
+
+---
+
+**Ticket #56 Status:** ✅ **COMPLETE** (with bug fixes applied)

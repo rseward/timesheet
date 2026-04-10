@@ -406,22 +406,26 @@ const computeSmartDefaultDate = async () => {
     })
     
     const api = await import('@/services/api')
-    const response = await api.get('/api/time-entry/next-date', {
+    const response = await api.default.get<{
+      date: string
+      reason: string
+      iterations: number
+    }>('/time-entry/next-date', {
       params: {
         timekeeper_id: timekeeperId,
         client_id: clientId,
         project_id: projectId
       }
     })
-    
-    if (response.data && response.data.date) {
+
+    if (response && response.date) {
       smartDateInfo.value = {
-        date: response.data.date,
-        reason: response.data.reason,
-        iterations: response.data.iterations
+        date: response.date,
+        reason: response.reason,
+        iterations: response.iterations
       }
       console.log('[TimeEntryModal] Smart date computed:', smartDateInfo.value)
-      return response.data.date
+      return response.date
     }
   } catch (error) {
     console.warn('[TimeEntryModal] Failed to compute smart date, using today:', error)

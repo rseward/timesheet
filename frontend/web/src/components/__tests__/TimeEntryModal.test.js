@@ -10,6 +10,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import TimeEntryModal from '../TimeEntryModal.vue'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useBillingEventsStore } from '@/stores/billingEvents'
@@ -17,6 +18,9 @@ import { useBillingEventsStore } from '@/stores/billingEvents'
 // Mock API module
 vi.mock('@/services/api', () => ({
   default: {
+    get: vi.fn()
+  },
+  apiService: {
     get: vi.fn()
   }
 }))
@@ -30,10 +34,13 @@ vi.mock('@/stores/preferences', () => ({
   }))
 }))
 
+// Create a shared mock for billing events store
+const mockBillingEventsStore = {
+  getNextTransactionNumber: vi.fn()
+}
+
 vi.mock('@/stores/billingEvents', () => ({
-  useBillingEventsStore: vi.fn(() => ({
-    getNextTransactionNumber: vi.fn()
-  }))
+  useBillingEventsStore: vi.fn(() => mockBillingEventsStore)
 }))
 
 describe('TimeEntryModal', () => {
@@ -53,20 +60,19 @@ describe('TimeEntryModal', () => {
   ]
   
   beforeEach(() => {
+    setActivePinia(createPinia())
     vi.clearAllMocks()
   })
   
   describe('Smart Date Defaulting (Ticket #56)', () => {
     it('computes smart default date on modal open (add mode)', async () => {
       const api = await import('@/services/api')
-      api.get.mockResolvedValue({
-        data: {
-          date: '2026-03-18',
-          reason: 'next_available_workday',
-          iterations: 1
-        }
+      api.default.get.mockResolvedValue({
+        date: '2026-03-18',
+        reason: 'next_available_workday',
+        iterations: 1
       })
-      
+
       const wrapper = mount(TimeEntryModal, {
         props: {
           isOpen: true,
@@ -78,11 +84,11 @@ describe('TimeEntryModal', () => {
           defaultTaskId: '100'
         }
       })
-      
+
       await flushPromises()
-      
+
       // Verify API was called
-      expect(api.get).toHaveBeenCalledWith('/api/time-entry/next-date', {
+      expect(api.default.get).toHaveBeenCalledWith('/api/time-entry/next-date', {
         params: {
           timekeeper_id: 1,
           client_id: 1,
@@ -104,7 +110,7 @@ describe('TimeEntryModal', () => {
     
     it('falls back to today when smart date API fails', async () => {
       const api = await import('@/services/api')
-      api.get.mockRejectedValue(new Error('API unavailable'))
+      api.default.get.mockRejectedValue(new Error('API unavailable'))
       
       const today = new Date().toISOString().split('T')[0]
       
@@ -152,7 +158,7 @@ describe('TimeEntryModal', () => {
       await flushPromises()
       
       // Verify API was NOT called (edit mode)
-      expect(api.get).not.toHaveBeenCalled()
+      expect(api.default.get).not.toHaveBeenCalled()
       
       // Verify form populated with existing data
       const form = wrapper.vm.form
@@ -163,12 +169,10 @@ describe('TimeEntryModal', () => {
     
     it('displays smart date info badge', async () => {
       const api = await import('@/services/api')
-      api.get.mockResolvedValue({
-        data: {
-          date: '2026-03-18',
-          reason: 'next_available_workday',
-          iterations: 1
-        }
+      api.default.get.mockResolvedValue({
+        date: '2026-03-18',
+        reason: 'next_available_workday',
+        iterations: 1
       })
       
       const wrapper = mount(TimeEntryModal, {
@@ -192,11 +196,9 @@ describe('TimeEntryModal', () => {
     
     it('passes client_id and project_id to smart date API', async () => {
       const api = await import('@/services/api')
-      api.get.mockResolvedValue({
-        data: {
-          date: '2026-03-18',
-          reason: 'next_available_workday'
-        }
+      api.default.get.mockResolvedValue({
+        date: '2026-03-18',
+        reason: 'next_available_workday'
       })
       
       const wrapper = mount(TimeEntryModal, {
@@ -213,7 +215,7 @@ describe('TimeEntryModal', () => {
       await flushPromises()
       
       // Verify correct params sent
-      expect(api.get).toHaveBeenCalledWith('/api/time-entry/next-date', {
+      expect(api.default.get).toHaveBeenCalledWith('/api/time-entry/next-date', {
         params: {
           timekeeper_id: 1,
           client_id: 2,
@@ -226,8 +228,8 @@ describe('TimeEntryModal', () => {
   describe('Form Initialization', () => {
     it('initializes with default times from preferences', async () => {
       const api = await import('@/services/api')
-      api.get.mockResolvedValue({
-        data: { date: '2026-03-18', reason: 'next_available_workday' }
+      api.default.get.mockResolvedValue({
+        date: '2026-03-18', reason: 'next_available_workday'
       })
       
       const wrapper = mount(TimeEntryModal, {
@@ -248,8 +250,8 @@ describe('TimeEntryModal', () => {
     
     it('initializes with filter defaults (add mode)', async () => {
       const api = await import('@/services/api')
-      api.get.mockResolvedValue({
-        data: { date: '2026-03-18', reason: 'next_available_workday' }
+      api.default.get.mockResolvedValue({
+        date: '2026-03-18', reason: 'next_available_workday'
       })
       
       const wrapper = mount(TimeEntryModal, {
@@ -307,12 +309,11 @@ describe('TimeEntryModal', () => {
     
     it('fetches transaction number when task is selected', async () => {
       const api = await import('@/services/api')
-      api.get.mockResolvedValue({
-        data: { date: '2026-03-18', reason: 'next_available_workday' }
+      api.default.get.mockResolvedValue({
+        date: '2026-03-18', reason: 'next_available_workday'
       })
-      
-      const billingEventsStore = useBillingEventsStore()
-      billingEventsStore.getNextTransactionNumber.mockResolvedValue(12345)
+
+      mockBillingEventsStore.getNextTransactionNumber.mockResolvedValue(12345)
       
       const wrapper = mount(TimeEntryModal, {
         props: {
@@ -327,9 +328,9 @@ describe('TimeEntryModal', () => {
       })
       
       await flushPromises()
-      
+
       // Verify transaction number fetched
-      expect(billingEventsStore.getNextTransactionNumber).toHaveBeenCalledWith(1, 10, 100)
+      expect(mockBillingEventsStore.getNextTransactionNumber).toHaveBeenCalledWith(1, 10, 100)
       
       // Verify form populated
       expect(wrapper.vm.form.trans_num).toBe('12345')

@@ -1,8 +1,9 @@
 """Smart date defaulting for Time Entry (Ticket #56).
 
 Computes the next available work day when the Time Entry modal opens:
+- Starts from the most recent date with billing entries
 - Finds next Mon-Fri
-- Skips days with existing entries ending ≥5PM
+- Skips days with existing entries ending after 4:55 PM
 - Skips holidays (client-specific or federal)
 """
 
@@ -49,53 +50,96 @@ def is_holiday(date: datetime.date, client_id: Optional[int] = None) -> bool:
     return False
 
 
-def has_late_entry(date: datetime.date, timekeeper_id: int, 
-                   client_id: Optional[int] = None, 
+def has_late_entry(date: datetime.date, timekeeper_id: int,
+                   client_id: Optional[int] = None,
                    project_id: Optional[int] = None) -> bool:
-    """Check if timekeeper has an entry on date ending ≥5PM.
-    
-    Returns True if there's an existing entry that ends at 5PM or later.
+    """Check if timekeeper has an entry on date ending after 4:55 PM.
+
+    Returns True if there's an existing entry that ends after 4:55 PM.
     """
     BillingEventDao = daos.getBillingEventDao()
-    
+    if not BillingEventDao:
+        return False
+
     # Get all entries for the date
     start_dt = datetime.datetime.combine(date, datetime.time(0, 0))
     end_dt = datetime.datetime.combine(date, datetime.time(23, 59, 59))
-    
-    events = BillingEventDao.get_by_timekeeper_and_range(
-        timekeeper_id, start_dt, end_dt
-    )
-    
-    # Check if any entry ends ≥5PM (17:00)
-    threshold_time = datetime.time(17, 0)
-    for event in events:
-        if event.end_time:
-            end_time = event.end_time.time() if hasattr(event.end_time, 'time') else event.end_time
-            if end_time >= threshold_time:
-                return True
-    
+
+    # getAll returns tuples of (BillingEvent, project_title, task_name)
+    # Note: include_inactive=True to get all entries (active and inactive)
+    results = BillingEventDao.getAll(start_date=start_dt, end_date=end_dt, include_inactive=True)
+
+    # Check if any entry ends after 4:55 PM (16:55)
+    threshold_time = datetime.time(16, 55)
+    for row in results:
+        # SQLAlchemy Row - access by index
+        # Row structure: (BillingEvent, project_title, task_name)
+        event = row[0]  # First element is the BillingEvent object
+
+        # Filter by timekeeper_id and check end time
+        if event.timekeeper_id == timekeeper_id:
+            if event.end_time:
+                end_time = event.end_time.time() if hasattr(event.end_time, 'time') else event.end_time
+                if end_time > threshold_time:
+                    return True
+
     return False
 
 
-def compute_next_available_date(timekeeper_id: int, 
+def compute_next_available_date(timekeeper_id: int,
                                  client_id: Optional[int] = None,
                                  project_id: Optional[int] = None,
                                  start_from: Optional[datetime.date] = None) -> Dict[str, Any]:
     """Compute the next available date for time entry.
-    
+
     Algorithm:
-    1. Start from given date (or today)
-    2. Find next work day (Mon-Fri)
-    3. Check if holiday → skip
-    4. Check if has late entry (≥5PM) → skip
-    5. Return first available date
-    
+    1. Find the most recent date with billing entries for this timekeeper
+    2. Start from that date (or today if no entries exist)
+    3. Find next work day (Mon-Fri)
+    4. Check if holiday → skip
+    5. Check if has late entry (>4:55 PM) → skip
+    6. Return first available date
+
     Returns:
         Dict with computed date and reason
     """
     if start_from is None:
-        start_from = datetime.date.today()
-    
+        # Find the most recent billing entry date
+        BillingEventDao = daos.getBillingEventDao()
+        if BillingEventDao:
+            # Get entries from the past 90 days to find the most recent
+            end_date = datetime.date.today()
+            start_date = end_date - datetime.timedelta(days=90)
+            start_dt = datetime.datetime.combine(start_date, datetime.time(0, 0))
+            end_dt = datetime.datetime.combine(end_date, datetime.time(23, 59, 59))
+
+            # getAll returns tuples of (BillingEvent, project_title, task_name)
+            # Note: include_inactive=True to get all entries (active and inactive)
+            results = BillingEventDao.getAll(start_date=start_dt, end_date=end_dt, include_inactive=True)
+
+            # Filter by timekeeper_id and find the most recent entry date
+            if results:
+                most_recent_date = None
+                for row in results:
+                    # SQLAlchemy Row - access by index or column name
+                    # Row structure: (BillingEvent, project_title, task_name)
+                    event = row[0]  # First element is the BillingEvent object
+
+                    # Filter by timekeeper_id
+                    if event.timekeeper_id == timekeeper_id:
+                        event_date = event.start_time.date() if hasattr(event.start_time, 'date') else event.start_time
+                        if most_recent_date is None or event_date > most_recent_date:
+                            most_recent_date = event_date
+
+                if most_recent_date:
+                    start_from = most_recent_date
+                else:
+                    start_from = datetime.date.today()
+            else:
+                start_from = datetime.date.today()
+        else:
+            start_from = datetime.date.today()
+
     current = start_from
     max_iterations = 365  # Safety limit
     iterations = 0
@@ -147,12 +191,13 @@ def get_next_available_date(
     start_from: Optional[str] = Query(None, description="Start date (ISO format, default: today)")
 ) -> Dict[str, Any]:
     """Compute next available date for time entry.
-    
+
     Implements smart date defaulting (Ticket #56):
+    - Starts from the most recent date with billing entries
     - Finds next Mon-Fri
     - Skips holidays (client-specific or federal)
-    - Skips days with entries ending ≥5PM
-    
+    - Skips days with entries ending after 4:55 PM
+
     Returns the first available date for new time entry.
     """
     start_date = None
