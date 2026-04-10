@@ -223,7 +223,7 @@ export const billingEventsApi = {
     console.log('[BillingEventsAPI] getWeekInfo called with:', { timekeeperId, weekStartDate })
     
     try {
-      const response = await apiService.get('/api/time-entry/week-info', {
+      const response = await apiService.get('/time-entry/week-info', {
         params: {
           timekeeper_id: timekeeperId,
           week_start_date: weekStartDate
@@ -288,7 +288,7 @@ export const billingEventsApi = {
     console.log('[BillingEventsAPI] copyWeekEntries called with:', { timekeeperId, sourceWeekStart, targetWeekStart })
     
     try {
-      const response = await apiService.post('/api/time-entry/copy-week', null, {
+      const response = await apiService.post('/time-entry/copy-week', null, {
         params: {
           timekeeper_id: timekeeperId,
           source_week_start: sourceWeekStart,
