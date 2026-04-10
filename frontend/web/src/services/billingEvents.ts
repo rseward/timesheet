@@ -197,5 +197,90 @@ export const billingEventsApi = {
       console.error('[BillingEventsAPI] Error fetching next transaction number:', error)
       throw error
     }
+  },
+
+  async getWeekInfo(timekeeperId: number, weekStartDate: string): Promise<{
+    week_start_date: string
+    has_entries: boolean
+    current_entry_count: number
+    previous_week_entries: Array<{
+      project_id: number
+      task_id: number
+      day_offset: number
+      start_time: string
+      end_time: string
+      log_message: string | null
+      trans_num: number
+    }>
+    previous_week_start: string
+    holidays: Array<{
+      date: string
+      name: string
+      is_federal: boolean
+    }>
+    can_copy: boolean
+  }> {
+    console.log('[BillingEventsAPI] getWeekInfo called with:', { timekeeperId, weekStartDate })
+    
+    try {
+      const response = await apiService.get('/api/time-entry/week-info', {
+        params: {
+          timekeeper_id: timekeeperId,
+          week_start_date: weekStartDate
+        }
+      })
+      console.log('[BillingEventsAPI] Week info response:', response)
+      
+      return response
+    } catch (error) {
+      console.error('[BillingEventsAPI] Error fetching week info:', error)
+      throw error
+    }
+  },
+
+  async copyWeekEntries(
+    timekeeperId: number,
+    sourceWeekStart: string,
+    targetWeekStart: string
+  ): Promise<{
+    success: boolean
+    source_week_start: string
+    target_week_start: string
+    created_count: number
+    skipped_count: number
+    created_entries: Array<{
+      uid: string
+      date: string
+      project_id: number
+      task_id: number
+      start_time: string
+      end_time: string
+      trans_num: number
+    }>
+    skipped_entries: Array<{
+      source_date: string
+      target_date: string
+      reason: string
+      project_id: number
+      task_id: number
+    }>
+  }> {
+    console.log('[BillingEventsAPI] copyWeekEntries called with:', { timekeeperId, sourceWeekStart, targetWeekStart })
+    
+    try {
+      const response = await apiService.post('/api/time-entry/copy-week', null, {
+        params: {
+          timekeeper_id: timekeeperId,
+          source_week_start: sourceWeekStart,
+          target_week_start: targetWeekStart
+        }
+      })
+      console.log('[BillingEventsAPI] Copy week response:', response)
+      
+      return response
+    } catch (error) {
+      console.error('[BillingEventsAPI] Error copying week entries:', error)
+      throw error
+    }
   }
 }

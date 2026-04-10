@@ -334,6 +334,25 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     }
   }
 
+  // Predictive Time Entry (Ticket #57)
+  const getWeekInfo = async (timekeeperId: number, weekStartDate: string) => {
+    try {
+      return await billingEventsApi.getWeekInfo(timekeeperId, weekStartDate)
+    } catch (err) {
+      console.error('[BillingEventsStore] Error getting week info:', err)
+      throw err
+    }
+  }
+
+  const copyWeekEntries = async (timekeeperId: number, sourceWeekStart: string, targetWeekStart: string) => {
+    try {
+      return await billingEventsApi.copyWeekEntries(timekeeperId, sourceWeekStart, targetWeekStart)
+    } catch (err) {
+      console.error('[BillingEventsStore] Error copying week entries:', err)
+      throw err
+    }
+  }
+
   return {
     // State (direct refs for test mutability)
     billingEvents,
@@ -370,6 +389,10 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     getBillingEventsByClient,
     getBillingEventsByTask,
     getBillingEventsByDateRange,
-    getNextTransactionNumber
+    getNextTransactionNumber,
+
+    // Predictive Time Entry (Ticket #57)
+    getWeekInfo,
+    copyWeekEntries
   }
 })

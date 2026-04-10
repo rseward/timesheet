@@ -1,4 +1,6 @@
 from sqlalchemy import func
+from typing import List
+import datetime
 from bluestone.timesheet.data.models import BillingEvent, Project, Task
 from bluestone.timesheet.jsonmodels import BillingEventJson
 import uuid
@@ -65,6 +67,15 @@ class BillingEventDao(BaseDao):
         )
         result = q.scalar()
         return result + 1 if result is not None else 1
+
+    def get_by_timekeeper_and_range(self, timekeeper_id: int, start_dt: datetime.datetime, end_dt: datetime.datetime) -> List[BillingEvent]:
+        """Get all billing events for a timekeeper within a date range."""
+        q = self.getSession().query(BillingEvent)
+        q = q.filter(BillingEvent.timekeeper_id == timekeeper_id)
+        q = q.filter(BillingEvent.start_time >= start_dt)
+        q = q.filter(BillingEvent.start_time <= end_dt)
+        q = q.filter(BillingEvent.active)
+        return q.all()
 
     def toDict(self, db: BillingEvent) -> dict:
         d = {}
