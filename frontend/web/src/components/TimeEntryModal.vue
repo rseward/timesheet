@@ -74,6 +74,73 @@
                 </div>
               </div>
             </div>
+
+            <!-- Predictive Time Entry - Copy Week Offer (Ticket #57) -->
+            <div 
+              v-if="!isEditing && showCopyWeekOffer && copyWeekInfo && !copyWeekOfferAccepted"
+              class="mt-3 rounded-md bg-purple-50 dark:bg-purple-900/20 p-4 border border-purple-200 dark:border-purple-800"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                  <h3 class="text-sm font-medium text-purple-800 dark:text-purple-200">
+                    Predictive Time Entry
+                  </h3>
+                  <p class="mt-1 text-sm text-purple-700 dark:text-purple-300">
+                    This is a new week with no time entries. Would you like to copy hours from 
+                    {{ formatDate(copyWeekInfo.previous_week_start) }}?
+                  </p>
+                  <p v-if="copyWeekInfo.holidays.length > 0" class="mt-1 text-xs text-purple-600 dark:text-purple-400">
+                    Note: {{ copyWeekInfo.holidays.length }} holiday(s) detected in this week will be skipped.
+                  </p>
+                  <div class="mt-3 flex items-center space-x-3">
+                    <button
+                      type="button"
+                      @click="acceptCopyWeek"
+                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    >
+                      Yes, Copy Hours
+                    </button>
+                    <button
+                      type="button"
+                      @click="declineCopyWeek"
+                      class="inline-flex items-center px-3 py-1.5 border border-purple-300 dark:border-purple-600 text-sm font-medium rounded-md text-purple-700 dark:text-purple-300 bg-white dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    >
+                      No, Start Fresh
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Copy Week Success Message -->
+            <div 
+              v-if="!isEditing && copyWeekResult"
+              class="mt-3 rounded-md bg-green-50 dark:bg-green-900/20 p-4 border border-green-200 dark:border-green-800"
+            >
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
+                    {{ copyWeekResult.created_count }} Entries Copied
+                  </h3>
+                  <p class="mt-1 text-sm text-green-700 dark:text-green-300">
+                    Hours have been copied from {{ formatDate(copyWeekResult.source_week_start) }} to this week.
+                    <span v-if="copyWeekResult.skipped_count > 0" class="text-yellow-600 dark:text-yellow-400">
+                      ({{ copyWeekResult.skipped_count }} holiday(s) skipped)
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
             
             <form @submit.prevent="handleSubmit" class="mt-6 space-y-4">
               <!-- Client Selection -->
@@ -334,6 +401,37 @@ const holidayCheckResult = ref<any>(null)
 const checkingHoliday = ref(false)
 const smartDateInfo = ref<{date: string, reason: string, iterations: number} | null>(null)
 
+// Predictive Time Entry (Ticket #57)
+const showCopyWeekOffer = ref(false)
+const copyWeekInfo = ref<{
+  week_start_date: string
+  has_entries: boolean
+  previous_week_entries: Array<{
+    project_id: number
+    task_id: number
+    day_offset: number
+    start_time: string
+    end_time: string
+    log_message: string | null
+    trans_num: number
+  }>
+  previous_week_start: string
+  holidays: Array<{
+    date: string
+    name: string
+    is_federal: boolean
+  }>
+  can_copy: boolean
+} | null>(null)
+const copyWeekOfferAccepted = ref(false)
+const copyWeekResult = ref<{
+  success: boolean
+  source_week_start: string
+  target_week_start: string
+  created_count: number
+  skipped_count: number
+} | null>(null)
+
 const form = ref({
   client_id: '',
   project_id: 0,
@@ -535,6 +633,11 @@ const initializeForm = async () => {
       console.log('[TimeEntryModal] Auto-fetching transaction number for new entry')
       await fetchNextTransactionNumber()
     }
+
+    // Check if we should offer to copy from previous week (Ticket #57)
+    // Only check for new entries in a week that has no entries
+    const weekStart = getWeekStart(smartDate)
+    await checkWeekForCopyOffer(weekStart)
   }
   errors.value = {}
 }
@@ -719,6 +822,99 @@ const checkHolidayForDate = async (date: string, clientId: number) => {
     holidayCheckResult.value = null
   } finally {
     checkingHoliday.value = false
+  }
+}
+
+// Predictive Time Entry functions (Ticket #57)
+const getWeekStart = (dateString: string): string => {
+  const date = new Date(dateString)
+  const dayOfWeek = date.getDay() // 0 = Sunday, 1 = Monday, etc.
+  // Calculate days to subtract to get to Monday
+  // If dayOfWeek is 0 (Sunday), subtract 6 days
+  // If dayOfWeek is 1 (Monday), subtract 0 days
+  // If dayOfWeek is 2 (Tuesday), subtract 1 day, etc.
+  const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  const monday = new Date(date)
+  monday.setDate(date.getDate() - daysToSubtract)
+  return monday.toISOString().split('T')[0]
+}
+
+const checkWeekForCopyOffer = async (weekStartDate: string) => {
+  try {
+    const timekeeperId = 1 // TODO: Get from auth context
+    
+    console.log('[TimeEntryModal] Checking week for copy offer:', weekStartDate)
+    
+    const weekInfo = await billingEventsStore.getWeekInfo(timekeeperId, weekStartDate)
+    console.log('[TimeEntryModal] Week info received:', weekInfo)
+    
+    // Only show offer if:
+    // 1. Week has no entries (has_entries = false)
+    // 2. Previous week has entries to copy (can_copy = true)
+    if (!weekInfo.has_entries && weekInfo.can_copy) {
+      copyWeekInfo.value = weekInfo
+      showCopyWeekOffer.value = true
+      console.log('[TimeEntryModal] Showing copy week offer')
+    } else {
+      console.log('[TimeEntryModal] Not showing copy week offer:', {
+        hasEntries: weekInfo.has_entries,
+        canCopy: weekInfo.can_copy
+      })
+    }
+  } catch (error) {
+    console.warn('[TimeEntryModal] Failed to check week for copy offer:', error)
+  }
+}
+
+const acceptCopyWeek = async () => {
+  if (!copyWeekInfo.value) return
+  
+  loading.value = true
+  try {
+    const timekeeperId = 1 // TODO: Get from auth context
+    const sourceWeek = copyWeekInfo.value.previous_week_start
+    const targetWeek = copyWeekInfo.value.week_start_date
+    
+    console.log('[TimeEntryModal] Accepting copy week offer:', { sourceWeek, targetWeek })
+    
+    const result = await billingEventsStore.copyWeekEntries(
+      timekeeperId,
+      sourceWeek,
+      targetWeek
+    )
+    
+    console.log('[TimeEntryModal] Copy week result:', result)
+    
+    if (result.success) {
+      copyWeekResult.value = result
+      copyWeekOfferAccepted.value = true
+      showCopyWeekOffer.value = false
+      console.log('[TimeEntryModal] Successfully copied', result.created_count, 'entries')
+    }
+  } catch (error) {
+    console.error('[TimeEntryModal] Error copying week entries:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const declineCopyWeek = () => {
+  showCopyWeekOffer.value = false
+  copyWeekOfferAccepted.value = true
+  console.log('[TimeEntryModal] Declined copy week offer')
+}
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  } catch {
+    return dateString
   }
 }
 
