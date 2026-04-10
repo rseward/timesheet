@@ -88,7 +88,7 @@ describe('TimeEntryModal', () => {
       await flushPromises()
 
       // Verify API was called
-      expect(api.default.get).toHaveBeenCalledWith('/api/time-entry/next-date', {
+      expect(api.default.get).toHaveBeenCalledWith('/time-entry/next-date', {
         params: {
           timekeeper_id: 1,
           client_id: 1,
@@ -215,7 +215,7 @@ describe('TimeEntryModal', () => {
       await flushPromises()
       
       // Verify correct params sent
-      expect(api.default.get).toHaveBeenCalledWith('/api/time-entry/next-date', {
+      expect(api.default.get).toHaveBeenCalledWith('/time-entry/next-date', {
         params: {
           timekeeper_id: 1,
           client_id: 2,
