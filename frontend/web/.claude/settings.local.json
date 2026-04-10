@@ -3,7 +3,27 @@
     "allow": [
       "Bash(sqlite3 timesheet.sqlite \"SELECT uid, timekeeper_id, date(start_time), time(start_time), time(end_time) FROM billing_event WHERE date(start_time) = ''2026-03-16'' LIMIT 5;\")",
       "Bash(sqlite3 timesheet.sqlite \"SELECT uid, timekeeper_id, active, date(start_time), time(end_time) FROM billing_event WHERE date(start_time) = ''2026-03-16'';\")",
-      "Bash(sqlite3 timesheet.sqlite \"SELECT be.uid, be.timekeeper_id, be.project_id, be.task_id, p.project_id, t.task_id FROM billing_event be LEFT JOIN project p ON be.project_id = p.project_id LEFT JOIN task t ON be.task_id = t.task_id WHERE date(be.start_time) = ''2026-03-16'';\")"
+      "Bash(sqlite3 timesheet.sqlite \"SELECT be.uid, be.timekeeper_id, be.project_id, be.task_id, p.project_id, t.task_id FROM billing_event be LEFT JOIN project p ON be.project_id = p.project_id LEFT JOIN task t ON be.task_id = t.task_id WHERE date(be.start_time) = ''2026-03-16'';\")",
+      "Bash(npm run:*)",
+      "Bash(node -e \"const jsdom = require\\(''''jsdom''''\\); console.log\\(jsdom.JSDOM.fragment ? ''''ok'''' : ''''bad''''\\);\")",
+      "Bash(node -e \"const { JSDOM } = require\\(''''jsdom''''\\); const dom = new JSDOM\\(''''<!DOCTYPE html>''''\\); console.log\\(typeof dom.window.localStorage\\);\")",
+      "Bash(node:*)",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/src -name *.setup* -o -name setup.*)",
+      "Bash(npx vitest:*)",
+      "Bash(grep -r \"localstorage-file\\\\|localstorageFile\\\\|localStorage\" /home/bluestone/src/github/timesheet/frontend/web/node_modules/vitest/dist/*.js2)",
+      "Bash(grep -r \"localstorage-file\\\\|localstorageFile\" /home/bluestone/src/github/timesheet/frontend/web/node_modules/ --include=*.js)",
+      "Bash(grep -r \"localstorage.file\\\\|localstorage_file\" /home/bluestone/src/github/timesheet/frontend/web/node_modules/ --include=*.js -l)",
+      "Bash(grep -r localstorage /home/bluestone/src/github/timesheet/frontend/web/node_modules/vitest/ --include=*.js -l)",
+      "Bash(grep -r \"localstorage\\\\|localStorage\" /home/bluestone/src/github/timesheet/frontend/web/node_modules/jsdom/lib/ --include=*.js -l)",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name *.cjs -exec grep -l localstorage {})",
+      "Bash(2)",
+      "Bash(NODE_OPTIONS=\"--trace-warnings\" npx vitest run src/stores/__tests__/auth.test.ts)",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -path */vitest*jsdom* -o -path */jsdom*vitest*)",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -path */vitest/dist/chunks/*jsdom*)",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name jsdom.js -path */vitest/*)",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name *.js -path */vitest* -exec grep -l localStorage {})",
+      "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name *.js -exec grep -l \"getItem.*localStorage\\\\|localStorage.*getItem\" {})",
+      "Bash(make build:*)"
     ],
     "deny": [],
     "ask": []
