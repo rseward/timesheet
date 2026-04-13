@@ -12,6 +12,7 @@ from .taskdao import TaskDao
 from .billingeventdao import BillingEventDao
 from .userpreferencedao import UserPreferenceDao
 from .holidaydao import HolidayDao
+from .timekeeperdao import TimekeeperDao
 
 
 daofactory = None
@@ -39,6 +40,7 @@ class DaoFactory(object):
         self.taskDao = None
         self.eventDao = None
         self.holidayDao = None
+        self.timekeeperDao = None
 
     def getClientDao(self):
         if not (self.clientDao):
@@ -87,6 +89,12 @@ class DaoFactory(object):
             self.holidayDao = HolidayDao(self.Session)
 
         return self.holidayDao
+
+    def getTimekeeperDao(self):
+        if not (self.timekeeperDao):
+            self.timekeeperDao = TimekeeperDao(self.Session)
+
+        return self.timekeeperDao
 
 
 

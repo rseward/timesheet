@@ -127,3 +127,42 @@ class HolidayJson(BaseModel):
     is_federal: Optional[bool] = False
     active: Optional[bool] = True
     client_name: Optional[str] = None
+
+
+class TimekeeperJson(BaseModel):
+    timekeeper_id: Optional[int] = None
+    username: constr(max_length=32)
+    first_name: constr(max_length=32)
+    last_name: constr(max_length=32)
+    email: constr(max_length=128)
+    bill_rate: Optional[float] = None
+    phone: Optional[constr(max_length=32)] = None
+
+
+class ReportRowJson(BaseModel):
+    """A single row in a report result set."""
+    client: Optional[str] = None
+    resource: str
+    date: str
+    hours: float
+    bill_rate: Optional[float] = None
+    task: Optional[str] = None
+    project: Optional[str] = None
+
+
+class ClientPeriodReportRequest(BaseModel):
+    start_date: datetime.date
+    end_date: datetime.date
+    client_id: int
+    project_id: Optional[int] = None
+
+
+class TimekeeperPeriodReportRequest(BaseModel):
+    start_date: datetime.date
+    end_date: datetime.date
+    timekeeper_id: int
+
+
+class TimePeriodReportRequest(BaseModel):
+    start_date: datetime.date
+    end_date: datetime.date
