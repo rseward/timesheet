@@ -140,3 +140,7 @@ timesheet.sqlite
 frontend/flet/user-creds.pickle
 node_modules
 myenv
+backend/timesheet-test.sqlite
+
+# Claude Code local settings
+.claude/settings.local.json

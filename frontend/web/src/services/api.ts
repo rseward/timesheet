@@ -128,6 +128,11 @@ class ApiService {
     return response.data
   }
 
+  /** Low-level GET that returns the raw AxiosResponse (for blob downloads, etc.) */
+  async getRaw(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
+    return this.client.get(url, config)
+  }
+
 
   // Utility method for setting auth token
   setAuthToken(token: string): void {

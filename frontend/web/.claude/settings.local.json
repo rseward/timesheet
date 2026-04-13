@@ -23,7 +23,8 @@
       "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name jsdom.js -path */vitest/*)",
       "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name *.js -path */vitest* -exec grep -l localStorage {})",
       "Bash(find /home/bluestone/src/github/timesheet/frontend/web/node_modules -name *.js -exec grep -l \"getItem.*localStorage\\\\|localStorage.*getItem\" {})",
-      "Bash(make build:*)"
+      "Bash(make build:*)",
+      "Bash(make test:*)"
     ],
     "deny": [],
     "ask": []

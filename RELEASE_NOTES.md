@@ -1,5 +1,12 @@
 # Timesheet Release Notes
 
+## Version 0.3.1 - April 2026
+
+- You can now generate three types of reports: by client, by timekeeper, or by date range, with filtering by project or person.
+- Report results can be exported as CSV files for use in spreadsheets or other tools.
+- The reports page has been redesigned with clearer dialogs, loading indicators, and feature highlights for each report type.
+- Report summaries now show total hours, entries, resources, projects, and clients at a glance.
+
 ## Version 0.3.0 - January 2026
 
 - Improved dashboard usability. Clicking can be done anywhere on the activity/task button

@@ -47,12 +47,66 @@ export interface ReportResult {
   summary: ReportSummary
   rows: ReportRow[]
   client_id?: number
-  project_id?: number
+  project_id?: number | null
   timekeeper_id?: number
 }
 
+// Type aliases used by ReportsView
+export type ClientOption = { client_id: number; organisation: string }
+export type TimekeeperOption = { timekeeper_id: number; name: string; username: string }
+export type ProjectOption = { project_id: number; title: string; client_id: number; client_name: string }
+
+// Report result types discriminated by report_type
+export interface TimePeriodReport extends ReportResult {
+  report_type: 'time-period'
+}
+
+export interface ClientPeriodReport extends ReportResult {
+  report_type: 'client-period'
+  client_id: number
+  project_id: number | null
+}
+
+export interface TimekeeperPeriodReport extends ReportResult {
+  report_type: 'timekeeper-period'
+  timekeeper_id: number
+}
+
 export const reportsApi = {
-  async generateClientPeriodReport(params: ClientPeriodReportParams): Promise<ReportResult> {
+  // --- Convenience methods (positional args, used by ReportsView) ---
+
+  async getClientPeriodReport(startDate: string, endDate: string, clientId: number, projectId?: number): Promise<ClientPeriodReport> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+      client_id: clientId,
+    }
+    if (projectId !== undefined) {
+      params.project_id = projectId
+    }
+    return apiService.get<ClientPeriodReport>('/reports/client-period', { params })
+  },
+
+  async getTimekeeperPeriodReport(startDate: string, endDate: string, timekeeperId: number): Promise<TimekeeperPeriodReport> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+      timekeeper_id: timekeeperId,
+    }
+    return apiService.get<TimekeeperPeriodReport>('/reports/timekeeper-period', { params })
+  },
+
+  async getTimePeriodReport(startDate: string, endDate: string): Promise<TimePeriodReport> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+    }
+    return apiService.get<TimePeriodReport>('/reports/time-period', { params })
+  },
+
+  // --- Object-param methods (kept for backward compatibility) ---
+
+  async generateClientPeriodReport(params: ClientPeriodReportParams): Promise<ClientPeriodReport> {
     console.log('[ReportsAPI] Generating Client Period Report with params:', params)
     const queryParams: Record<string, any> = {
       start_date: params.start_date,
@@ -62,50 +116,91 @@ export const reportsApi = {
     if (params.project_id) {
       queryParams.project_id = params.project_id
     }
-    const response = await apiService.get<ReportResult>('/reports/client-period', { params: queryParams })
-    console.log('[ReportsAPI] Client Period Report response:', response)
-    return response
+    return apiService.get<ClientPeriodReport>('/reports/client-period', { params: queryParams })
   },
 
-  async generateTimekeeperPeriodReport(params: TimekeeperPeriodReportParams): Promise<ReportResult> {
+  async generateTimekeeperPeriodReport(params: TimekeeperPeriodReportParams): Promise<TimekeeperPeriodReport> {
     console.log('[ReportsAPI] Generating TimeKeeper Period Report with params:', params)
     const queryParams: Record<string, any> = {
       start_date: params.start_date,
       end_date: params.end_date,
       timekeeper_id: params.timekeeper_id,
     }
-    const response = await apiService.get<ReportResult>('/reports/timekeeper-period', { params: queryParams })
-    console.log('[ReportsAPI] TimeKeeper Period Report response:', response)
-    return response
+    return apiService.get<TimekeeperPeriodReport>('/reports/timekeeper-period', { params: queryParams })
   },
 
-  async generateTimePeriodReport(params: TimePeriodReportParams): Promise<ReportResult> {
+  async generateTimePeriodReport(params: TimePeriodReportParams): Promise<TimePeriodReport> {
     console.log('[ReportsAPI] Generating Time Period Report with params:', params)
     const queryParams: Record<string, any> = {
       start_date: params.start_date,
       end_date: params.end_date,
     }
-    const response = await apiService.get<ReportResult>('/reports/time-period', { params: queryParams })
-    console.log('[ReportsAPI] Time Period Report response:', response)
-    return response
+    return apiService.get<TimePeriodReport>('/reports/time-period', { params: queryParams })
   },
 
-  async listClients(): Promise<{ clients: { client_id: number; organisation: string }[] }> {
-    const response = await apiService.get<{ clients: { client_id: number; organisation: string }[] }>('/reports/clients')
-    return response
+  // --- Dropdown data for report forms ---
+
+  async listClients(): Promise<ClientOption[]> {
+    const response = await apiService.get<{ clients: ClientOption[] }>('/reports/clients')
+    return response.clients
   },
 
-  async listTimekeepers(): Promise<{ timekeepers: { timekeeper_id: number; name: string; username: string }[] }> {
-    const response = await apiService.get<{ timekeepers: { timekeeper_id: number; name: string; username: string }[] }>('/reports/timekeepers')
-    return response
+  async listTimekeepers(): Promise<TimekeeperOption[]> {
+    const response = await apiService.get<{ timekeepers: TimekeeperOption[] }>('/reports/timekeepers')
+    return response.timekeepers
   },
 
-  async listProjects(clientId?: number): Promise<{ projects: { project_id: number; title: string; client_id: number; client_name: string }[] }> {
+  async listProjects(clientId?: number): Promise<ProjectOption[]> {
     const params: Record<string, any> = {}
     if (clientId) params.client_id = clientId
-    const response = await apiService.get<{ projects: { project_id: number; title: string; client_id: number; client_name: string }[] }>('/reports/projects', { params })
-    return response
+    const response = await apiService.get<{ projects: ProjectOption[] }>('/reports/projects', { params })
+    return response.projects
   },
+
+  // --- CSV download methods ---
+
+  async downloadClientPeriodCsv(startDate: string, endDate: string, clientId: number, projectId?: number): Promise<Blob> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+      client_id: clientId,
+    }
+    if (projectId !== undefined) {
+      params.project_id = projectId
+    }
+    const response = await apiService.getRaw('/reports/client-period/csv', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
+
+  async downloadTimekeeperPeriodCsv(startDate: string, endDate: string, timekeeperId: number): Promise<Blob> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+      timekeeper_id: timekeeperId,
+    }
+    const response = await apiService.getRaw('/reports/timekeeper-period/csv', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
+
+  async downloadTimePeriodCsv(startDate: string, endDate: string): Promise<Blob> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+    }
+    const response = await apiService.getRaw('/reports/time-period/csv', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
+
+  // --- CSV URL helper (kept for backward compatibility) ---
 
   getCSVUrl(type: 'client-period' | 'timekeeper-period' | 'time-period', params: Record<string, any>): string {
     const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'

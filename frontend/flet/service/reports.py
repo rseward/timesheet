@@ -21,33 +21,30 @@ class ReportsService(BaseService):
         super().__init__(creds)
         self.reportsurl = f"{self.baseurl}/api/reports"
 
+    def _extract_list(self, data, key):
+        """Extract a list from API response, handling both list and dict formats."""
+        items = data.get(key, [])
+        if isinstance(items, list):
+            return items
+        elif isinstance(items, dict):
+            return list(items.values())
+        return []
+
     def getTimekeepers(self):
         """Fetch all timekeepers for dropdowns."""
         res = self.getSession().get(f"{self.reportsurl}/timekeepers")
-        rows = []
         if res.status_code == 200:
-            data = res.json()
-            timekeepers = data.get("timekeepers", {})
-            for key in timekeepers.keys():
-                rows.append(timekeepers[key])
-        else:
-            rows = None
-        ic(rows)
-        return rows
+            return self._extract_list(res.json(), "timekeepers")
+        ic(f"getTimekeepers failed: {res.status_code}")
+        return []
 
     def getClients(self):
         """Fetch all clients for dropdowns."""
         res = self.getSession().get(f"{self.reportsurl}/clients")
-        rows = []
         if res.status_code == 200:
-            data = res.json()
-            clients = data.get("clients", {})
-            for key in clients.keys():
-                rows.append(clients[key])
-        else:
-            rows = None
-        ic(rows)
-        return rows
+            return self._extract_list(res.json(), "clients")
+        ic(f"getClients failed: {res.status_code}")
+        return []
 
     def getProjects(self, client_id=None):
         """Fetch projects, optionally filtered by client."""
@@ -55,16 +52,10 @@ class ReportsService(BaseService):
         if client_id is not None:
             params["client_id"] = client_id
         res = self.getSession().get(f"{self.reportsurl}/projects", params=params)
-        rows = []
         if res.status_code == 200:
-            data = res.json()
-            projects = data.get("projects", {})
-            for key in projects.keys():
-                rows.append(projects[key])
-        else:
-            rows = None
-        ic(rows)
-        return rows
+            return self._extract_list(res.json(), "projects")
+        ic(f"getProjects failed: {res.status_code}")
+        return []
 
     def getClientPeriodReport(self, start_date, end_date, client_id, project_id=None):
         """Run Client Period Report."""
@@ -72,7 +63,6 @@ class ReportsService(BaseService):
             "start_date": start_date,
             "end_date": end_date,
             "client_id": client_id,
-            "format": "json",
         }
         if project_id is not None:
             params["project_id"] = project_id
@@ -88,7 +78,6 @@ class ReportsService(BaseService):
             "start_date": start_date,
             "end_date": end_date,
             "timekeeper_id": timekeeper_id,
-            "format": "json",
         }
         res = self.getSession().get(f"{self.reportsurl}/timekeeper-period", params=params)
         ic(res.status_code)
@@ -101,7 +90,6 @@ class ReportsService(BaseService):
         params = {
             "start_date": start_date,
             "end_date": end_date,
-            "format": "json",
         }
         res = self.getSession().get(f"{self.reportsurl}/time-period", params=params)
         ic(res.status_code)

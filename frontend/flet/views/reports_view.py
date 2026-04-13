@@ -285,26 +285,39 @@ class ReportsView(BaseView):
             return
         columns = data.get("columns", ["client", "resource", "date", "hours", "bill_rate", "task", "project"])
         rows = data.get("rows", [])
+        summary = data.get("summary", {})
 
         # Update table columns
         self.result_table.columns = [self.colheader(c.replace("_", " ").title()) for c in columns]
 
         # Render rows
         rendered = []
-        self.total_hours = 0.0
         for row in rows:
             cells = []
             for col in columns:
                 val = row.get(col, "")
-                if col == "hours":
+                # Format bill_rate as currency
+                if col == "bill_rate" and val is not None:
                     try:
-                        self.total_hours += float(val)
+                        val = f"${float(val):.2f}"
                     except (ValueError, TypeError):
                         pass
                 cells.append(ft.DataCell(ft.Text(str(val) if val is not None else "")))
             rendered.append(ft.DataRow(cells=cells))
 
         self.result_table.rows = rendered
+
+        # Use summary from API if available, otherwise calculate
+        if summary and summary.get("total_hours") is not None:
+            self.total_hours = summary["total_hours"]
+        else:
+            self.total_hours = 0.0
+            for row in rows:
+                try:
+                    self.total_hours += float(row.get("hours", 0))
+                except (ValueError, TypeError):
+                    pass
+
         self._update_total_hours_display()
         if self.result_table.parent is not None:
             self.result_table.update()
