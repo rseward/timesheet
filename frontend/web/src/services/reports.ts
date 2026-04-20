@@ -56,6 +56,18 @@ export type ClientOption = { client_id: number; organisation: string }
 export type TimekeeperOption = { timekeeper_id: number; name: string; username: string }
 export type ProjectOption = { project_id: number; title: string; client_id: number; client_name: string }
 
+// Report Template types
+export type ReportTemplateItem = {
+  template_id: number
+  name: string
+  description: string | null
+  report_type: string
+  filename: string
+  created_by: string | null
+  created_at: string | null
+  active: boolean
+}
+
 // Report result types discriminated by report_type
 export interface TimePeriodReport extends ReportResult {
   report_type: 'time-period'
@@ -206,5 +218,71 @@ export const reportsApi = {
     const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
     const queryString = new URLSearchParams(params).toString()
     return `${baseURL}/reports/${type}/csv?${queryString}`
-  }
+  },
+
+  // --- Excel download methods ---
+
+  async downloadClientPeriodExcel(startDate: string, endDate: string, clientId: number, projectId?: number, templateId?: number): Promise<Blob> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+      client_id: clientId,
+    }
+    if (projectId !== undefined) params.project_id = projectId
+    if (templateId !== undefined) params.template_id = templateId
+    const response = await apiService.getRaw('/reports/client-period/excel', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
+
+  async downloadTimekeeperPeriodExcel(startDate: string, endDate: string, timekeeperId: number, templateId?: number): Promise<Blob> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+      timekeeper_id: timekeeperId,
+    }
+    if (templateId !== undefined) params.template_id = templateId
+    const response = await apiService.getRaw('/reports/timekeeper-period/excel', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
+
+  async downloadTimePeriodExcel(startDate: string, endDate: string, templateId?: number): Promise<Blob> {
+    const params: Record<string, any> = {
+      start_date: startDate,
+      end_date: endDate,
+    }
+    if (templateId !== undefined) params.template_id = templateId
+    const response = await apiService.getRaw('/reports/time-period/excel', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
+
+  // --- Report Template methods ---
+
+  async listTemplates(reportType?: string): Promise<ReportTemplateItem[]> {
+    const params: Record<string, any> = {}
+    if (reportType) params.report_type = reportType
+    const response = await apiService.get<{ templates: ReportTemplateItem[] }>('/reports/templates', { params })
+    return response.templates
+  },
+
+  async uploadTemplate(formData: FormData): Promise<{ template_id: number; name: string; message: string }> {
+    const response = await apiService.post<{ template_id: number; name: string; message: string }>(
+      '/reports/templates',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    )
+    return response
+  },
+
+  async deleteTemplate(templateId: number): Promise<void> {
+    await apiService.delete(`/reports/templates/${templateId}`)
+  },
 }

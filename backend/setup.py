@@ -4,7 +4,7 @@ from distutils.core import setup
 #from setuptools import setup, find_packages
 
 setup(name='bluestone-timesheet',
-      version='0.3.1',
+      version='0.3.2',
       description='Bluestone Timesheet Module',
       author='Robert Seward',
       author_email='rseward@bluestone-consulting.com',

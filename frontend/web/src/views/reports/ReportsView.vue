@@ -373,6 +373,23 @@
                   {{ reportResult.report_type === 'client-period' ? 'Client Period Report' : reportResult.report_type === 'timekeeper-period' ? 'TimeKeeper Period Report' : 'Time Period Report' }}
                 </h2>
                 <div class="flex items-center space-x-3">
+                  <!-- Template selector for Excel export -->
+                  <div class="flex items-center space-x-2">
+                    <label class="text-xs text-gray-500 dark:text-gray-400">Template:</label>
+                    <select 
+                      v-model="selectedTemplateId"
+                      class="text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-1.5 px-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option :value="null">No template (plain)</option>
+                      <option 
+                        v-for="tmpl in filteredTemplates" 
+                        :key="tmpl.template_id" 
+                        :value="tmpl.template_id"
+                      >
+                        {{ tmpl.name }}
+                      </option>
+                    </select>
+                  </div>
                   <button 
                     @click="exportCSV"
                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
@@ -380,7 +397,21 @@
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Export CSV
+                    CSV
+                  </button>
+                  <button 
+                    @click="exportExcel"
+                    :disabled="loading.excel"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-md transition-colors duration-200"
+                  >
+                    <svg v-if="loading.excel" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <svg v-else class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M4 6h16M4 6a2 2 0 01-2-2V4a2 2 0 012-2h16a2 2 0 012 2v0a2 2 0 01-2 2M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6" />
+                    </svg>
+                    {{ loading.excel ? 'Exporting...' : 'Excel' }}
                   </button>
                   <button 
                     @click="reportResult = null"
@@ -511,6 +542,183 @@
                 </div>
               </div>
             </div>
+
+            <!-- Excel Templates Section -->
+            <div class="mt-8">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Excel Templates</h2>
+                <button 
+                  @click="showTemplateUploadForm = true"
+                  class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors duration-200"
+                >
+                  <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Upload Template
+                </button>
+              </div>
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                <div class="p-6">
+                  <div v-if="templates.length === 0" class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M4 6h16M4 6a2 2 0 01-2-2V4a2 2 0 012-2h16a2 2 0 012 2v0a2 2 0 01-2 2M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No templates uploaded yet</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Upload an .xlsx template with custom formatting. Data will be written starting at row 2.
+                    </p>
+                  </div>
+                  <div v-else class="space-y-3">
+                    <div 
+                      v-for="tmpl in templates" 
+                      :key="tmpl.template_id"
+                      class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      <div class="flex items-center">
+                        <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-3">
+                          <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6M4 6h16M4 6a2 2 0 01-2-2V4a2 2 0 012-2h16a2 2 0 012 2v0a2 2 0 01-2 2M4 6v12a2 2 0 002 2h12a2 2 0 002-2V6" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ tmpl.name }}</h4>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ tmpl.report_type }} &bull; {{ tmpl.filename }} &bull; {{ tmpl.description || 'No description' }}
+                          </p>
+                          <p v-if="tmpl.created_at" class="text-xs text-gray-400 dark:text-gray-500">
+                            Uploaded {{ formatDate(tmpl.created_at) }}
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        @click="deleteTemplate(tmpl.template_id)"
+                        class="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                        title="Delete template"
+                      >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Template Upload Modal -->
+            <div v-if="showTemplateUploadForm" class="fixed inset-0 z-50 overflow-y-auto">
+              <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                  <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75" @click="showTemplateUploadForm = false"></div>
+                </div>
+                <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 z-10">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Upload Excel Template</h3>
+                    <button @click="showTemplateUploadForm = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <form @submit.prevent="uploadTemplate" class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Template Name *</label>
+                      <input 
+                        v-model="templateForm.name" 
+                        type="text" 
+                        required
+                        placeholder="e.g. Monthly Client Invoice Template"
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Report Type *</label>
+                      <select 
+                        v-model="templateForm.report_type" 
+                        required
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="client-period">Client Period</option>
+                        <option value="timekeeper-period">TimeKeeper Period</option>
+                        <option value="time-period">Time Period</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (optional)</label>
+                      <input 
+                        v-model="templateForm.description" 
+                        type="text" 
+                        placeholder="Brief description of this template"
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Excel File (.xlsx) *</label>
+                      <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <div class="flex text-sm text-gray-600 dark:text-gray-400">
+                            <label class="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2">
+                              <span>Upload a file</span>
+                              <input 
+                                type="file" 
+                                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                @change="onTemplateFileChange"
+                                class="sr-only"
+                              />
+                            </label>
+                            <span class="pl-1">or drag and drop</span>
+                          </div>
+                          <p v-if="!templateForm.file" class="text-xs text-gray-500 dark:text-gray-400">XLSX up to 5MB</p>
+                          <p v-else class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{{ templateForm.file?.name }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name (optional)</label>
+                      <input 
+                        v-model="templateForm.created_by" 
+                        type="text" 
+                        placeholder="Name of uploader"
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-md p-3">
+                      <h4 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Template Guidelines</h4>
+                      <ul class="mt-1.5 text-xs text-yellow-700 dark:text-yellow-300 list-disc list-inside space-y-1">
+                        <li>Row 1 is treated as the header row</li>
+                        <li>Data will be written starting at row 2</li>
+                        <li>Columns must match: Client, Resource, Date, Hours, Billing Rate, Task, Project</li>
+                        <li>Custom formatting (fonts, colors, borders) will be preserved</li>
+                      </ul>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-2">
+                      <button type="button" @click="showTemplateUploadForm = false"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600">
+                        Cancel
+                      </button>
+                      <button type="submit" :disabled="loading.template || !templateForm.file"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-md flex items-center">
+                        <svg v-if="loading.template" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ loading.template ? 'Uploading...' : 'Upload Template' }}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -521,7 +729,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useNotification } from '@/composables/useNotification'
-import { reportsApi, type ReportResult } from '@/services/reports'
+import { reportsApi, type ReportResult, type ReportTemplateItem } from '@/services/reports'
 import dayjs from 'dayjs'
 
 const notification = useNotification()
@@ -539,14 +747,28 @@ interface RecentReport {
 const loading = reactive({
   client: false,
   timekeeper: false,
-  time: false
+  time: false,
+  excel: false,
+  template: false
 })
 
 const showClientReportForm = ref(false)
 const showTimekeeperReportForm = ref(false)
 const showTimeReportForm = ref(false)
+const showTemplateUploadForm = ref(false)
 const reportResult = ref<ReportResult | null>(null)
 const recentReports = ref<RecentReport[]>([])
+
+// Template state
+const selectedTemplateId = ref<number | null>(null)
+const templates = ref<ReportTemplateItem[]>([])
+const templateForm = reactive({
+  name: '',
+  report_type: 'client-period' as string,
+  description: '',
+  created_by: '',
+  file: null as File | null,
+})
 
 // Report form data
 const clientReportForm = reactive({
@@ -577,8 +799,14 @@ const filteredProjects = computed(() => {
   return reportProjects.value.filter(p => p.client_id === Number(clientReportForm.client_id))
 })
 
+const filteredTemplates = computed(() => {
+  if (!reportResult.value) return templates.value
+  const rt = reportResult.value.report_type
+  return templates.value.filter(t => t.report_type === rt)
+})
+
 onMounted(async () => {
-  await Promise.all([loadReportClients(), loadReportProjects(), loadTimekeepers()])
+  await Promise.all([loadReportClients(), loadReportProjects(), loadTimekeepers(), loadTemplates()])
 })
 
 async function loadReportClients() {
@@ -738,6 +966,104 @@ async function generateTimeReport() {
     notification.error('Report Generation Failed', detail)
   } finally {
     loading.time = false
+  }
+}
+
+async function loadTemplates() {
+  try {
+    const result = await reportsApi.listTemplates()
+    templates.value = result || []
+  } catch (error) {
+    console.error('Failed to load templates:', error)
+  }
+}
+
+async function exportExcel() {
+  if (!reportResult.value) return
+  loading.excel = true
+  try {
+    let blob: Blob
+    const sd = reportResult.value.start_date
+    const ed = reportResult.value.end_date
+    const tid = selectedTemplateId.value ?? undefined
+
+    if (reportResult.value.report_type === 'client-period') {
+      const r = reportResult.value as any
+      blob = await reportsApi.downloadClientPeriodExcel(sd, ed, r.client_id, r.project_id ?? undefined, tid)
+    } else if (reportResult.value.report_type === 'timekeeper-period') {
+      const r = reportResult.value as any
+      blob = await reportsApi.downloadTimekeeperPeriodExcel(sd, ed, r.timekeeper_id, tid)
+    } else {
+      blob = await reportsApi.downloadTimePeriodExcel(sd, ed, tid)
+    }
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${reportResult.value.report_type}_${sd}_to_${ed}.xlsx`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    notification.success('Export Complete', 'Report has been exported as Excel.')
+  } catch (error: any) {
+    console.error('Failed to export Excel:', error)
+    const detail = error?.response?.data?.detail || 'Excel export failed. Please try again.'
+    notification.error('Excel Export Failed', detail)
+  } finally {
+    loading.excel = false
+  }
+}
+
+function onTemplateFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    templateForm.file = target.files[0]
+  }
+}
+
+async function uploadTemplate() {
+  if (!templateForm.file) return
+  loading.template = true
+  try {
+    const formData = new FormData()
+    formData.append('name', templateForm.name)
+    formData.append('report_type', templateForm.report_type)
+    formData.append('file', templateForm.file)
+    if (templateForm.description) formData.append('description', templateForm.description)
+    if (templateForm.created_by) formData.append('created_by', templateForm.created_by)
+
+    await reportsApi.uploadTemplate(formData)
+    showTemplateUploadForm.value = false
+    // Reset form
+    templateForm.name = ''
+    templateForm.report_type = 'client-period'
+    templateForm.description = ''
+    templateForm.created_by = ''
+    templateForm.file = null
+    // Reload templates
+    await loadTemplates()
+    notification.success('Template Uploaded', 'Excel template has been uploaded successfully.')
+  } catch (error: any) {
+    console.error('Failed to upload template:', error)
+    const detail = error?.response?.data?.detail || 'Upload failed. Please try again.'
+    notification.error('Upload Failed', detail)
+  } finally {
+    loading.template = false
+  }
+}
+
+async function deleteTemplate(templateId: number) {
+  try {
+    await reportsApi.deleteTemplate(templateId)
+    templates.value = templates.value.filter(t => t.template_id !== templateId)
+    if (selectedTemplateId.value === templateId) selectedTemplateId.value = null
+    notification.success('Template Deleted', 'Excel template has been removed.')
+  } catch (error: any) {
+    console.error('Failed to delete template:', error)
+    const detail = error?.response?.data?.detail || 'Delete failed.'
+    notification.error('Delete Failed', detail)
   }
 }
 

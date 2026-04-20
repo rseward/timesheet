@@ -35,6 +35,9 @@ class ReportsView(BaseView):
         self.content = self.build()
         self.dirty = False
         self.startdate = "2023-01-01"
+        # File picker for template uploads
+        self.file_picker = ft.FilePicker(on_result=self.on_template_file_picked)
+        self.page.overlay.append(self.file_picker)
 
     def getReportsService(self):
         if not self.reportsService:
@@ -151,6 +154,38 @@ class ReportsView(BaseView):
             on_click=self.download_csv,
             disabled=True,
         )
+        self.excel_button = ft.ElevatedButton(
+            text="Download Excel",
+            icon=ft.icons.TABLE_BAR,
+            color="black",
+            bgcolor="white",
+            on_click=self.download_excel,
+            disabled=True,
+        )
+
+        # ─── Template dropdown ─────────────────────────────────────────
+        self.template_drop = ft.Dropdown(
+            label="Excel Template",
+            hint_text="Unformatted (default)",
+            width=300,
+            bgcolor=ft.colors.GREY_700,
+            focused_border_color=ft.colors.WHITE,
+            options=[ft.dropdown.Option(key="", text="Unformatted (default)")],
+        )
+        self.upload_template_button = ft.ElevatedButton(
+            text="Upload Template",
+            icon=ft.icons.UPLOAD_FILE,
+            color="black",
+            bgcolor="white",
+            on_click=self.open_template_upload_dialog,
+        )
+        self.manage_templates_button = ft.ElevatedButton(
+            text="Manage Templates",
+            icon=ft.icons.SETTINGS,
+            color="black",
+            bgcolor="white",
+            on_click=self.open_template_manager_dialog,
+        )
 
         # ─── Total hours display ────────────────────────────────────────
         self.total_hours_display = ft.Container(
@@ -183,6 +218,12 @@ class ReportsView(BaseView):
             ft.Row([
                 self.run_button,
                 self.csv_button,
+                self.excel_button,
+            ]),
+            ft.Row([
+                self.template_drop,
+                self.upload_template_button,
+                self.manage_templates_button,
             ]),
             self.result_table,
             self.total_hours_display,
@@ -197,6 +238,7 @@ class ReportsView(BaseView):
         self.current_report = idx
         self.report_data = None
         self.csv_button.disabled = True
+        self.excel_button.disabled = True
         self._clear_results()
 
         if idx == 0:  # Client Period
@@ -214,6 +256,7 @@ class ReportsView(BaseView):
                 ft.Text("No additional parameters needed — just a date range.", color=ft.colors.GREY_400),
             ]
 
+        self._load_templates()
         self.page.update()
 
     def on_client_change(self, e):
@@ -367,6 +410,7 @@ class ReportsView(BaseView):
             if self.report_data:
                 self._render_results(self.report_data)
                 self.csv_button.disabled = False
+                self.excel_button.disabled = False
                 TsNotification(self.page, f"Report generated: {len(self.report_data.get('rows', []))} rows", bgcolor="green")
             else:
                 TsNotification(self.page, "Report returned no data or failed", bgcolor="red")
@@ -421,12 +465,230 @@ class ReportsView(BaseView):
             self.progress(False)
         self.page.update()
 
+    def _get_report_type_name(self):
+        """Return the report_type string for the current tab."""
+        types = ["client-period", "timekeeper-period", "time-period"]
+        if self.current_report is not None and 0 <= self.current_report < len(types):
+            return types[self.current_report]
+        return "time-period"
+
+    def download_excel(self, e):
+        """Download the current report as Excel (.xlsx)."""
+        start_date, end_date = self._get_date_params()
+        if not start_date or not end_date:
+            TsNotification(self.page, "No report to download", bgcolor="red")
+            return
+
+        self.progress(True)
+        try:
+            report_type = self._get_report_type_name()
+            kwargs = {}
+            if report_type == "client-period":
+                client_id = self.clientdrop.value
+                if not client_id:
+                    TsNotification(self.page, "Please select a client", bgcolor="red")
+                    return
+                kwargs["client_id"] = int(client_id)
+                project_id = self.projectdrop.value if self.projectdrop.value else None
+                if project_id:
+                    kwargs["project_id"] = int(project_id)
+            elif report_type == "timekeeper-period":
+                timekeeper_id = self.timekeeperdrop.value
+                if not timekeeper_id:
+                    TsNotification(self.page, "Please select a timekeeper", bgcolor="red")
+                    return
+                kwargs["timekeeper_id"] = int(timekeeper_id)
+
+            # Check for selected template
+            template_id = self.template_drop.value
+            if template_id:
+                kwargs["template_id"] = int(template_id)
+
+            fpath, error = self.getReportsService().downloadExcel(
+                report_type, start_date, end_date, **kwargs
+            )
+            if fpath:
+                ic(f"Excel saved to {fpath}")
+                TsNotification(self.page, f"Excel saved to {fpath}", bgcolor="green")
+            else:
+                TsNotification(self.page, f"Excel download failed: {error}", bgcolor="red")
+        finally:
+            self.progress(False)
+        self.page.update()
+
+    def _load_templates(self):
+        """Load templates for the current report type into the dropdown."""
+        report_type = self._get_report_type_name()
+        try:
+            templates = self.getReportsService().getTemplates(report_type=report_type)
+        except Exception:
+            templates = []
+        options = [ft.dropdown.Option(key="", text="Unformatted (default)")]
+        for t in templates:
+            options.append(ft.dropdown.Option(
+                key=str(t["template_id"]),
+                text=t["name"],
+            ))
+        self.template_drop.options = options
+        self.template_drop.value = ""
+        if self.template_drop.parent is not None:
+            self.template_drop.update()
+
+    def open_template_upload_dialog(self, e):
+        """Open a dialog to upload a new Excel template."""
+        self._template_name_field = ft.TextField(
+            label="Template Name",
+            width=300,
+            bgcolor=ft.colors.GREY_700,
+            focused_border_color=ft.colors.WHITE,
+        )
+        self._template_desc_field = ft.TextField(
+            label="Description (optional)",
+            width=300,
+            bgcolor=ft.colors.GREY_700,
+            focused_border_color=ft.colors.WHITE,
+        )
+
+        def do_upload(ev):
+            name = self._template_name_field.value
+            if not name:
+                TsNotification(self.page, "Template name is required", bgcolor="red")
+                return
+            # Store name/desc for use when file is picked
+            self._pending_template_name = name
+            self._pending_template_desc = self._template_desc_field.value or ""
+            # Close the dialog, then open file picker
+            self._upload_dialog.open = False
+            self.page.update()
+            self.file_picker.pick_files(
+                allowed_extensions=["xlsx"],
+                file_type=ft.FilePickerFileType.CUSTOM,
+                dialog_title="Select Excel Template",
+            )
+
+        self._upload_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Upload Excel Template"),
+            content=ft.Column([
+                ft.Text(f"Report type: {self._get_report_type_name()}", color=ft.colors.GREY_400),
+                ft.Text(
+                    "The template must have the same column structure as the unformatted "
+                    "export (Client, Resource, Date, Hours, Billing Rate, Task, Project). "
+                    "Row 1 is the header row.",
+                    size=12, color=ft.colors.GREY_400,
+                ),
+                self._template_name_field,
+                self._template_desc_field,
+            ], tight=True, spacing=10),
+            actions=[
+                ft.TextButton("Cancel", on_click=lambda ev: self._close_dialog("_upload_dialog")),
+                ft.ElevatedButton("Choose File & Upload", on_click=do_upload),
+            ],
+        )
+        self.page.dialog = self._upload_dialog
+        self._upload_dialog.open = True
+        self.page.update()
+
+    def on_template_file_picked(self, e: ft.FilePickerResultEvent):
+        """Handle file picker result for template upload."""
+        if not e.files or len(e.files) == 0:
+            return
+
+        file = e.files[0]
+        file_path = file.path
+        name = getattr(self, "_pending_template_name", "")
+        desc = getattr(self, "_pending_template_desc", "")
+        report_type = self._get_report_type_name()
+
+        self.progress(True)
+        try:
+            creds = self.page.session.get("creds")
+            created_by = None
+            if isinstance(creds, dict):
+                created_by = creds.get("username")
+            result = self.getReportsService().uploadTemplate(
+                name=name,
+                report_type=report_type,
+                file_path=file_path,
+                description=desc,
+                created_by=created_by,
+            )
+            if result:
+                TsNotification(self.page, f"Template '{name}' uploaded successfully", bgcolor="green")
+                self._load_templates()
+            else:
+                TsNotification(self.page, "Template upload failed", bgcolor="red")
+        except Exception as ex:
+            ic(f"Template upload error: {ex}")
+            TsNotification(self.page, f"Template upload error: {ex}", bgcolor="red")
+        finally:
+            self.progress(False)
+        self.page.update()
+
+    def open_template_manager_dialog(self, e):
+        """Open a dialog to view and delete existing templates."""
+        report_type = self._get_report_type_name()
+        try:
+            templates = self.getReportsService().getTemplates(report_type=report_type)
+        except Exception:
+            templates = []
+
+        rows = []
+        if templates:
+            for t in templates:
+                tid = t["template_id"]
+                rows.append(ft.Row([
+                    ft.Text(t["name"], width=150, color=ft.colors.WHITE),
+                    ft.Text(t.get("description", "") or "", width=200, color=ft.colors.GREY_400, max_lines=1),
+                    ft.Text(t.get("filename", ""), width=120, color=ft.colors.GREY_400, size=11),
+                    ft.IconButton(
+                        icon=ft.icons.DELETE,
+                        icon_color=ft.colors.RED_400,
+                        tooltip="Delete template",
+                        on_click=lambda ev, tid=tid: self._delete_template(tid),
+                    ),
+                ]))
+        else:
+            rows.append(ft.Text("No templates found for this report type.", color=ft.colors.GREY_400))
+
+        self._manage_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(f"Manage Templates ({report_type})"),
+            content=ft.Column(rows, tight=True, spacing=5, scroll=ft.ScrollMode.AUTO),
+            actions=[
+                ft.TextButton("Close", on_click=lambda ev: self._close_dialog("_manage_dialog")),
+            ],
+        )
+        self.page.dialog = self._manage_dialog
+        self._manage_dialog.open = True
+        self.page.update()
+
+    def _delete_template(self, template_id):
+        """Delete a template and refresh the list."""
+        try:
+            self.getReportsService().deleteTemplate(template_id)
+            TsNotification(self.page, f"Template {template_id} deleted", bgcolor="green")
+            self._load_templates()
+            # Close and re-open the manager dialog
+            self._close_dialog("_manage_dialog")
+            self.open_template_manager_dialog(None)
+        except Exception as ex:
+            ic(f"Delete template error: {ex}")
+            TsNotification(self.page, f"Delete failed: {ex}", bgcolor="red")
+
+    def _close_dialog(self, attr_name):
+        dialog = getattr(self, attr_name, None)
+        if dialog:
+            dialog.open = False
+            self.page.update()
+
     def render(self):
         ic("render reports view")
         self.content = self.build()
         # Set current_report to match default tab
         self.current_report = 0
         self._load_clients()
+        self._load_templates()
 
     def on_form_hide(self):
         """Reload data after closing a form."""

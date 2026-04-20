@@ -1,9 +1,12 @@
 import datetime
 from typing import Optional, List
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, Query
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
+from pydantic import BaseModel
 
 import pprint
 import sqlalchemy
+import base64
+import io
 import bluestone.timesheet.config as cfg
 from bluestone.timesheet.jsonmodels import (
     ProjectJson,
@@ -571,3 +574,271 @@ def list_projects(client_id: Optional[int] = Query(None, description="Filter by 
         })
 
     return {"projects": projects}
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Excel Export Helpers
+# ═══════════════════════════════════════════════════════════════════
+
+EXCEL_COLUMNS = ["Client", "Resource", "Date", "Hours", "Billing Rate", "Task", "Project"]
+EXCEL_KEYS = ["client", "resource", "date", "hours", "bill_rate", "task", "project"]
+
+
+def _rows_to_xlsx(rows: List[dict], template_data: Optional[bytes] = None) -> bytes:
+    """Convert report rows to an Excel (.xlsx) byte stream.
+
+    If template_data is provided, the unformatted spreadsheet columns must
+    match the template's structure. The function loads the template workbook,
+    finds the first sheet, writes data starting at row 2 (row 1 = header),
+    and returns the filled-in workbook.
+
+    Without a template, a plain unformatted spreadsheet is produced.
+    """
+    from openpyxl import Workbook, load_workbook
+    from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+
+    if template_data:
+        wb = load_workbook(io.BytesIO(template_data))
+        ws = wb.active
+        # Write data rows starting at row 2 (row 1 is the template header)
+        for i, row in enumerate(rows, start=2):
+            for j, key in enumerate(EXCEL_KEYS, start=1):
+                val = row.get(key, "")
+                if val is None:
+                    val = ""
+                ws.cell(row=i, column=j, value=val)
+    else:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Report"
+        # Header row
+        header_font = Font(bold=True)
+        for j, col_name in enumerate(EXCEL_COLUMNS, start=1):
+            cell = ws.cell(row=1, column=j, value=col_name)
+            cell.font = header_font
+        # Data rows
+        for i, row in enumerate(rows, start=2):
+            for j, key in enumerate(EXCEL_KEYS, start=1):
+                val = row.get(key, "")
+                if val is None:
+                    val = ""
+                ws.cell(row=i, column=j, value=val)
+        # Auto-width columns
+        for col in ws.columns:
+            max_length = 0
+            col_letter = col[0].column_letter
+            for cell in col:
+                try:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                except Exception:
+                    pass
+            ws.column_dimensions[col_letter].width = max(max_length + 2, 10)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf.getvalue()
+
+
+def _excel_response(xlsx_bytes: bytes, filename: str):
+    """Return a StreamingResponse for an Excel file."""
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(
+        io.BytesIO(xlsx_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Excel Export Endpoints
+# ═══════════════════════════════════════════════════════════════════
+
+@router.get(
+    "/time-period/excel",
+    dependencies=[Depends(JWTBearer())],
+)
+def time_period_report_excel(
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    template_id: Optional[int] = Query(None, description="Report template ID for formatted export"),
+):
+    """Generate a Time Period Report as Excel (.xlsx) download.
+    If template_id is provided, the data is written into the template."""
+    try:
+        sd = datetime.date.fromisoformat(start_date)
+        ed = datetime.date.fromisoformat(end_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    if sd > ed:
+        raise HTTPException(status_code=400, detail="start_date must be on or before end_date.")
+
+    start_dt = datetime.datetime.combine(sd, datetime.time(0, 0))
+    end_dt = datetime.datetime.combine(ed, datetime.time(23, 59, 59))
+    rows = _build_time_period_rows(start_dt, end_dt)
+
+    template_data = None
+    if template_id is not None:
+        tmpl = daos.getReportTemplateDao().getById(template_id)
+        if not tmpl or not tmpl.active:
+            raise HTTPException(status_code=404, detail="Template not found or inactive")
+        template_data = base64.b64decode(tmpl.file_data)
+
+    xlsx_bytes = _rows_to_xlsx(rows, template_data)
+    filename = f"time-period-report-{start_date}-to-{end_date}.xlsx"
+    return _excel_response(xlsx_bytes, filename)
+
+
+@router.get(
+    "/client-period/excel",
+    dependencies=[Depends(JWTBearer())],
+)
+def client_period_report_excel(
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    client_id: int = Query(..., description="Client ID"),
+    project_id: Optional[int] = Query(None, description="Project ID (optional)"),
+    template_id: Optional[int] = Query(None, description="Report template ID for formatted export"),
+):
+    """Generate a Client Period Report as Excel (.xlsx) download."""
+    try:
+        sd = datetime.date.fromisoformat(start_date)
+        ed = datetime.date.fromisoformat(end_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    if sd > ed:
+        raise HTTPException(status_code=400, detail="start_date must be on or before end_date.")
+
+    start_dt = datetime.datetime.combine(sd, datetime.time(0, 0))
+    end_dt = datetime.datetime.combine(ed, datetime.time(23, 59, 59))
+    rows = _build_client_period_rows(start_dt, end_dt, client_id, project_id)
+
+    template_data = None
+    if template_id is not None:
+        tmpl = daos.getReportTemplateDao().getById(template_id)
+        if not tmpl or not tmpl.active:
+            raise HTTPException(status_code=404, detail="Template not found or inactive")
+        template_data = base64.b64decode(tmpl.file_data)
+
+    xlsx_bytes = _rows_to_xlsx(rows, template_data)
+    filename = f"client-period-report-{start_date}-to-{end_date}.xlsx"
+    return _excel_response(xlsx_bytes, filename)
+
+
+@router.get(
+    "/timekeeper-period/excel",
+    dependencies=[Depends(JWTBearer())],
+)
+def timekeeper_period_report_excel(
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    timekeeper_id: int = Query(..., description="Timekeeper ID"),
+    template_id: Optional[int] = Query(None, description="Report template ID for formatted export"),
+):
+    """Generate a TimeKeeper Period Report as Excel (.xlsx) download."""
+    try:
+        sd = datetime.date.fromisoformat(start_date)
+        ed = datetime.date.fromisoformat(end_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    if sd > ed:
+        raise HTTPException(status_code=400, detail="start_date must be on or before end_date.")
+
+    start_dt = datetime.datetime.combine(sd, datetime.time(0, 0))
+    end_dt = datetime.datetime.combine(ed, datetime.time(23, 59, 59))
+    rows = _build_timekeeper_period_rows(start_dt, end_dt, timekeeper_id)
+
+    template_data = None
+    if template_id is not None:
+        tmpl = daos.getReportTemplateDao().getById(template_id)
+        if not tmpl or not tmpl.active:
+            raise HTTPException(status_code=404, detail="Template not found or inactive")
+        template_data = base64.b64decode(tmpl.file_data)
+
+    xlsx_bytes = _rows_to_xlsx(rows, template_data)
+    filename = f"timekeeper-period-report-{start_date}-to-{end_date}.xlsx"
+    return _excel_response(xlsx_bytes, filename)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Report Template Management
+# ═══════════════════════════════════════════════════════════════════
+
+@router.get(
+    "/templates",
+    dependencies=[Depends(JWTBearer())],
+)
+def list_report_templates(
+    report_type: Optional[str] = Query(None, description="Filter by report type"),
+):
+    """List available report templates. Optionally filter by report_type."""
+    dao = daos.getReportTemplateDao()
+    templates = dao.getAll(report_type=report_type)
+    return {
+        "templates": [dao.toDict(t) for t in templates]
+    }
+
+
+@router.post(
+    "/templates",
+    dependencies=[Depends(JWTBearer())],
+)
+def upload_report_template(
+    name: str = Form(..., description="Template name"),
+    report_type: str = Form(..., description="Report type: client-period, timekeeper-period, or time-period"),
+    file: UploadFile = File(..., description="Excel template file (.xlsx)"),
+    description: Optional[str] = Form(None, description="Template description"),
+    created_by: Optional[str] = Form(None, description="Uploader name/email"),
+):
+    """Upload a new report template.
+
+    The template must be an .xlsx file with the same column structure as
+    the unformatted export (Client, Resource, Date, Hours, Billing Rate,
+    Task, Project). Row 1 is treated as the header row; data will be
+    written starting at row 2.
+    """
+    if report_type not in ("client-period", "timekeeper-period", "time-period"):
+        raise HTTPException(status_code=400, detail="Invalid report_type. Must be client-period, timekeeper-period, or time-period.")
+
+    content = file.file.read()
+    # Validate it's a valid xlsx
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(content))
+        # Ensure at least one sheet
+        if not wb.sheetnames:
+            raise ValueError("No sheets in workbook")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid Excel file: {e}")
+
+    from bluestone.timesheet.data.models import ReportTemplate
+    tmpl = ReportTemplate(
+        name=name,
+        description=description,
+        report_type=report_type,
+        filename=file.filename or "template.xlsx",
+        file_data=base64.b64encode(content).decode("utf-8"),
+        created_by=created_by,
+        created_at=datetime.datetime.utcnow(),
+        active=True,
+    )
+    dao = daos.getReportTemplateDao()
+    dao.save(tmpl)
+    dao.commit()
+
+    return {"template_id": tmpl.template_id, "name": tmpl.name, "message": "Template uploaded successfully"}
+
+
+@router.delete(
+    "/templates/{template_id}",
+    dependencies=[Depends(JWTBearer())],
+)
+def delete_report_template(template_id: int):
+    """Delete a report template."""
+    dao = daos.getReportTemplateDao()
+    tmpl = dao.getById(template_id)
+    if not tmpl:
+        raise HTTPException(status_code=404, detail="Template not found")
+    dao.delete(template_id)
+    return {"message": f"Template {template_id} deleted"}

@@ -188,6 +188,21 @@ class UserPreference(Base):
     preference_value = Column(String(255), nullable=True)
 
 
+class ReportTemplate(Base):
+    """Stores uploaded Excel templates for formatted report exports."""
+    __tablename__ = "report_template"
+
+    template_id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(128), nullable=False)
+    description = Column(String(255), nullable=True)
+    report_type = Column(String(32), nullable=False)  # 'client-period', 'timekeeper-period', 'time-period'
+    filename = Column(String(255), nullable=False)
+    file_data = Column(Text, nullable=False)  # base64-encoded xlsx content
+    created_by = Column(String(128), nullable=True)
+    created_at = Column(DateTime, nullable=False)
+    active = Column(Boolean, nullable=False, default=True)
+
+
 class Holiday(Base):
     __tablename__ = "holiday"
 

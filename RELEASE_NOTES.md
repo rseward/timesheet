@@ -1,5 +1,11 @@
 # Timesheet Release Notes
 
+## Version 0.3.2 - April 2026
+
+- **New Report Templates**: You can now create and save customizable report templates. This makes it easier to generate standard reports with consistent settings.
+- **Improved Report Management**: The report interface has been updated across both the Web and Flet applications. You can now more easily view and manage your saved report configurations.
+- **System Enhancements**: We've updated the underlying database structure and backend services to ensure smoother and more reliable report generation.
+
 ## Version 0.3.1 - April 2026
 
 - You can now generate three types of reports: by client, by timekeeper, or by date range, with filtering by project or person.

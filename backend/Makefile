@@ -1,7 +1,7 @@
-#TIMESHEET_SQLITE ?= $(CURDIR)/timesheet.sqlite
-#TIMESHEET_SA_URL ?= sqlite:///$(CURDIR)/timesheet.sqlite
-#export TIMESHEET_SQLITE
-#export TIMESHEET_SA_URL
+TIMESHEET_SQLITE ?= $(CURDIR)/timesheet-test.sqlite
+TIMESHEET_SA_URL ?= sqlite:///$(CURDIR)/timesheet-test.sqlite
+export TIMESHEET_SQLITE
+export TIMESHEET_SA_URL
 
 venv:
 	uv venv

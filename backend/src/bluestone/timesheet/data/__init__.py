@@ -9,6 +9,7 @@ from .models import Assignment
 from .models import BillingEvent
 from .models import Client
 from .models import Project
+from .models import ReportTemplate
 from .models import Task
 from .models import User
 from .models import UserToken

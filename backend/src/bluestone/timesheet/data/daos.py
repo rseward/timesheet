@@ -15,6 +15,9 @@ from .holidaydao import HolidayDao
 from .timekeeperdao import TimekeeperDao
 
 
+from .reporttemplatedao import ReportTemplateDao
+
+
 daofactory = None
 def getDaoFactory():
     global daofactory
@@ -41,6 +44,7 @@ class DaoFactory(object):
         self.eventDao = None
         self.holidayDao = None
         self.timekeeperDao = None
+        self.reportTemplateDao = None
 
     def getClientDao(self):
         if not (self.clientDao):
@@ -95,6 +99,12 @@ class DaoFactory(object):
             self.timekeeperDao = TimekeeperDao(self.Session)
 
         return self.timekeeperDao
+
+    def getReportTemplateDao(self):
+        if not (self.reportTemplateDao):
+            self.reportTemplateDao = ReportTemplateDao(self.Session)
+
+        return self.reportTemplateDao
 
 
 
