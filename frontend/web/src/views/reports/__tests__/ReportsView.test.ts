@@ -105,6 +105,13 @@ vi.mock('@/composables/useNotification', () => ({
   }),
 }))
 
+vi.mock('@/components/layout/AppHeader.vue', () => ({
+  default: {
+    name: 'AppHeader',
+    template: '<div class="app-header-stub">AppHeader</div>',
+  },
+}))
+
 describe('ReportsView', () => {
   let wrapper: any
 

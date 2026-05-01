@@ -1,16 +1,17 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <div class="py-10">
-      <header>
-        <div class="w-[90%] mx-auto px-4">
-          <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">Reports</h1>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Generate and view various timesheet and billing reports
-          </p>
-        </div>
-      </header>
+    <!-- App Header with Profile Navigation -->
+    <AppHeader />
+
+    <div class="py-6">
       <main>
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="w-[90%] mx-auto px-4">
+          <header>
+            <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">Reports</h1>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Generate and view various timesheet and billing reports
+            </p>
+          </header>
           <div class="px-4 py-8 sm:px-0">
             <!-- Report Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -730,6 +731,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useNotification } from '@/composables/useNotification'
 import { reportsApi, type ReportResult, type ReportTemplateItem } from '@/services/reports'
+import AppHeader from '@/components/layout/AppHeader.vue'
 import dayjs from 'dayjs'
 
 const notification = useNotification()
