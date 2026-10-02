@@ -199,7 +199,27 @@
                 </div>
               </template>
 
-              <!-- Empty state slot with Add button -->
+              <!-- Custom cell for Description with copy-to-clipboard -->
+              <template #cell-log_message="{ item }">
+                <div class="flex items-center group">
+                  <span class="text-sm text-gray-900 dark:text-white max-w-xs truncate" :title="item.log_message">
+                    {{ item.log_message || '-' }}
+                  </span>
+                  <button
+                    v-if="item.log_message"
+                    @click="copyDescription(item.log_message)"
+                    class="ml-2 inline-flex items-center justify-center w-5 h-5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                    title="Copy description to clipboard"
+                    aria-label="Copy description to clipboard"
+                  >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </template>
+
+              <!-- Empty state slot with Add Button -->
               <template #empty>
                 <button
                   @click="showAddTimeEntry = true"
@@ -338,8 +358,7 @@ const columns: TableColumn[] = [
   {
     key: 'log_message',
     title: 'Description',
-    sortable: false,
-    cellClass: 'max-w-xs truncate'
+    sortable: false
   }
 ]
 
@@ -720,6 +739,29 @@ const formatDate = (dateString: string): string => {
     })
   } catch {
     return dateString
+  }
+}
+
+const copyDescription = async (text: string) => {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    console.log('[HoursView] Description copied to clipboard:', text.substring(0, 50) + '...')
+  } catch (err) {
+    // Fallback for browsers without clipboard API
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      console.log('[HoursView] Description copied via fallback:', text.substring(0, 50) + '...')
+    } catch (fallbackErr) {
+      console.error('[HoursView] Failed to copy description:', fallbackErr)
+    }
+    document.body.removeChild(textarea)
   }
 }
 
