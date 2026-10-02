@@ -160,6 +160,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
+  // Admin (Database Backup/Restore)
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/views/admin/AdminView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Admin',
+      breadcrumb: 'Admin'
+    }
+  },
+
   // 404 Error Page
   {
     path: '/404',
@@ -311,8 +323,13 @@ export const navigation = {
     },
     {
       name: 'Preferences',
-      path: '/preferences', 
+      path: '/preferences',
       icon: 'cog-6-tooth'
+    },
+    {
+      name: 'Admin',
+      path: '/admin',
+      icon: 'shield-check'
     }
   ]
 }

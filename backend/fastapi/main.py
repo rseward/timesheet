@@ -23,6 +23,7 @@ import api.routers.preferences
 import api.routers.holiday
 import api.routers.time_entry
 import api.routers.timekeeper
+import api.routers.admin
 from api.schemas.authmodels import LoginRequest
 
 from bluestone.timesheet.data.daos import getDaoFactory
@@ -115,6 +116,7 @@ app.include_router(api.routers.preferences.router)
 app.include_router(api.routers.holiday.router)
 app.include_router(api.routers.timekeeper.router)
 app.include_router(api.routers.time_entry.router)
+app.include_router(api.routers.admin.router)
 
 # Serve Vue.js static files - use absolute paths
 current_dir = os.path.dirname(os.path.abspath(__file__))
