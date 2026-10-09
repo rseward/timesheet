@@ -365,6 +365,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useBillingEventsStore } from '@/stores/billingEvents'
 import { useHolidaysStore } from '@/stores/holidays'
+import { useAuthStore } from '@/stores/auth'
 import DatePicker from '@/components/DatePicker.vue'
 import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } from '@/types/billingEvent'
 import type { Client } from '@/types/client'
@@ -394,6 +395,7 @@ const emit = defineEmits<Emits>()
 const preferencesStore = usePreferencesStore()
 const billingEventsStore = useBillingEventsStore()
 const holidaysStore = useHolidaysStore()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 const errors = ref<Record<string, string>>({})
@@ -436,7 +438,7 @@ const form = ref({
   client_id: '',
   project_id: 0,
   task_id: 0,
-  timekeeper_id: 1, // Default timekeeper
+  timekeeper_id: authStore.user?.user_id ?? 0, // From auth session
   date: '',
   start_time: '',
   end_time: '',
@@ -493,7 +495,7 @@ const holidayWarningMessage = computed(() => {
 
 const computeSmartDefaultDate = async () => {
   try {
-    const timekeeperId = 1 // TODO: Get from auth context
+    const timekeeperId = authStore.user?.user_id ?? 0
     const clientId = props.defaultClientId ? parseInt(props.defaultClientId) : null
     const projectId = props.defaultProjectId ? parseInt(props.defaultProjectId) : null
     
@@ -612,7 +614,7 @@ const initializeForm = async () => {
       client_id: props.defaultClientId || '',
       project_id: props.defaultProjectId ? parseInt(props.defaultProjectId) : 0,
       task_id: props.defaultTaskId ? parseInt(props.defaultTaskId) : 0,
-      timekeeper_id: 1,
+      timekeeper_id: authStore.user?.user_id ?? 0,
       date: smartDate,
       start_time: defaultStartTime,
       end_time: defaultEndTime,
@@ -841,7 +843,7 @@ const getWeekStart = (dateString: string): string => {
 
 const checkWeekForCopyOffer = async (weekStartDate: string) => {
   try {
-    const timekeeperId = 1 // TODO: Get from auth context
+    const timekeeperId = authStore.user?.user_id ?? 0
     
     console.log('[TimeEntryModal] Checking week for copy offer:', weekStartDate)
     
@@ -871,7 +873,7 @@ const acceptCopyWeek = async () => {
   
   loading.value = true
   try {
-    const timekeeperId = 1 // TODO: Get from auth context
+    const timekeeperId = authStore.user?.user_id ?? 0
     const sourceWeek = copyWeekInfo.value.previous_week_start
     const targetWeek = copyWeekInfo.value.week_start_date
     
