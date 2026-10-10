@@ -353,6 +353,15 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
     }
   }
 
+  const findSourceWeek = async (timekeeperId: number, targetWeekStart: string, projectId: number, taskId?: number, maxWeeksBack?: number) => {
+    try {
+      return await billingEventsApi.findSourceWeek(timekeeperId, targetWeekStart, projectId, taskId, maxWeeksBack)
+    } catch (err) {
+      console.error('[BillingEventsStore] Error finding source week:', err)
+      throw err
+    }
+  }
+
   return {
     // State (direct refs for test mutability)
     billingEvents,
@@ -393,6 +402,7 @@ export const useBillingEventsStore = defineStore('billingEvents', () => {
 
     // Predictive Time Entry (Ticket #57)
     getWeekInfo,
-    copyWeekEntries
+    copyWeekEntries,
+    findSourceWeek
   }
 })

@@ -474,3 +474,67 @@ def copy_week_entries(
         "created_entries": created_entries,
         "skipped_entries": skipped_entries
     }
+
+
+@router.get(
+    "/find-source-week",
+    response_model=Dict[str, Any],
+    dependencies=[Depends(JWTBearer())],
+)
+def find_source_week(
+    timekeeper_id: int = Query(..., description="Timekeeper user ID"),
+    target_week_start: str = Query(..., description="Target week start date (YYYY-MM-DD, a Monday)"),
+    project_id: int = Query(..., description="Project ID to match"),
+    task_id: int = Query(None, description="Optional task ID to further filter"),
+    max_weeks_back: int = Query(12, description="Maximum weeks to search back (default 12)")
+) -> Dict[str, Any]:
+    """Find the most recent week (searching backwards) that has time entries
+    matching the given project (and optionally task) for the specified timekeeper.
+
+    This supports the "Copy Last Week's Hours" button on the empty state:
+    instead of only checking the immediately previous week, it searches
+    backwards up to max_weeks_back weeks to find a week with matching entries.
+    """
+    import datetime
+    from dateutil.relativedelta import relativedelta
+
+    try:
+        target_start = datetime.date.fromisoformat(target_week_start)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format (YYYY-MM-DD)")
+
+    if target_start.weekday() != 0:
+        raise HTTPException(status_code=400, detail="target_week_start must be a Monday")
+
+    BillingEventDao = daos.getBillingEventDao()
+
+    # Search backwards week by week
+    for week_offset in range(1, max_weeks_back + 1):
+        source_start = target_start - relativedelta(weeks=week_offset)
+        source_end = source_start + relativedelta(days=6)
+        src_start_dt = datetime.datetime.combine(source_start, datetime.time(0, 0))
+        src_end_dt = datetime.datetime.combine(source_end, datetime.time(23, 59, 59))
+
+        entries = BillingEventDao.get_by_timekeeper_project_range(
+            timekeeper_id,
+            project_id=project_id,
+            task_id=task_id,
+            start_dt=src_start_dt,
+            end_dt=src_end_dt
+        )
+
+        if entries:
+            # Found the most recent week with matching entries
+            return {
+                "found": True,
+                "source_week_start": source_start.isoformat(),
+                "entry_count": len(entries),
+                "weeks_back": week_offset
+            }
+
+    return {
+        "found": False,
+        "source_week_start": None,
+        "entry_count": 0,
+        "weeks_back": max_weeks_back
+    }

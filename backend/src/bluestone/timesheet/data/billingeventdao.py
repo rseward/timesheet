@@ -77,6 +77,21 @@ class BillingEventDao(BaseDao):
         q = q.filter(BillingEvent.active)
         return q.all()
 
+    def get_by_timekeeper_project_range(self, timekeeper_id: int, project_id: int | None = None, task_id: int | None = None, start_dt: datetime.datetime | None = None, end_dt: datetime.datetime | None = None) -> List[BillingEvent]:
+        """Get billing events for a timekeeper, optionally filtered by project and/or task, within a date range."""
+        q = self.getSession().query(BillingEvent)
+        q = q.filter(BillingEvent.timekeeper_id == timekeeper_id)
+        q = q.filter(BillingEvent.active)
+        if project_id is not None:
+            q = q.filter(BillingEvent.project_id == project_id)
+        if task_id is not None:
+            q = q.filter(BillingEvent.task_id == task_id)
+        if start_dt is not None:
+            q = q.filter(BillingEvent.start_time >= start_dt)
+        if end_dt is not None:
+            q = q.filter(BillingEvent.start_time <= end_dt)
+        return q.all()
+
     def toDict(self, db: BillingEvent) -> dict:
         d = {}
         d["uid"] = db.uid

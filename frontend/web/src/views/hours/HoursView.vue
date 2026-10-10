@@ -219,17 +219,41 @@
                 </div>
               </template>
 
-              <!-- Empty state slot with Add Button -->
+              <!-- Empty state slot with Add + Copy Last Week buttons -->
               <template #empty>
-                <button
-                  @click="showAddTimeEntry = true"
-                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Add Time Entry
-                </button>
+                <div class="flex flex-col items-center space-y-4">
+                  <div class="flex items-center space-x-3">
+                    <button
+                      @click="showAddTimeEntry = true"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add Time Entry
+                    </button>
+
+                    <button
+                      v-if="canCopyLastWeek"
+                      @click="handleCopyLastWeek"
+                      :disabled="isCopyingWeek"
+                      class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg v-if="isCopyingWeek" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <svg v-else class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-1M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                      </svg>
+                      {{ isCopyingWeek ? 'Copying...' : 'Copy Last Week\'s Hours' }}
+                    </button>
+                  </div>
+
+                  <div v-if="copyWeekMessage" class="rounded-md p-3 max-w-md text-sm" :class="copyWeekMessage.startsWith('Error') ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300' : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'">
+                    {{ copyWeekMessage }}
+                  </div>
+                </div>
               </template>
             </DataTable>
 
@@ -295,6 +319,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useBillingEventsStore } from '@/stores/billingEvents'
 import { useClientsStore } from '@/stores/clients'
+import { useAuthStore } from '@/stores/auth'
 import { useProjectsStore } from '@/stores/projects'
 import { useTasksStore } from '@/stores/tasks'
 import type { BillingEvent, BillingEventCreateData, BillingEventUpdateData } from '@/types/billingEvent'
@@ -309,6 +334,7 @@ const billingEventsStore = useBillingEventsStore()
 const clientsStore = useClientsStore()
 const projectsStore = useProjectsStore()
 const tasksStore = useTasksStore()
+const authStore = useAuthStore()
 
 // State
 const isLoading = ref(false)
@@ -318,6 +344,8 @@ const showEditTimeEntry = ref(false)
 const showDeleteModal = ref(false)
 const editingTimeEntry = ref<BillingEvent | null>(null)
 const deletingTimeEntry = ref<BillingEvent | null>(null)
+const isCopyingWeek = ref(false)
+const copyWeekMessage = ref<string | null>(null)
 
 // Filters
 const filters = reactive({
@@ -520,6 +548,18 @@ const dateRangeText = computed(() => {
     return `Until ${formatDate(filters.endDate)}`
   }
   return 'All time'
+})
+
+// Show the "Copy Last Week's Hours" button when:
+// - Client is selected (required)
+// - Project is selected (required)
+// - No billing entries are currently displayed (empty state)
+const canCopyLastWeek = computed(() => {
+  return !isLoading.value &&
+    !isCopyingWeek.value &&
+    filters.clientId !== '' &&
+    filters.projectId !== '' &&
+    billingEvents.value.length === 0
 })
 
 // Methods
@@ -817,6 +857,66 @@ const handleDeleteConfirm = async () => {
   } catch (err) {
     console.error('[HoursView] DELETE failed:', err)
     error.value = err instanceof Error ? err.message : 'Failed to delete time entry'
+  }
+}
+
+// Helper: get the Monday of the current week
+const getCurrentWeekStart = () => {
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - daysToSubtract)
+  return monday.toISOString().split('T')[0]
+}
+
+// Copy Last Week's Hours: search backwards for the most recent week with entries
+// matching the selected Client+Project (and Task if selected), then copy them
+// into the current week, skipping holidays.
+const handleCopyLastWeek = async () => {
+  const timekeeperId = authStore.user?.user_id ?? 0
+  if (!timekeeperId || !filters.projectId) return
+
+  const projectId = parseInt(filters.projectId)
+  const taskId = filters.taskId ? parseInt(filters.taskId) : undefined
+  const targetWeek = getCurrentWeekStart()
+
+  isCopyingWeek.value = true
+  copyWeekMessage.value = null
+
+  try {
+    console.log('[HoursView] Finding source week for copy:', { timekeeperId, targetWeek, projectId, taskId })
+
+    const sourceResult = await billingEventsStore.findSourceWeek(timekeeperId, targetWeek, projectId, taskId)
+
+    if (!sourceResult.found || !sourceResult.source_week_start) {
+      copyWeekMessage.value = 'No previous time entries found for the selected project to copy.'
+      return
+    }
+
+    console.log('[HoursView] Found source week:', sourceResult)
+
+    const copyResult = await billingEventsStore.copyWeekEntries(
+      timekeeperId,
+      sourceResult.source_week_start,
+      targetWeek
+    )
+
+    console.log('[HoursView] Copy week result:', copyResult)
+
+    if (copyResult.success) {
+      const skippedNote = copyResult.skipped_count > 0
+        ? ` (${copyResult.skipped_count} holiday(s) skipped)`
+        : ''
+      copyWeekMessage.value = `Copied ${copyResult.created_count} entries from week of ${formatDate(sourceResult.source_week_start)}${skippedNote}.`
+      await applyFilters()
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Failed to copy week entries'
+    copyWeekMessage.value = `Error: ${msg}`
+    console.error('[HoursView] Copy last week failed:', err)
+  } finally {
+    isCopyingWeek.value = false
   }
 }
 

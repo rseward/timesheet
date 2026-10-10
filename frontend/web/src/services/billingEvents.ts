@@ -324,5 +324,43 @@ export const billingEventsApi = {
       console.error('[BillingEventsAPI] Error copying week entries:', error)
       throw error
     }
+  },
+
+  async findSourceWeek(
+    timekeeperId: number,
+    targetWeekStart: string,
+    projectId: number,
+    taskId?: number,
+    maxWeeksBack?: number
+  ): Promise<{
+    found: boolean
+    source_week_start: string | null
+    entry_count: number
+    weeks_back: number
+  }> {
+    console.log('[BillingEventsAPI] findSourceWeek called with:', { timekeeperId, targetWeekStart, projectId, taskId, maxWeeksBack })
+
+    try {
+      const params: Record<string, any> = {
+        timekeeper_id: timekeeperId,
+        target_week_start: targetWeekStart,
+        project_id: projectId
+      }
+      if (taskId !== undefined && taskId > 0) params.task_id = taskId
+      if (maxWeeksBack !== undefined) params.max_weeks_back = maxWeeksBack
+
+      const response = await apiService.get('/time-entry/find-source-week', { params })
+      console.log('[BillingEventsAPI] Find source week response:', response)
+
+      return response as {
+        found: boolean
+        source_week_start: string | null
+        entry_count: number
+        weeks_back: number
+      }
+    } catch (error) {
+      console.error('[BillingEventsAPI] Error finding source week:', error)
+      throw error
+    }
   }
 }
