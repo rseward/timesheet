@@ -17,7 +17,7 @@ services:
     environment:
       - TIMESHEET_SQLITE=/data/timesheet.sqlite
       - TIMESHEET_SRC_HOME=/app/src
-      - TIMESHEET_SA_URL=sqlite:///data/timesheet.sqlite
+      - TIMESHEET_SA_URL=sqlite:////data/timesheet.sqlite
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/api/health"]
