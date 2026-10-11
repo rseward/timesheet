@@ -15,11 +15,19 @@ fi
 # Set proper permissions
 chown app:app /data "$TIMESHEET_SQLITE" 2>/dev/null || true
 
-# Run alembic migrations (idempotent — no-op if already at head)
-# This ensures the schema is initialized on first boot with a fresh database
-# and upgrades to the latest revision on existing databases.
+# Run alembic migrations
+# On a fresh database, upgrade head creates all tables from scratch.
+# On a database copied from another instance (e.g. bare metal) the tables
+# may already exist but the alembic_version table may be behind. In that case
+# upgrade head fails with "table already exists". We catch that and stamp
+# head instead, telling alembic the schema is already current.
 echo "Running database migrations..."
-cd /app/backend && alembic upgrade head
+cd /app/backend
+if ! alembic upgrade head 2>&1; then
+    echo "Alembic upgrade failed — attempting to stamp head for pre-existing schema..."
+    alembic stamp head
+    echo "Stamped alembic to head."
+fi
 cd /app
 
 # Start supervisor which will manage nginx and fastapi
