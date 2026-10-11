@@ -82,7 +82,7 @@ RUN chmod +x /start.sh
 ENV TIMESHEET_SQLITE=/data/timesheet.sqlite
 ENV TIMESHEET_SRC_HOME=/app/src
 ENV TIMESHEET_SA_URL=sqlite:///data/timesheet.sqlite
-ENV PYTHONPATH=/app/backend
+ENV PYTHONPATH=/app/backend:/app/backend/src
 
 # Expose port
 EXPOSE 80
