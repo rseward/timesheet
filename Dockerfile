@@ -64,8 +64,9 @@ COPY --chown=app:app . ./src/
 # Copy frontend test setup from builder (includes node_modules)
 COPY --from=frontend-builder --chown=app:app /app/frontend/node_modules ./src/frontend/web/node_modules
 
-# Create necessary directories
-RUN mkdir -p /data /var/log/supervisor /var/log/nginx
+# Create necessary directories with correct permissions
+RUN mkdir -p /data /var/log/supervisor /var/log/nginx && \
+    chown -R app:app /data /var/log/supervisor /var/log/nginx
 
 # Copy nginx configuration
 COPY docker/nginx.conf /etc/nginx/nginx.conf
@@ -90,8 +91,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost/api/health || exit 1
 
-# Set user
-USER app
-
-# Start the application
+# Start the application (must run as root for supervisord to manage nginx)
 CMD ["/start.sh"]

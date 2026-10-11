@@ -144,3 +144,4 @@ backend/timesheet-test.sqlite
 
 # Claude Code local settings
 .claude/settings.local.json
+docs/deploy-podman2024.html
