@@ -1,5 +1,14 @@
 # Timesheet Release Notes
 
+## Version 0.3.3 - October 2026
+
+- **Copy Last Week's Hours**: When the Time Entry screen is empty and you have a Client and Project selected, a new purple "Copy Last Week's Hours" button appears. It searches backwards up to 12 weeks for the most recent week with matching entries and copies them into the current week, automatically skipping holidays.
+- **Predictive Time Entry Fix**: The copy-week feature in the time entry modal now works for all logged-in users instead of only user ID 1. Timekeeper ID is now pulled from your active session.
+- **Admin Backup & Restore**: A new Admin page provides database backup (download a gzipped snapshot) and restore (upload a previous backup) functionality, accessible from the dashboard and profile dropdown.
+- **Copy Description to Clipboard**: A copy icon now appears on hover in the Description column of the Time Entry page, letting you quickly copy entry descriptions to your clipboard.
+- **Container Database Migrations**: The Docker container now runs Alembic database migrations automatically on startup, ensuring the schema is always up to date on both fresh and existing databases.
+- **Improved Navigation**: Admin links have been added to the dashboard, profile dropdown, and inline navigation menus. Reports view navigation has also been improved.
+
 ## Version 0.3.2 - April 2026
 
 - **New Report Templates**: You can now create and save customizable report templates. This makes it easier to generate standard reports with consistent settings.
