@@ -113,6 +113,37 @@ The Dockerfile performs the Vue.js build internally (`npx vite build`), copies
 This is the simplest path to a running deployment — one command rebuilds
 everything.
 
+#### Deploy with pre-built image (ghcr.io)
+
+Pre-built images are published to `ghcr.io/rseward/timesheet` by GitHub Actions
+on every push to `main` and on `v*` tags. To deploy with podman:
+
+```
+podman pull ghcr.io/rseward/timesheet:v0.3.3
+
+podman run -d --name timesheet-app \
+  -p 8082:80 \
+  -v /home/rseward/data/timesheet:/data:Z \
+  -e TIMESHEET_SQLITE=/data/timesheet.sqlite \
+  -e TIMESHEET_SRC_HOME=/app/src \
+  -e TIMESHEET_SA_URL=sqlite:////data/timesheet.sqlite \
+  ghcr.io/rseward/timesheet:v0.3.3
+
+# Verify
+curl -s http://localhost:8082/api/health
+```
+
+**Important:** `TIMESHEET_SA_URL` must use four slashes for an absolute path
+(`sqlite:////data/timesheet.sqlite`), not three. With three slashes SQLAlchemy
+interprets the path as relative (`data/timesheet.sqlite`) and the container
+will fail with "unable to open database file". The Dockerfile sets this
+correctly as a default, but if you pass `-e TIMESHEET_SA_URL` explicitly
+in your `podman run` command, make sure to use four slashes.
+
+For a reverse proxy with TLS, point Nginx Proxy Manager (or equivalent) at
+`localhost:8082`. See `docs/deploy-podman2024.md` for a full deployment
+walkthrough including DNS and Nginx Proxy Manager setup.
+
 #### Deploy bare metal (frontend only)
 
 If you are already running the FastAPI backend on port 8080 via
