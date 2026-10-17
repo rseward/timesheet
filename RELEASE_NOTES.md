@@ -1,5 +1,12 @@
 # Timesheet Release Notes
 
+## Version 0.3.4 - October 2026
+
+- **Timesheet CLI for Agent Integration**: A new Python CLI tool (`cli/timesheet.py`) lets AI agents — or power users — interact with the timesheet API from the command line. It supports listing clients, projects, tasks, and timekeepers, checking holidays, and creating or managing time entries. A companion `SKILL.md` provides step-by-step workflows so an agent can enter a full week of time on a user's behalf.
+- **Time Entry API Improvements**: The time entries list endpoint now supports filtering by timekeeper ID. When creating a new entry without a transaction number, one is auto-assigned; when updating an entry, the existing transaction number is preserved if a new value isn't supplied. This makes bulk entry creation from the CLI and other integrations more reliable.
+- **Container Deployment Fixes**: The Docker image now starts correctly thanks to fixes to PYTHONPATH, the uvicorn working directory, and the SQLite connection URL (which must use four slashes for an absolute path). Alembic migrations on container startup now handle pre-existing schemas gracefully.
+- **Pre-built Image Documentation**: The README now documents deploying from pre-built `ghcr.io` images, including the critical four-slash caveat for `TIMESHEET_SA_URL` and a full walkthrough in `docs/deploy-podman2024.md`.
+
 ## Version 0.3.3 - October 2026
 
 - **Copy Last Week's Hours**: When the Time Entry screen is empty and you have a Client and Project selected, a new purple "Copy Last Week's Hours" button appears. It searches backwards up to 12 weeks for the most recent week with matching entries and copies them into the current week, automatically skipping holidays.
