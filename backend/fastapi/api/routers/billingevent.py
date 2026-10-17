@@ -23,7 +23,7 @@ router = APIRouter(
     response_model=dict[str, dict[str, BillingEventJson]],
     dependencies=[Depends(JWTBearer())],    
 )
-def index(client_id: int = None, project_id: int = None, start_date: str = None, end_date: str = None, active: bool = True) -> dict[str, dict[str, BillingEventJson]]:
+def index(client_id: int = None, project_id: int = None, start_date: str = None, end_date: str = None, timekeeper_id: int = None, active: bool = True) -> dict[str, dict[str, BillingEventJson]]:
         cmap = {}
         if start_date is not None:
             start_date = datetime.datetime.fromisoformat(start_date)
@@ -31,7 +31,7 @@ def index(client_id: int = None, project_id: int = None, start_date: str = None,
             end_date = datetime.datetime.fromisoformat(end_date) + datetime.timedelta(days=1)
         
         BillingEventDao = daos.getBillingEventDao()
-        for row in BillingEventDao.getAll(client_id, project_id, start_date, end_date, include_inactive=not(active)):
+        for row in BillingEventDao.getAll(client_id, project_id, start_date, end_date, timekeeper_id=timekeeper_id, include_inactive=not(active)):
             j = BillingEventDao.toJson(row[0], row[1], row[2])
             cmap[ j.uid ] = j
             
@@ -74,6 +74,10 @@ def event_add(js: BillingEventJson) -> dict[ str, BillingEventJson]:
             if dbrec:
                 raise HTTPException(status_code=400, detail=f"event with uid={js.uid} already exists.")
         
+    # Auto-assign trans_num if not provided (DB column is NOT NULL)
+    if js.trans_num is None:
+        js.trans_num = eventDao.nextTransNum(js.timekeeper_id, js.project_id, js.task_id)
+    
     dbrec = eventDao.toModel(js)
     try:
         eventDao.save(dbrec)
@@ -103,6 +107,10 @@ def event_update(js: BillingEventJson) -> dict[ str, BillingEventJson]:
         raise HTTPException(status_code=404, detail=f"event with uid={js.uid} does not exist.")
     
     (dbrec, project_name, task_name) = result
+    
+    # Preserve trans_num if not provided in the update (DB column is NOT NULL)
+    if js.trans_num is None:
+        js.trans_num = dbrec.trans_num
     
     try:    
         dbrec = eventDao.update(dbrec, js)

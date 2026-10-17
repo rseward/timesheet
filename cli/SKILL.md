@@ -26,7 +26,12 @@ Use the timesheet CLI (`cli/timesheet.py`) to interact with the timesheet API on
    ```
    python3 cli/timesheet.py login --username rseward@bluestone-consulting.com --password <password>
    ```
-   The token is cached to `~/.timesheet-token` and reused for all subsequent commands. If the token expires, the CLI will print an error telling you to login again.
+   The token is cached to `~/.timesheet-token` and reused for all subsequent commands.
+   **Token lifetime**: The JWT expires approximately 30 minutes after login. If the token
+   expires, the CLI will print "Token expired or invalid" and clear the token file. The
+   user must run `login` again (the agent cannot do this -- it requires the user's password).
+   Plan batch operations to complete within the token window, or ask the user to re-login
+   if you encounter a 401 mid-task.
 
 ## CLI Command Reference
 
@@ -76,10 +81,12 @@ Use the timesheet CLI (`cli/timesheet.py`) to interact with the timesheet API on
 ### Time Entries (Billing Events)
 | Command | Description |
 |---------|-------------|
-| `timesheet entries list` | List time entries (supports `-c`, `-p`, `-s`, `-e`, `-t` filters) |
+| `timesheet entries list` | List time entries (supports `-c`, `-p`, `-s`, `-e`, `-t`, `--all`, `-f` filters) |
+| `timesheet entries list -f table` | List entries in a human-readable table with hours and totals |
+| `timesheet entries list -f summary` | List entries in a compact summary format |
 | `timesheet entries get <uid>` | Get a specific entry |
 | `timesheet entries create -p <project_id> -k <task_id> -t <timekeeper_id> -s <start> -e <end> -m <description>` | Create a new entry |
-| `timesheet entries update --uid <uid> [options]` | Update an existing entry |
+| `timesheet entries update --uid <uid> [options]` | Update an existing entry (supports `--trans-num`) |
 | `timesheet entries delete <uid>` | Delete (deactivate) an entry |
 | `timesheet entries next-trans-num <timekeeper_id> <project_id> <task_id>` | Get next transaction number |
 
@@ -91,6 +98,7 @@ Use the timesheet CLI (`cli/timesheet.py`) to interact with the timesheet API on
 | `timesheet time-entry week-info -t <timekeeper_id> -w <YYYY-MM-DD>` | Check if a week has entries, get previous week data |
 | `timesheet time-entry copy-week -t <timekeeper_id> -s <source_monday> -w <target_monday>` | Copy entries between weeks (skips holidays) |
 | `timesheet time-entry find-source-week -t <timekeeper_id> -w <target_monday> -p <project_id> [-k <task_id>]` | Find most recent week with matching entries |
+| `timesheet time-entry create-week -t <tk_id> -p <project_id> -k <task_id> -w <monday> -s HH:MM -e HH:MM -m "desc" [--lunch-breaks JSON] [--holidays -c <client_id>]` | Create a full week of entries with optional lunch breaks and holiday skipping |
 
 ## Agent Workflow: "Enter my time for Client, Project for the week"
 
@@ -146,7 +154,10 @@ Skip holidays when creating entries. Also skip weekends (Saturday/Sunday) by def
 
 ### Step 5: Get the Next Transaction Number (optional)
 
-If the API requires a trans_num:
+The `entries create` command automatically fetches the next transaction number
+if `--trans-num` is omitted. You only need to call `next-trans-num` explicitly
+if you want to see the number before creating the entry:
+
 ```
 timesheet entries next-trans-num <timekeeper_id> <project_id> <task_id>
 ```
@@ -170,12 +181,60 @@ If the user worked different hours on different days, create separate entries fo
 
 ### Step 7: Verify
 
-List the entries you just created:
+List the entries you just created in table format for easy verification:
 ```
-timesheet entries list -p <project_id> -s 2026-10-13 -e 2026-10-17
+timesheet entries list -p <project_id> -s 2026-10-13 -e 2026-10-17 -f table
 ```
 
 Confirm the entries match what the user requested.
+
+## Preferred Workflow: create-week (batch entry)
+
+For creating a full week of entries at once, use the `create-week` command
+instead of creating entries one by one. This is faster, handles trans_num
+auto-assignment, and supports lunch breaks and holiday skipping.
+
+### Simple week (no lunch breaks)
+```
+timesheet time-entry create-week \
+  -t <timekeeper_id> \
+  -p <project_id> \
+  -k <task_id> \
+  -w 2026-10-12 \
+  -s 09:00 -e 17:00 \
+  -m "Resolve Production Ingestion Issues"
+```
+
+### Week with lunch breaks (Tue/Wed Lansing days)
+```
+timesheet time-entry create-week \
+  -t <timekeeper_id> \
+  -p <project_id> \
+  -k <task_id> \
+  -w 2026-10-12 \
+  -s 09:00 -e 17:00 \
+  -m "Resolve Production Ingestion Issues" \
+  --lunch-breaks '{"tue":{"start":"11:30","end":"12:30"},"wed":{"start":"12:00","end":"13:00"}}'
+```
+
+When lunch breaks are provided, the day is split into two entries (AM/PM)
+with a gap, and the PM end time is extended by the lunch duration to
+maintain the same total billable hours (e.g. 1h lunch = work until 6 PM).
+
+### Week with holiday skipping
+```
+timesheet time-entry create-week \
+  -t <timekeeper_id> \
+  -p <project_id> \
+  -k <task_id> \
+  -w 2026-10-12 \
+  -s 09:00 -e 17:00 \
+  -m "Resolve Production Ingestion Issues" \
+  --holidays -c <client_id>
+```
+
+The output includes a summary with created_count, total_hours, and the
+details of each entry. Verify with `entries list -f table` afterwards.
 
 ## Alternative: Copy Week
 
@@ -198,9 +257,11 @@ All commands output JSON to stdout. Errors go to stderr with a non-zero exit cod
 
 ## Pitfalls
 
-- **Token expiration**: If you get "Token expired or invalid", run `timesheet login` again. The token file (`~/.timesheet-token`) is automatically cleared on 401 errors.
+- **Token expiration**: The JWT expires approximately 30 minutes after login. If you get "Token expired or invalid", ask the user to run `timesheet login` again. The token file (`~/.timesheet-token`) is automatically cleared on 401 errors. Plan batch operations to complete within the token window.
 - **Date format**: All dates use ISO 8601 (`YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS`). Week start dates must be Mondays.
 - **Timekeeper ID vs User ID**: These may differ. Always check `timekeepers list` if unsure.
 - **Weekend entries**: The copy-week feature skips weekends automatically. For manual entry, the agent should ask the user if they want weekend entries or skip them.
-- **Holiday skipping**: Always check holidays for the target week before creating entries. The `holidays check` command takes a client_id and date.
+- **Holiday skipping**: Always check holidays for the target week before creating entries. The `holidays check` command takes a client_id and date. The `create-week` command supports `--holidays -c <client_id>` to skip holidays automatically.
+- **trans_num required by API**: The DB column `trans_num` is NOT NULL. The CLI auto-fetches the next available trans_num via the `/api/events/nextid/` endpoint when `--trans-num` is not provided on both `create` and `update`. The server-side `event_add` and `event_update` endpoints also auto-assign/preserve trans_num (after the server rebuild). If you pass `--trans-num` explicitly, ensure it's the correct next number to avoid conflicts.
+- **Rob's lunch pattern**: Rob works 8 billable hours every day. On Tuesdays and Wednesdays (Lansing days) he takes a non-billable lunch break. Always ask for the lunch start/end times on those days, then split the day into two entries with a gap, extending the end time to compensate (e.g. 1h lunch = work until 6 PM instead of 5 PM). Other weekdays are typically a single 09:00-17:00 entry. Use `create-week --lunch-breaks` to handle this automatically.
 - **TIMESHEET_API_URL not set**: The CLI will exit with an error if the env var is missing. Set it in the shell profile or export it before running commands.

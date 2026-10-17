@@ -156,7 +156,7 @@ podman run -d \
   -v /home/rseward/data/timesheet:/data:Z \
   -e TIMESHEET_SQLITE=/data/timesheet.sqlite \
   -e TIMESHEET_SRC_HOME=/app/src \
-  -e TIMESHEET_SA_URL=sqlite:///data/timesheet.sqlite \
+  -e TIMESHEET_SA_URL=sqlite:////data/timesheet.sqlite \
   --restart unless-stopped \
   timesheet-app:latest
 ```
@@ -169,7 +169,7 @@ podman ps | grep timesheet
 # Should show running, port 8082->80
 
 # Health check
-curl -s http://localhost:8082/api/health
+curl -s http://127.0.0.1:8082/api/health
 # Should return JSON health status
 
 # Test the frontend
@@ -290,13 +290,13 @@ Create the Quadlet file at `/home/rseward/.config/containers/systemd/timesheet.c
 Description=Timesheet Application
 
 [Container]
-Image=timesheet-app:latest
+Image=ghcr.io/rseward/timesheet:sha-5f2fc91
 ContainerName=timesheet-app
 PublishPort=8082:80
 Volume=/home/rseward/data/timesheet:/data:Z
 Environment=TIMESHEET_SQLITE=/data/timesheet.sqlite
 Environment=TIMESHEET_SRC_HOME=/app/src
-Environment=TIMESHEET_SA_URL=sqlite:///data/timesheet.sqlite
+Environment=TIMESHEET_SA_URL=sqlite:////data/timesheet.sqlite
 
 [Service]
 Restart=always
@@ -305,12 +305,22 @@ Restart=always
 WantedBy=default.target
 ```
 
+**Important:** `TIMESHEET_SA_URL` must use four slashes for an absolute path
+(`sqlite:////data/timesheet.sqlite`), not three. With three slashes SQLAlchemy
+interprets the path as relative and the container will fail with "unable to
+open database file".
+
 Then:
 ```bash
 systemctl --user daemon-reload
 systemctl --user start timesheet
-systemctl --user enable timesheet
 ```
+
+Note: `systemctl --user enable timesheet` is NOT needed and will fail with
+"Unit is transient or generated". The Quadlet generator processes the
+`[Install]` section during `daemon-reload` and creates the
+`default.target.wants` symlink automatically. Verify with
+`systemctl --user is-enabled timesheet` (should report `generated`).
 
 **Verification:**
 ```bash
@@ -319,6 +329,9 @@ systemctl --user status timesheet
 
 podman ps | grep timesheet
 # Should show the container running
+
+curl -s http://127.0.0.1:8082/api/health
+# Should return {"status":"healthy"}
 ```
 
 ---

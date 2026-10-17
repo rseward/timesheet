@@ -8,14 +8,16 @@ import uuid
 from .basedao import BaseDao
 
 class BillingEventDao(BaseDao):
-    def getAll(self, client_id = None, project_id = None, start_date = None, end_date = None, include_inactive=False):
+    def getAll(self, client_id = None, project_id = None, start_date = None, end_date = None, timekeeper_id = None, include_inactive=False):
         q = self.getSession().query(BillingEvent, Project.title, Task.name)
-        q = q.filter(BillingEvent.project_id == Project.project_id)
-        q = q.filter(BillingEvent.task_id == Task.task_id)
+        q = q.outerjoin(Project, BillingEvent.project_id == Project.project_id)
+        q = q.outerjoin(Task, BillingEvent.task_id == Task.task_id)
         if client_id is not None:
             q = q.filter(Project.client_id == client_id)
         if project_id is not None:
             q = q.filter(BillingEvent.project_id == project_id)
+        if timekeeper_id is not None:
+            q = q.filter(BillingEvent.timekeeper_id == timekeeper_id)
         if start_date is not None:
             q = q.filter(BillingEvent.start_time >= start_date)
         if end_date is not None:
@@ -34,8 +36,8 @@ class BillingEventDao(BaseDao):
     def getById(self, aid: str) -> BillingEvent:
         print(aid)
         q = self.getSession().query(BillingEvent, Project.title, Task.name)
-        q = q.filter(BillingEvent.project_id == Project.project_id)
-        q = q.filter(BillingEvent.task_id == Task.task_id)
+        q = q.outerjoin(Project, BillingEvent.project_id == Project.project_id)
+        q = q.outerjoin(Task, BillingEvent.task_id == Task.task_id)
         
         return q.filter(BillingEvent.uid == aid).first()
 

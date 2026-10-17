@@ -116,10 +116,12 @@ everything.
 #### Deploy with pre-built image (ghcr.io)
 
 Pre-built images are published to `ghcr.io/rseward/timesheet` by GitHub Actions
-on every push to `main` and on `v*` tags. To deploy with podman:
+on every push to `main`. Images are tagged as `main`, `latest`, and
+`sha-<short-commit>` (e.g. `sha-5f2fc91`). Version tags (e.g. `0.3.3`) are
+also pushed when a git tag matches. To deploy with podman:
 
 ```
-podman pull ghcr.io/rseward/timesheet:v0.3.3
+podman pull ghcr.io/rseward/timesheet:sha-5f2fc91
 
 podman run -d --name timesheet-app \
   -p 8082:80 \
@@ -127,10 +129,10 @@ podman run -d --name timesheet-app \
   -e TIMESHEET_SQLITE=/data/timesheet.sqlite \
   -e TIMESHEET_SRC_HOME=/app/src \
   -e TIMESHEET_SA_URL=sqlite:////data/timesheet.sqlite \
-  ghcr.io/rseward/timesheet:v0.3.3
+  ghcr.io/rseward/timesheet:sha-5f2fc91
 
 # Verify
-curl -s http://localhost:8082/api/health
+curl -s http://127.0.0.1:8082/api/health
 ```
 
 **Important:** `TIMESHEET_SA_URL` must use four slashes for an absolute path

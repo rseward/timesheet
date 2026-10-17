@@ -335,7 +335,8 @@ def entries():
 @click.option("--end-date", "-e", help="End date (YYYY-MM-DD)")
 @click.option("--timekeeper-id", "-t", type=int, help="Filter by timekeeper ID")
 @click.option("--all", "include_all", is_flag=True, help="Include inactive entries")
-def entries_list(client_id, project_id, start_date, end_date, timekeeper_id, include_all):
+@click.option("--format", "-f", "output_format", type=click.Choice(["json", "table", "summary"]), default="json", help="Output format: json (default), table, or summary")
+def entries_list(client_id, project_id, start_date, end_date, timekeeper_id, include_all, output_format):
     """List time entries with optional filters."""
     params = {}
     if client_id:
@@ -346,10 +347,54 @@ def entries_list(client_id, project_id, start_date, end_date, timekeeper_id, inc
         params["start_date"] = start_date
     if end_date:
         params["end_date"] = end_date
+    if timekeeper_id:
+        params["timekeeper_id"] = timekeeper_id
     if include_all:
         params["active"] = False
     data = _request("GET", "/api/events/", params=params)
-    _print_json(data)
+
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    events = data.get("events", {}) if data else {}
+    entries = sorted(events.values(), key=lambda e: e.get("start_time", ""))
+
+    from datetime import datetime as _dt
+
+    if output_format == "table":
+        click.echo(f"{'Date':<12} {'Start':<6} {'End':<6} {'Hours':>5}  {'Task':<14} {'Trans':>5}  Description")
+        click.echo("-" * 80)
+        total_hours = 0.0
+        for e in entries:
+            s = _dt.fromisoformat(e["start_time"])
+            en = _dt.fromisoformat(e["end_time"])
+            hrs = (en - s).total_seconds() / 3600
+            total_hours += hrs
+            click.echo(
+                f"{e['start_time'][:10]:<12} "
+                f"{e['start_time'][11:16]:<6} "
+                f"{e['end_time'][11:16]:<6} "
+                f"{hrs:>5.1f}  "
+                f"{e.get('task_name', '?'):<14} "
+                f"{e.get('trans_num', '?'):>5}  "
+                f"{e.get('log_message', '')}"
+            )
+        click.echo("-" * 80)
+        click.echo(f"{'Total:':<33} {total_hours:>5.1f}h  ({len(entries)} entries)")
+
+    elif output_format == "summary":
+        total_hours = 0.0
+        for e in entries:
+            s = _dt.fromisoformat(e["start_time"])
+            en = _dt.fromisoformat(e["end_time"])
+            hrs = (en - s).total_seconds() / 3600
+            total_hours += hrs
+            click.echo(
+                f"  {e['start_time'][:10]}  {e['start_time'][11:16]}-{e['end_time'][11:16]}  "
+                f"{hrs:.1f}h  {e.get('task_name', '?')}  {e.get('log_message', '')}"
+            )
+        click.echo(f"\n  Total: {total_hours:.1f}h across {len(entries)} entries")
 
 
 @entries.command(name="get")
@@ -370,6 +415,16 @@ def entries_get(uid):
 @click.option("--trans-num", type=int, help="Transaction number (auto-assigned if omitted)")
 def entries_create(project_id, task_id, timekeeper_id, start_time, end_time, log_message, trans_num):
     """Create a new time entry."""
+    if trans_num is None:
+        # API requires trans_num; auto-fetch the next one if not provided
+        tn_data = _request("GET", f"/api/events/nextid/{timekeeper_id}/{project_id}/{task_id}")
+        if not tn_data:
+            click.echo("Error: Could not determine next transaction number.", err=True)
+            sys.exit(1)
+        trans_num = tn_data.get("next_trans_num")
+        if trans_num is None:
+            click.echo("Error: Could not determine next transaction number.", err=True)
+            sys.exit(1)
     body = {
         "project_id": project_id,
         "task_id": task_id,
@@ -377,10 +432,9 @@ def entries_create(project_id, task_id, timekeeper_id, start_time, end_time, log
         "start_time": start_time,
         "end_time": end_time,
         "log_message": log_message,
+        "trans_num": trans_num,
         "active": True,
     }
-    if trans_num is not None:
-        body["trans_num"] = trans_num
     data = _request("POST", "/api/events/", json_body=body)
     _print_json(data)
 
@@ -393,7 +447,8 @@ def entries_create(project_id, task_id, timekeeper_id, start_time, end_time, log
 @click.option("--start-time", "-s", help="Start time (YYYY-MM-DDTHH:MM:SS)")
 @click.option("--end-time", "-e", help="End time (YYYY-MM-DDTHH:MM:SS)")
 @click.option("--log-message", "-m", help="Description of work performed")
-def entries_update(uid, project_id, task_id, timekeeper_id, start_time, end_time, log_message):
+@click.option("--trans-num", type=int, help="Transaction number (preserved from existing entry if omitted)")
+def entries_update(uid, project_id, task_id, timekeeper_id, start_time, end_time, log_message, trans_num):
     """Update an existing time entry."""
     # Fetch existing entry to merge changes
     existing = _request("GET", f"/api/events/{uid}")
@@ -407,6 +462,7 @@ def entries_update(uid, project_id, task_id, timekeeper_id, start_time, end_time
         "start_time": start_time if start_time is not None else event.get("start_time"),
         "end_time": end_time if end_time is not None else event.get("end_time"),
         "log_message": log_message if log_message is not None else event.get("log_message", ""),
+        "trans_num": trans_num if trans_num is not None else event.get("trans_num"),
         "active": event.get("active", True),
     }
     data = _request("PUT", "/api/events/", json_body=body)
@@ -509,6 +565,193 @@ def time_entry_find_source_week(timekeeper_id, target_week, project_id, task_id,
         params["task_id"] = task_id
     data = _request("GET", "/api/time-entry/find-source-week", params=params)
     _print_json(data)
+
+
+@time_entry_group.command(name="create-week")
+@click.option("--timekeeper-id", "-t", type=int, required=True, help="Timekeeper ID")
+@click.option("--project-id", "-p", type=int, required=True, help="Project ID")
+@click.option("--task-id", "-k", type=int, required=True, help="Task ID")
+@click.option("--week-start", "-w", required=True, help="Week start date (YYYY-MM-DD, Monday)")
+@click.option("--start-time", "-s", required=True, help="Default daily start time (HH:MM)")
+@click.option("--end-time", "-e", required=True, help="Default daily end time (HH:MM)")
+@click.option("--log-message", "-m", required=True, help="Description of work performed")
+@click.option("--days", "-d", default="mon-fri", help="Days to create entries for: comma-separated weekday names (mon,tue,wed,thu,fri) or 'mon-fri'")
+@click.option("--lunch-breaks", help="Lunch breaks as JSON: {\"tue\":{\"start\":\"11:30\",\"end\":\"12:30\"},\"wed\":{\"start\":\"12:00\",\"end\":\"13:00\"}}. The end time for that day is extended by the lunch duration to maintain total hours.")
+@click.option("--holidays", is_flag=True, help="Skip holidays for the client (requires --client-id)")
+@click.option("--client-id", "-c", type=int, help="Client ID (for holiday checking with --holidays)")
+def time_entry_create_week(timekeeper_id, project_id, task_id, week_start, start_time, end_time, log_message, days, lunch_breaks, holidays, client_id):
+    """Create a full week of time entries in one call.
+
+    Creates one or two entries per day (split around lunch breaks) for the
+    specified days. When a lunch break is provided for a day, that day is
+    split into two entries with a gap, and the end time is extended by the
+    lunch duration to maintain total billable hours.
+
+    Examples:
+      # Simple Mon-Fri, 9-5
+      timesheet time-entry create-week -t 1 -p 6 -k 19 -w 2026-10-12 \\
+        -s 09:00 -e 17:00 -m "Resolve Production Ingestion Issues"
+
+      # With Tuesday/Wednesday lunch breaks
+      timesheet time-entry create-week -t 1 -p 6 -k 19 -w 2026-10-12 \\
+        -s 09:00 -e 17:00 -m "Resolve Production Ingestion Issues" \\
+        --lunch-breaks '{"tue":{"start":"11:30","end":"12:30"},"wed":{"start":"12:00","end":"13:00"}}'
+    """
+    import datetime as dt
+    import json as _json
+
+    weekday_names = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
+
+    # Parse --days
+    if days == "mon-fri":
+        target_weekdays = {0, 1, 2, 3, 4}
+    else:
+        target_weekdays = set()
+        for d in days.split(","):
+            d = d.strip().lower()
+            if d in weekday_names:
+                target_weekdays.add(weekday_names[d])
+
+    # Parse lunch breaks
+    lunch = {}
+    if lunch_breaks:
+        try:
+            lunch = _json.loads(lunch_breaks)
+        except _json.JSONDecodeError as e:
+            click.echo(f"Error: Invalid JSON in --lunch-breaks: {e}", err=True)
+            sys.exit(1)
+
+    # Parse week start date
+    try:
+        week_start_date = dt.date.fromisoformat(week_start)
+    except ValueError:
+        click.echo(f"Error: Invalid week_start date '{week_start}'. Use YYYY-MM-DD.", err=True)
+        sys.exit(1)
+
+    if week_start_date.weekday() != 0:
+        click.echo(f"Error: week_start must be a Monday. '{week_start}' is a {week_start_date.strftime('%A')}.", err=True)
+        sys.exit(1)
+
+    # Parse default start/end times
+    try:
+        default_start = dt.datetime.strptime(start_time, "%H:%M").time()
+        default_end = dt.datetime.strptime(end_time, "%H:%M").time()
+    except ValueError:
+        click.echo(f"Error: Invalid time format. Use HH:MM.", err=True)
+        sys.exit(1)
+
+    # Build the list of entries to create
+    entries_to_create = []
+
+    for day_offset in range(7):
+        current_date = week_start_date + dt.timedelta(days=day_offset)
+        if current_date.weekday() not in target_weekdays:
+            continue
+
+        # Check holiday if enabled
+        if holidays and client_id is not None:
+            hol_data = _request("GET", "/api/holidays/check-date", params={"client_id": client_id, "date": current_date.isoformat()})
+            if hol_data and hol_data.get("is_holiday"):
+                click.echo(f"  Skipping {current_date.isoformat()} ({current_date.strftime('%a')}) - holiday: {hol_data.get('holiday_name', 'unknown')}", err=True)
+                continue
+
+        day_key = current_date.strftime("%a").lower()
+        day_lunch = lunch.get(day_key)
+
+        if day_lunch:
+            # Split day around lunch break
+            lunch_start = dt.datetime.strptime(day_lunch["start"], "%H:%M").time()
+            lunch_end = dt.datetime.strptime(day_lunch["end"], "%H:%M").time()
+            lunch_duration = dt.datetime.combine(current_date, lunch_end) - dt.datetime.combine(current_date, lunch_start)
+
+            # Morning entry
+            am_start = dt.datetime.combine(current_date, default_start)
+            am_end = dt.datetime.combine(current_date, lunch_start)
+            entries_to_create.append({
+                "date": current_date.isoformat(),
+                "start": am_start.isoformat(),
+                "end": am_end.isoformat(),
+                "label": f"{current_date.strftime('%a')} AM",
+            })
+
+            # Afternoon entry -- extend end time by lunch duration to compensate
+            pm_start = dt.datetime.combine(current_date, lunch_end)
+            pm_end = dt.datetime.combine(current_date, default_end) + lunch_duration
+            entries_to_create.append({
+                "date": current_date.isoformat(),
+                "start": pm_start.isoformat(),
+                "end": pm_end.isoformat(),
+                "label": f"{current_date.strftime('%a')} PM",
+            })
+        else:
+            # Single entry for the day
+            day_start = dt.datetime.combine(current_date, default_start)
+            day_end = dt.datetime.combine(current_date, default_end)
+            entries_to_create.append({
+                "date": current_date.isoformat(),
+                "start": day_start.isoformat(),
+                "end": day_end.isoformat(),
+                "label": current_date.strftime("%a"),
+            })
+
+    if not entries_to_create:
+        click.echo("No entries to create (all days were holidays or no days selected).", err=True)
+        sys.exit(1)
+
+    # Get starting trans_num
+    tn_data = _request("GET", f"/api/events/nextid/{timekeeper_id}/{project_id}/{task_id}")
+    if not tn_data:
+        click.echo("Error: Could not determine next transaction number.", err=True)
+        sys.exit(1)
+    next_trans = tn_data.get("next_trans_num")
+    if next_trans is None:
+        click.echo("Error: Could not determine next transaction number.", err=True)
+        sys.exit(1)
+
+    # Create entries
+    created = []
+    failed = []
+    for entry in entries_to_create:
+        body = {
+            "project_id": project_id,
+            "task_id": task_id,
+            "timekeeper_id": timekeeper_id,
+            "start_time": entry["start"],
+            "end_time": entry["end"],
+            "log_message": log_message,
+            "trans_num": next_trans,
+            "active": True,
+        }
+        try:
+            data = _request("POST", "/api/events/", json_body=body)
+            created.append({
+                "label": entry["label"],
+                "date": entry["date"],
+                "start": entry["start"][11:16],
+                "end": entry["end"][11:16],
+                "trans_num": next_trans,
+                "uid": data.get("added", {}).get("uid") if data else None,
+            })
+            next_trans += 1
+        except SystemExit:
+            failed.append({"label": entry["label"], "date": entry["date"]})
+            next_trans += 1
+
+    # Summary output
+    total_hours = 0.0
+    for c in created:
+        start_dt = dt.datetime.fromisoformat(f"{c['date']}T{c['start']}:00")
+        end_dt = dt.datetime.fromisoformat(f"{c['date']}T{c['end']}:00")
+        total_hours += (end_dt - start_dt).total_seconds() / 3600
+
+    click.echo(json.dumps({
+        "success": len(failed) == 0,
+        "created_count": len(created),
+        "failed_count": len(failed),
+        "total_hours": round(total_hours, 1),
+        "created": created,
+        "failed": failed,
+    }, indent=2))
 
 
 # --- Health ----------------------------------------------------------------
