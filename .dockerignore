@@ -7,14 +7,14 @@ yarn-debug.log*
 yarn-error.log*
 
 # Python cache and virtual environments
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
+**/build/
 develop-eggs/
-dist/
+**/dist/
 downloads/
 eggs/
 .eggs/
@@ -24,7 +24,7 @@ parts/
 sdist/
 var/
 wheels/
-*.egg-info/
+**/*.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
@@ -70,7 +70,7 @@ coverage/
 .nyc_output/
 .coverage
 htmlcov/
-.pytest_cache/
+**/.pytest_cache/
 test-results/
 
 # Logs
