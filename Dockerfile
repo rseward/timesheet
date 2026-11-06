@@ -36,6 +36,10 @@ COPY backend/requirements.txt ./
 # Install Python dependencies using uv
 RUN uv pip install --system -r requirements.txt
 
+# Copy backend source and install the package so importlib.metadata can find the version
+COPY backend/ ./
+RUN uv pip install --system .
+
 FROM fedora:latest AS runtime
 
 # Install nginx, supervisor, python, nodejs, npm, and curl

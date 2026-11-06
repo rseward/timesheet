@@ -66,7 +66,12 @@ async def debug_info():
 
 @app.get("/api/health")
 async def health():
-    return {"status": "healthy"}
+    try:
+        from importlib.metadata import version as _pkg_version
+        pkg_version = _pkg_version("bluestone-timesheet")
+    except Exception:
+        pkg_version = "unknown"
+    return {"status": "healthy", "version": pkg_version}
 
 @app.get("/api/login")
 async def api_login(username: str, password: str):

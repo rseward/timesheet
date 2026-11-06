@@ -31,23 +31,80 @@ def is_holiday(date: datetime.date, client_id: Optional[int] = None) -> bool:
     """Check if date is a holiday for client or federal.
     
     Holidays stored with client_id=0 are federal holidays.
+    When client_id is provided, checks both client-specific AND federal holidays.
+    When client_id is None or 0, checks only federal holidays.
     """
     HolidayDao = daos.getHolidayDao()
     if not HolidayDao:
         return False
     
-    # Check client-specific holidays
-    if client_id:
-        holidays = HolidayDao.getAll(client_id=client_id, year=date.year)
-        if any(h.holiday_date == date for h in holidays):
-            return True
+    # checkDateIsHoliday handles both client-specific and federal (client_id=0)
+    # in a single query using an OR clause
+    holiday = HolidayDao.checkDateIsHoliday(client_id or 0, date)
+    return holiday is not None
+
+
+def get_holiday_info(date: datetime.date, client_id: Optional[int] = None) -> Optional[dict]:
+    """Get holiday details if date is a holiday, else return None.
     
-    # Check federal holidays (client_id=0)
-    federal_holidays = HolidayDao.getFederalHolidays(year=date.year)
-    if any(h.holiday_date == date for h in federal_holidays):
-        return True
+    Returns dict with: name, description, is_federal, client_id
+    """
+    HolidayDao = daos.getHolidayDao()
+    if not HolidayDao:
+        return None
     
-    return False
+    holiday = HolidayDao.checkDateIsHoliday(client_id or 0, date)
+    if holiday is None:
+        return None
+    
+    return {
+        "name": holiday.name,
+        "description": holiday.description,
+        "is_federal": holiday.client_id == 0,
+        "client_id": holiday.client_id,
+        "holiday_date": date.isoformat()
+    }
+
+
+def enforce_holiday_restriction(entry_date: datetime.date, client_id: Optional[int] = None) -> None:
+    """Raise HTTPException if the given date is a holiday for the client.
+    
+    This is the shared enforcement function that all time-entry endpoints
+    should call to prevent time entries on holidays (Ticket #297).
+    
+    Args:
+        entry_date: The date to check
+        client_id: The client ID for client-specific holiday checking.
+                   If None, only federal holidays are checked.
+    
+    Raises:
+        HTTPException: 400 if the date is a holiday
+    """
+    holiday_info = get_holiday_info(entry_date, client_id)
+    if holiday_info:
+        holiday_type = "federal" if holiday_info["is_federal"] else "client-specific"
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Cannot create or modify time entries for {entry_date.isoformat()} "
+                f"because it is a {holiday_type} holiday: {holiday_info['name']}. "
+                f"Holiday time entry restrictions are enforced for this client."
+            )
+        )
+
+
+def _get_client_id_for_project(project_id: int) -> Optional[int]:
+    """Look up the client_id for a given project_id.
+    
+    Returns None if the project doesn't exist or client_id can't be determined.
+    """
+    ProjectDao = daos.getProjectDao()
+    if not ProjectDao:
+        return None
+    result = ProjectDao._getById(project_id)
+    if result:
+        return result.client_id
+    return None
 
 
 def has_late_entry(date: datetime.date, timekeeper_id: int,
@@ -251,14 +308,15 @@ def get_default_times(
 )
 def get_week_info(
     timekeeper_id: int = Query(..., description="Timekeeper user ID"),
-    week_start_date: str = Query(..., description="Start date of the week to check (YYYY-MM-DD)")
+    week_start_date: str = Query(..., description="Start date of the week to check (YYYY-MM-DD)"),
+    client_id: Optional[int] = Query(None, description="Client ID (for client-specific holiday checking)")
 ) -> Dict[str, Any]:
     """Get information about a week's time entries and offer to copy from previous week.
     
     Returns:
         - has_entries: bool - whether the week already has time entries
         - previous_week_entries: list - entries from the previous week (for copy feature)
-        - holidays: list - holidays in the target week (to avoid copying to those days)
+        - holidays: list - holidays in the target week (both federal AND client-specific)
     """
     import datetime
     from dateutil.relativedelta import relativedelta
@@ -278,6 +336,7 @@ def get_week_info(
     
     BillingEventDao = daos.getBillingEventDao()
     HolidayDao = daos.getHolidayDao()
+    ProjectDao = daos.getProjectDao()
     
     # Check if week already has entries
     week_end = week_start + relativedelta(days=6)
@@ -297,17 +356,25 @@ def get_week_info(
         timekeeper_id, prev_start_dt, prev_end_dt
     )
     
-    # Get holidays for the target week
+    # Infer client_id from first previous entry's project if not provided
+    effective_client_id = client_id
+    if effective_client_id is None and previous_entries and ProjectDao:
+        first_project = ProjectDao._getById(previous_entries[0].project_id)
+        if first_project:
+            effective_client_id = first_project.client_id
+    
+    # Get holidays for the target week - check BOTH client-specific AND federal
+    # Previously only checked federal (client_id=0), missing client-specific holidays (Ticket #297)
     holidays = []
     current_date = week_start
     while current_date <= week_end:
-        # Check both client-specific and federal holidays
-        federal_check = HolidayDao.checkDateIsHoliday(0, current_date) if HolidayDao else None
-        if federal_check:
+        holiday_check = HolidayDao.checkDateIsHoliday(effective_client_id or 0, current_date) if HolidayDao else None
+        if holiday_check:
             holidays.append({
                 "date": current_date.isoformat(),
-                "name": federal_check.name,
-                "is_federal": True
+                "name": holiday_check.name,
+                "is_federal": holiday_check.client_id == 0,
+                "client_id": holiday_check.client_id
             })
         current_date += datetime.timedelta(days=1)
     
@@ -357,14 +424,18 @@ def get_week_info(
 def copy_week_entries(
     timekeeper_id: int = Query(..., description="Timekeeper user ID"),
     source_week_start: str = Query(..., description="Source week start date (YYYY-MM-DD)"),
-    target_week_start: str = Query(..., description="Target week start date (YYYY-MM-DD)")
+    target_week_start: str = Query(..., description="Target week start date (YYYY-MM-DD)"),
+    client_id: Optional[int] = Query(None, description="Client ID (for client-specific holiday checking)")
 ) -> Dict[str, Any]:
     """Copy time entries from one week to another, skipping holidays.
     
     This implements the "Predictive Time Entry" feature:
     1. When entering data for a new week with no entries
     2. Offer to copy hours from the previous week
-    3. Skip any days that might be holidays
+    3. Skip any days that might be holidays (both federal AND client-specific)
+    
+    If client_id is not provided, it is inferred from the first source entry's
+    project_id (Ticket #297).
     """
     import datetime
     from dateutil.relativedelta import relativedelta
@@ -382,6 +453,7 @@ def copy_week_entries(
     
     HolidayDao = daos.getHolidayDao()
     BillingEventDao = daos.getBillingEventDao()
+    ProjectDao = daos.getProjectDao()
     
     # Get source week entries
     source_end = source_start + relativedelta(days=6)
@@ -392,12 +464,20 @@ def copy_week_entries(
         timekeeper_id, src_start_dt, src_end_dt
     )
     
-    # Get holidays in target week
+    # Infer client_id from first source entry's project if not provided
+    effective_client_id = client_id
+    if effective_client_id is None and source_entries and ProjectDao:
+        first_project = ProjectDao._getById(source_entries[0].project_id)
+        if first_project:
+            effective_client_id = first_project.client_id
+    
+    # Get holidays in target week - check BOTH client-specific AND federal
+    # Previously only checked federal (client_id=0), missing client-specific holidays (Ticket #297)
     target_holidays = set()
     target_end = target_start + relativedelta(days=6)
     current_date = target_start
     while current_date <= target_end:
-        if HolidayDao and HolidayDao.checkDateIsHoliday(0, current_date):
+        if HolidayDao and HolidayDao.checkDateIsHoliday(effective_client_id or 0, current_date):
             target_holidays.add(current_date)
         current_date += datetime.timedelta(days=1)
     

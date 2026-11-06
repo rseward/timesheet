@@ -8,6 +8,7 @@ from bluestone.timesheet.jsonmodels import BillingEventJson
 
 from bluestone.timesheet.data.daos import getDaoFactory
 from bluestone.timesheet.auth.auth_bearer import JWTBearer, JWT_SECRET_KEY_ALGORITHMS
+from api.routers.time_entry import enforce_holiday_restriction, _get_client_id_for_project
 
 daos = getDaoFactory()
 
@@ -78,6 +79,12 @@ def event_add(js: BillingEventJson) -> dict[ str, BillingEventJson]:
     if js.trans_num is None:
         js.trans_num = eventDao.nextTransNum(js.timekeeper_id, js.project_id, js.task_id)
     
+    # Enforce holiday restriction: look up client_id from project_id and check
+    # if the entry's start date is a holiday for that client (Ticket #297)
+    entry_date = js.start_time.date() if hasattr(js.start_time, 'date') else js.start_time
+    client_id = _get_client_id_for_project(js.project_id)
+    enforce_holiday_restriction(entry_date, client_id)
+    
     dbrec = eventDao.toModel(js)
     try:
         eventDao.save(dbrec)
@@ -111,6 +118,12 @@ def event_update(js: BillingEventJson) -> dict[ str, BillingEventJson]:
     # Preserve trans_num if not provided in the update (DB column is NOT NULL)
     if js.trans_num is None:
         js.trans_num = dbrec.trans_num
+    
+    # Enforce holiday restriction: if the update changes the start_time date,
+    # check if the new date is a holiday for the project's client (Ticket #297)
+    new_entry_date = js.start_time.date() if hasattr(js.start_time, 'date') else js.start_time
+    client_id = _get_client_id_for_project(js.project_id)
+    enforce_holiday_restriction(new_entry_date, client_id)
     
     try:    
         dbrec = eventDao.update(dbrec, js)

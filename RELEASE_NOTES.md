@@ -1,5 +1,11 @@
 # Timesheet Release Notes
 
+## Version 0.3.5 - October 2026
+
+- **Client-Specific Holiday Enforcement (Ticket #297)**: Time entries are now blocked on holidays specific to a client, not just federal holidays. The week-info and copy-week endpoints (and the CLI's `week-info` / `copy-week` commands) accept a `client_id`, which is inferred from the entry's project when omitted. Creating or updating a billing event on a holiday for its client now returns a clear error.
+- **Health Endpoint Reports Version**: `/api/health` now returns the running package version alongside the status, making it easier to verify which build is deployed.
+- **Container Build Fix**: The Docker image now installs the backend package during the build so `importlib.metadata` can resolve the version at runtime.
+
 ## Version 0.3.4 - October 2026
 
 - **Timesheet CLI for Agent Integration**: A new Python CLI tool (`cli/timesheet.py`) lets AI agents — or power users — interact with the timesheet API from the command line. It supports listing clients, projects, tasks, and timekeepers, checking holidays, and creating or managing time entries. A companion `SKILL.md` provides step-by-step workflows so an agent can enter a full week of time on a user's behalf.

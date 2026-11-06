@@ -524,12 +524,16 @@ def time_entry_default_times(timekeeper_id):
 @time_entry_group.command(name="week-info")
 @click.option("--timekeeper-id", "-t", type=int, required=True, help="Timekeeper ID")
 @click.option("--week-start", "-w", required=True, help="Week start date (YYYY-MM-DD, must be Monday)")
-def time_entry_week_info(timekeeper_id, week_start):
+@click.option("--client-id", "-c", type=int, help="Client ID (for client-specific holiday checking)")
+def time_entry_week_info(timekeeper_id, week_start, client_id):
     """Get week info: has entries, previous week entries, holidays."""
-    data = _request("GET", "/api/time-entry/week-info", params={
+    params = {
         "timekeeper_id": timekeeper_id,
         "week_start_date": week_start,
-    })
+    }
+    if client_id:
+        params["client_id"] = client_id
+    data = _request("GET", "/api/time-entry/week-info", params=params)
     _print_json(data)
 
 
@@ -537,13 +541,17 @@ def time_entry_week_info(timekeeper_id, week_start):
 @click.option("--timekeeper-id", "-t", type=int, required=True, help="Timekeeper ID")
 @click.option("--source-week", "-s", required=True, help="Source week start (YYYY-MM-DD, Monday)")
 @click.option("--target-week", "-w", required=True, help="Target week start (YYYY-MM-DD, Monday)")
-def time_entry_copy_week(timekeeper_id, source_week, target_week):
+@click.option("--client-id", "-c", type=int, help="Client ID (for client-specific holiday checking)")
+def time_entry_copy_week(timekeeper_id, source_week, target_week, client_id):
     """Copy time entries from one week to another, skipping holidays."""
-    data = _request("POST", "/api/time-entry/copy-week", params={
+    params = {
         "timekeeper_id": timekeeper_id,
         "source_week_start": source_week,
         "target_week_start": target_week,
-    })
+    }
+    if client_id:
+        params["client_id"] = client_id
+    data = _request("POST", "/api/time-entry/copy-week", params=params)
     _print_json(data)
 
 
