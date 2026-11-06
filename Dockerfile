@@ -1,7 +1,9 @@
 # Multi-stage Dockerfile for Timesheet Application
 # Combines FastAPI backend, Vue.js frontend, and NGINX proxy
 
-FROM fedora:latest AS frontend-builder
+# Pin to fedora:44: fedora:latest rolled to Python 3.15, which lacks prebuilt
+# wheels for tree-sitter (pulled in transitively by sqlit-tui) and breaks the build.
+FROM fedora:44 AS frontend-builder
 
 # Install Node.js and npm
 RUN dnf install -y nodejs npm && dnf clean all
@@ -19,7 +21,7 @@ COPY frontend/web/ ./
 # Build the Vue.js application (skip TypeScript check for container build)
 RUN npx vite build
 
-FROM fedora:latest AS backend-builder
+FROM fedora:44 AS backend-builder
 
 # Install Python and pip
 RUN dnf install -y python3 python3-pip && dnf clean all
@@ -40,7 +42,7 @@ RUN uv pip install --system -r requirements.txt
 COPY backend/ ./
 RUN uv pip install --system .
 
-FROM fedora:latest AS runtime
+FROM fedora:44 AS runtime
 
 # Install nginx, supervisor, python, nodejs, npm, and curl
 RUN dnf install -y nginx supervisor python3 python3-pip nodejs npm curl && dnf clean all
